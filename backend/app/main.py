@@ -6,6 +6,7 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
 from app.api.health import router as health_router
+from app.ai.router import router as ai_router
 from app.auth.router import router as auth_router
 from app.assessments.router import router as assessments_router
 from app.competencies.router import router as competencies_router
@@ -62,6 +63,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     application.include_router(roles_router, prefix=app_settings.api_prefix)
     application.include_router(skill_gaps_router, prefix=app_settings.api_prefix)
     application.include_router(users_router, prefix=app_settings.api_prefix)
+    application.include_router(ai_router, prefix=app_settings.api_prefix)
 
     @application.exception_handler(Exception)
     async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
