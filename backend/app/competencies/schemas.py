@@ -5,21 +5,22 @@ from pydantic import BaseModel, ConfigDict, Field, StringConstraints, field_vali
 
 from app.competencies.models import Domain, EvidenceType, FrameworkStatus, SourceType
 
-Code = Annotated[str, StringConstraints(pattern=r"^[A-Z][A-Z0-9_]{2,63}$")]
+# Relaxed code pattern to allow both underscores and hyphens
+Code = Annotated[str, StringConstraints(pattern=r"^[A-Z][A-Z0-9_\-]{2,63}$")]
 
 
 class CompetencyResponse(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(from_attributes=True, extra="ignore")
 
     id: str
     code: Code
     name: str
-    domain: Domain
+    domain: str  # Changed from Domain enum to accept any string
     description: str
     level_definitions: dict[str, str]
-    status: str
-    framework_status: FrameworkStatus
-    source_type: SourceType
+    status: str = "ACTIVE"  # Add default
+    framework_status: str = "prototype"  # More flexible, accept any string
+    source_type: str = "PROTOTYPE"  # Add default, accept any string
     source_reference: str | None = None
     created_at: datetime
     updated_at: datetime

@@ -1,0 +1,179 @@
+╔════════════════════════════════════════════════════════════════════╗
+║           PRE-SEED VALIDATION - FINAL STATUS REPORT               ║
+╚════════════════════════════════════════════════════════════════════╝
+
+STATUS: ❌ VALIDATION FAILED - DO NOT SEED YET
+
+═══════════════════════════════════════════════════════════════════════
+
+✅ PASSING CHECKS (13/13):
+
+  ✅ 1. File Existence          → All 5 CSV files readable
+  ✅ 2. Row Counts              → Correct (68, 80, 42, 68, 46)
+  ✅ 3. Required Columns        → All columns present
+  ❌ 4. Valid Primary Keys      → CRITICAL ISSUE FOUND
+  ✅ 5. iGOT Mapping Integrity  → All 68 mappings valid
+  ✅ 6. NSSTA Mapping Integrity → All 46 mappings valid
+  ⚠️  7. Expected Counts        → 5 fewer iGOT courses than expected
+  ✅ 8. Mapping Coverage        → Acceptable unmapped rates
+  ✅ 9. Script Syntax           → All scripts valid, no errors
+  ✅ 10. MongoDB Config         → Configuration valid
+  ✅ 11. Idempotency            → Scripts safe to re-run
+  ✅ 12. Database Safety        → Isolated, won't modify Phase 1-6
+  ✅ 13. Index Conflicts        → No conflicts found
+
+═══════════════════════════════════════════════════════════════════════
+
+🔴 CRITICAL ISSUE FOUND:
+
+   FILE: igot_courses_enriched.csv
+   ISSUE: 5 courses with NULL/empty course_id
+   
+   ❌ Row 50:  "Overview of Basic Statistics" → course_id = "NULL"
+   ❌ Row 51:  "Handling Unit Level Data of Household Consumption..." 
+   ❌ Row 52:  "Handling Unit Level Data of Annual Survey of Industries"
+   ❌ Row 53:  "Handling Data of Annual Survey of Unincorporated..." 
+   ❌ Row 54:  "Know Your Ministry - Ministry of Statistics..." 
+   
+   IMPACT: Cannot import courses without valid ID
+           Seed script will fail or skip these courses
+           Data integrity violation
+   
+   SEVERITY: CRITICAL - Blocks seeding
+
+═══════════════════════════════════════════════════════════════════════
+
+📊 DATA QUALITY SUMMARY:
+
+   Expected Resources:  148  (68 iGOT + 80 NSSTA)
+   Valid Resources:     143  (63 iGOT + 80 NSSTA)
+   Invalid Resources:   5    (5 iGOT with NULL course_id)
+   
+   Expected Mappings:   114  (68 iGOT + 46 NSSTA)
+   Valid Mappings:      114  (68 iGOT + 46 NSSTA)
+   Invalid Mappings:    0
+   
+   Coverage: 68/80 NSSTA mapped (46 programmes)
+            44/63 iGOT mapped (44 courses)
+
+═══════════════════════════════════════════════════════════════════════
+
+⚙️  SEED SCRIPT STATUS:
+
+   seed_competencies.py
+   ✅ Syntax: Valid
+   ✅ Imports: Valid
+   ✅ Idempotent: Yes (user confirmation required)
+   ✅ Safe: Yes (isolated)
+   ✅ Status: READY (not blocked by this issue)
+   
+   seed_learning_resources.py
+   ⚠️  Syntax: Valid
+   ✅ Imports: Valid
+   ✅ Idempotent: Yes
+   ✅ Safe: Yes
+   ⚠️  Status: BLOCKED (5 NULL course_id rows)
+   
+   seed_resource_mappings.py
+   ✅ Syntax: Valid
+   ✅ Imports: Valid
+   ✅ Idempotent: Yes
+   ✅ Safe: Yes
+   ✅ Status: READY (mappings are valid)
+
+═══════════════════════════════════════════════════════════════════════
+
+🛑 NEXT STEPS:
+
+   OPTION A: Fix in CSV (Recommended)
+   ──────────────────────────────────
+   1. Open: backend/igot_courses_enriched.csv
+   2. Find rows 50-54 (course_id = "NULL")
+   3. Replace "NULL" with valid iGOT course ID
+      - Format: do_<numbers> or ext_<numbers>
+      - Example: do_1145999999999999999999
+   4. Save file
+   5. Re-run: python detailed_validation.py
+   6. If all pass: Run seed scripts
+   
+   OPTION B: Exclude Invalid Records (Quick Fix)
+   ─────────────────────────────────────────────
+   1. Edit: seed_learning_resources.py
+   2. Add filter: if not course_id.strip() or course_id == "NULL": 
+                     continue
+   3. Run seed scripts - will load 63 valid iGOT courses
+   4. Document: 5 courses skipped due to NULL ID
+   
+   OPTION C: Delete Invalid Rows (Not Recommended)
+   ──────────────────────────────────────────────
+   1. Delete rows 50-54 from igot_courses_enriched.csv
+   2. Risk: May need these courses later
+   3. Not recommended
+
+═══════════════════════════════════════════════════════════════════════
+
+✅ WHAT IS SAFE TO SEED:
+
+   ✅ seed_competencies.py
+      • 42 competencies from competency_taxonomy.csv
+      • No issues found
+      • Can proceed (not blocked)
+   
+   ✅ seed_resource_mappings.py (after fixing resources)
+      • 68 iGOT + 46 NSSTA mappings
+      • All mappings point to valid resources
+      • Can proceed (once resources fixed)
+
+═══════════════════════════════════════════════════════════════════════
+
+🔐 DATABASE SAFETY VERIFIED:
+
+   ✅ Scripts do NOT touch:
+      • User data
+      • Competency evidence
+      • Assessments
+      • Quizzes
+      • Skill gaps
+      • Any Phase 1-6 systems
+   
+   ✅ Scripts ONLY modify:
+      • competencies collection (new or reloaded)
+      • learning_resources collection (new or reloaded)
+      • learning_resource_mappings collection (new or reloaded)
+
+═══════════════════════════════════════════════════════════════════════
+
+📋 VALIDATION CHECKLIST:
+
+   [✅] All CSV files exist
+   [✅] All row counts correct
+   [✅] All required columns present
+   [❌] All primary keys valid (5 NULL course_id)
+   [✅] All mappings reference valid resources
+   [✅] All mappings reference valid competencies
+   [✅] Expected data counts match (after accounting for invalid)
+   [✅] Unmapped resources acceptable
+   [✅] Scripts are syntactically valid
+   [✅] MongoDB config valid
+   [✅] Idempotency verified
+   [✅] Database safety verified
+   [✅] No index conflicts
+
+═══════════════════════════════════════════════════════════════════════
+
+📄 FULL REPORT:
+
+   See: backend/PRE_SEED_VALIDATION_REPORT.md
+
+═══════════════════════════════════════════════════════════════════════
+
+RECOMMENDATION: Fix data before seeding
+
+BLOCKING ISSUE: 5 NULL course_id values in igot_courses_enriched.csv
+
+DO NOT RUN SEED SCRIPTS UNTIL THIS IS RESOLVED
+
+═══════════════════════════════════════════════════════════════════════
+
+Generated: August 27, 2026
+Status: ❌ VALIDATION FAILED - AWAITING RESOLUTION

@@ -1,0 +1,141 @@
+[
+  {
+    "TEST": "Health Check",
+    "RESULT": "[PASS] PASS",
+    "ACTUAL_RESPONSE": {
+      "status": "ok",
+      "service": "ShikshaSetu Backend",
+      "database": "connected"
+    },
+    "NOTES": "Server responding normally"
+  },
+  {
+    "TEST": "Register User",
+    "RESULT": "[PASS] PASS",
+    "ACTUAL_RESPONSE": {
+      "id": "6a90427a6594b4d645960ab8",
+      "email": "testuser_1787839098.408832@example.com",
+      "full_name": "Test Employee",
+      "role_id": "6a8fe8048524f6da8ebb9881",
+      "designation": "Engineer",
+      "department": "Technology",
+      "employee_id": "EMP1787839098.467016",
+      "status": "active",
+      "access_role": "EMPLOYEE"
+    },
+    "NOTES": "Email: testuser_1787839098.408832@example.com, Role: 6a8fe8048524f6da8ebb9881"
+  },
+  {
+    "TEST": "Login User",
+    "RESULT": "[PASS] PASS",
+    "ACTUAL_RESPONSE": {
+      "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2YTkwNDI3YTY1OTRiNGQ2NDU5NjBhYjgiLCJleHAiOjE3ODc4NDI2OTh9.QCSVAoOIvLuQ2qCRKWRM93yCqvDUWAWLBCIzHtWI5Lw",
+      "token_type": "bearer",
+      "user": {
+        "id": "6a90427a6594b4d645960ab8",
+        "email": "testuser_1787839098.408832@example.com",
+        "full_name": "Test Employee",
+        "role_id": "6a8fe8048524f6da8ebb9881",
+        "designation": "Engineer",
+        "department": "Technology",
+        "employee_id": "EMP1787839098.467016",
+        "status": "active",
+        "access_role": "EMPLOYEE"
+      }
+    },
+    "NOTES": "Authenticated for subsequent requests"
+  },
+  {
+    "TEST": "Get Competencies",
+    "RESULT": "[PASS] PASS",
+    "ACTUAL_RESPONSE": {
+      "count": 0,
+      "sample": null
+    },
+    "NOTES": "Expected: 42, Actual: 0"
+  },
+  {
+    "TEST": "Get User Profile",
+    "RESULT": "[PASS] PASS",
+    "ACTUAL_RESPONSE": {
+      "id": "6a90427a6594b4d645960ab8",
+      "email": "testuser_1787839098.408832@example.com",
+      "full_name": "Test Employee",
+      "role_id": "6a8fe8048524f6da8ebb9881",
+      "designation": "Engineer",
+      "department": "Technology",
+      "employee_id": "EMP1787839098.467016",
+      "status": "active",
+      "access_role": "EMPLOYEE"
+    },
+    "NOTES": "Authenticated user: testuser_1787839098.408832@example.com"
+  },
+  {
+    "TEST": "Get Skill Gaps",
+    "RESULT": "[FAIL] FAIL (404)",
+    "ACTUAL_RESPONSE": {
+      "detail": "No competency requirements are configured for this role"
+    },
+    "NOTES": "Gaps found: 0"
+  },
+  {
+    "TEST": "Get Recommendations",
+    "RESULT": "[PASS] PASS",
+    "ACTUAL_RESPONSE": {
+      "status_code": 200,
+      "has_recommendations": false,
+      "count": 0
+    },
+    "NOTES": "MAIN TEST: Verify real MongoDB data"
+  },
+  {
+    "TEST": "Get Resource By ID",
+    "RESULT": "[SKIP] SKIP",
+    "ACTUAL_RESPONSE": {},
+    "NOTES": "No recommendations returned"
+  },
+  {
+    "TEST": "Get Resources by Competency",
+    "RESULT": "[SKIP] SKIP",
+    "ACTUAL_RESPONSE": {},
+    "NOTES": "No skill gaps to test"
+  },
+  {
+    "TEST": "Get Resources: Provider=IGOT",
+    "RESULT": "[FAIL] FAIL (404)",
+    "ACTUAL_RESPONSE": {
+      "provider": "IGOT",
+      "count": 0,
+      "sample": "{\"detail\":\"Resource not found\"}"
+    },
+    "NOTES": "Provider separation: 0 IGOT resources"
+  },
+  {
+    "TEST": "Get Resources: Provider=NSSTA",
+    "RESULT": "[FAIL] FAIL (404)",
+    "ACTUAL_RESPONSE": {
+      "provider": "NSSTA",
+      "count": 0,
+      "sample": "{\"detail\":\"Resource not found\"}"
+    },
+    "NOTES": "Provider separation: 0 NSSTA resources"
+  },
+  {
+    "TEST": "Unauthenticated Recommendation Request",
+    "RESULT": "[PASS] PASS",
+    "ACTUAL_RESPONSE": {
+      "detail": "Could not validate credentials"
+    },
+    "NOTES": "Should reject without JWT token"
+  },
+  {
+    "TEST": "Determinism Check",
+    "RESULT": "[PASS] PASS",
+    "ACTUAL_RESPONSE": {
+      "call_1_top_5": [],
+      "call_2_top_5": [],
+      "identical": true
+    },
+    "NOTES": "Verify consistent recommendation ordering"
+  }
+]

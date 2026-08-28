@@ -1,0 +1,185 @@
+╔════════════════════════════════════════════════════════════════════╗
+║                    RESEARCH FINDINGS COMPLETE                      ║
+║                    DECISION REQUIRED: Choose Option A or B         ║
+╚════════════════════════════════════════════════════════════════════╝
+
+INVESTIGATION STATUS: ✅ COMPLETE
+
+════════════════════════════════════════════════════════════════════
+
+THE FINDING:
+
+The 5 courses with NULL course_id are NSSTA training programmes,
+not iGOT Karmayogi courses.
+
+NULL is the CORRECT value.
+
+No iGOT course_id can be recovered or invented.
+
+════════════════════════════════════════════════════════════════════
+
+YOUR DECISION:
+
+Choose ONE approach for the seed script:
+
+════════════════════════════════════════════════════════════════════
+
+OPTION A: Load with NULL course_id (RECOMMENDED) ✅
+
+What to do:
+  • Keep all 5 courses in igot_courses_enriched.csv
+  • Do NOT modify the CSV
+  • Do NOT invent course IDs
+  • Seed script processes course_id = NULL normally
+
+Seed script behavior:
+  • Parse all 68 rows including NULL course_id rows
+  • For NULL course_id: Generate internal ID (NSSTA-PROTO-xxxxx)
+  • Mark provider = "NSSTA" for these 5 courses
+  • Load to MongoDB with course_id = NULL
+
+Result:
+  • 148 total resources in database
+    - 63 valid iGOT courses (63 with course_id)
+    - 80 NSSTA programmes (80 with programme_id)
+    - 5 NSSTA-direct courses (5 with course_id = NULL)
+  • Complete data
+  • Correct classification
+
+Benefits:
+  ✅ All courses available
+  ✅ Factually accurate
+  ✅ No invented data
+  ✅ Full provenance preserved
+  ✅ NSSTA courses properly classified
+
+════════════════════════════════════════════════════════════════════
+
+OPTION B: Skip courses with NULL course_id
+
+What to do:
+  • Modify seed_learning_resources.py
+  • Add filter to skip rows where course_id is NULL
+  • Document why they're skipped
+
+Seed script behavior:
+  • Parse all 68 rows
+  • Filter: if course_id is NULL: skip row, log as skipped
+  • Load only 63 valid iGOT courses
+
+Result:
+  • 143 total resources in database
+    - 63 valid iGOT courses (63 with course_id)
+    - 80 NSSTA programmes (80 with programme_id)
+    - 0 NSSTA-direct courses (skipped)
+  • Simpler data (no NULL values)
+  • Fewer courses
+
+Benefits:
+  ✅ No NULL course_id in database
+  ✅ Simpler downstream logic
+  ✅ Avoid NULL handling edge cases
+  ⚠️  But loses 5 courses
+
+════════════════════════════════════════════════════════════════════
+
+COMPARISON:
+
+                     Option A          Option B
+                   (Load NULL)       (Skip NULL)
+─────────────────────────────────────────────────
+Resources           148              143
+iGOT courses        63               63
+NSSTA programmes    80               80
+NSSTA-direct        5                0
+NULL values         5                0
+Data Completeness   ✅ Full           ⚠️ Partial
+Factual Accuracy    ✅ Correct        ✅ Correct
+Implementation      Simple           Requires edit
+NSSTA Coverage      ✅ Complete       ⚠️ Partial
+
+════════════════════════════════════════════════════════════════════
+
+RESEARCH EVIDENCE:
+
+All 5 courses:
+  ✓ Are from SRC-05 (official MoSPI/NSSTA document)
+  ✓ Were in seed_56.csv with NULL (pre-existing)
+  ✓ Have no iGOT course_id (because not iGOT courses)
+  ✓ Are valid NSSTA training offerings
+  ✓ Should be included in resource catalogue
+  
+NO evidence for:
+  ✗ Inventing iGOT-format IDs
+  ✗ Forcing NULL values into iGOT ID format
+  ✗ Modifying source CSV
+  ✗ Excluding them from database
+
+════════════════════════════════════════════════════════════════════
+
+RECOMMENDATION:
+
+🟢 USE OPTION A (Load with NULL course_id)
+
+Reason:
+  1. NULL is factually correct
+  2. Data is complete and accurate
+  3. NSSTA courses are valid and valuable
+  4. Inventing IDs would create false data
+  5. Preserves provenance
+  6. No data modification needed
+
+════════════════════════════════════════════════════════════════════
+
+WHAT YOU NEED TO TELL ME:
+
+Reply with:
+  "I choose Option A" (RECOMMENDED)
+  OR
+  "I choose Option B"
+
+Then I will:
+  • Modify seed script if needed (Option B only)
+  • Update validation report
+  • Proceed to database seeding
+  • Execute seed scripts in order
+
+════════════════════════════════════════════════════════════════════
+
+FULL REPORTS:
+
+  • RESEARCH_COMPLETE_REPORT.md - Detailed investigation
+  • RESEARCH_FINDINGS_SUMMARY.txt - Quick summary
+  • RESEARCH_NULL_COURSE_IDS.md - Complete findings
+
+════════════════════════════════════════════════════════════════════
+
+CURRENT STATUS:
+
+✅ Pre-seed validation: Complete
+✅ CSV verification: Complete
+✅ Data integrity: Complete
+✅ Research investigation: Complete
+⏸️  Awaiting decision: AWAITING YOUR CHOICE
+
+════════════════════════════════════════════════════════════════════
+
+NEXT AFTER DECISION:
+
+1. You choose: Option A or Option B
+2. I modify seed scripts if needed
+3. Final validation (quick check)
+4. Execute seed scripts:
+   python -m app.scripts.seed_competencies
+   python -m app.scripts.seed_learning_resources
+   python -m app.scripts.seed_resource_mappings
+5. Verify MongoDB: count_documents()
+6. Run tests: pytest tests/ -v
+
+════════════════════════════════════════════════════════════════════
+
+RESEARCH COMPLETE - AWAITING YOUR DECISION
+
+Choose Option A or Option B above.
+
+════════════════════════════════════════════════════════════════════

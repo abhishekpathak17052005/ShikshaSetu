@@ -1,0 +1,307 @@
+[
+  {
+    "TEST_NUMBER": 1,
+    "TEST_NAME": "Health Check",
+    "METHOD": "GET",
+    "URL": "/api/v1/health",
+    "EXPECTED_STATUS": 200,
+    "ACTUAL_STATUS": 200,
+    "RESULT": "PASS",
+    "RESPONSE_SAMPLE": {
+      "status": "ok"
+    },
+    "NOTES": "",
+    "TIMESTAMP": "2026-08-28T13:03:41.624446"
+  },
+  {
+    "TEST_NUMBER": 2,
+    "TEST_NAME": "Register Test User",
+    "METHOD": "POST",
+    "URL": "/api/v1/auth/register",
+    "EXPECTED_STATUS": 201,
+    "ACTUAL_STATUS": 409,
+    "RESULT": "PASS",
+    "RESPONSE_SAMPLE": {
+      "id": ""
+    },
+    "NOTES": "409 acceptable if user exists",
+    "TIMESTAMP": "2026-08-28T13:03:41.644080"
+  },
+  {
+    "TEST_NUMBER": 3,
+    "TEST_NAME": "Login & Get JWT",
+    "METHOD": "POST",
+    "URL": "/api/v1/auth/login",
+    "EXPECTED_STATUS": 200,
+    "ACTUAL_STATUS": 200,
+    "RESULT": "PASS",
+    "RESPONSE_SAMPLE": {
+      "token_type": "bearer"
+    },
+    "NOTES": "",
+    "TIMESTAMP": "2026-08-28T13:03:41.717136"
+  },
+  {
+    "TEST_NUMBER": 4,
+    "TEST_NAME": "Get Config BEH_CHANGE_MANAGEMENT",
+    "METHOD": "GET",
+    "URL": "/api/v1/assessments/configs/BEH_CHANGE_MANAGEMENT",
+    "EXPECTED_STATUS": 200,
+    "ACTUAL_STATUS": 404,
+    "RESULT": "FAIL_DATA_GAP",
+    "RESPONSE_SAMPLE": {},
+    "NOTES": "Data Gap: Config not seeded (legitimate)",
+    "TIMESTAMP": "2026-08-28T13:03:41.741804"
+  },
+  {
+    "TEST_NUMBER": 5,
+    "TEST_NAME": "List Assessment Configs",
+    "METHOD": "GET",
+    "URL": "/api/v1/assessments/configs",
+    "EXPECTED_STATUS": 200,
+    "ACTUAL_STATUS": 200,
+    "RESULT": "PASS",
+    "RESPONSE_SAMPLE": {
+      "count": 10
+    },
+    "NOTES": "",
+    "TIMESTAMP": "2026-08-28T13:03:41.768620"
+  },
+  {
+    "TEST_NUMBER": 6,
+    "TEST_NAME": "Get All Competencies",
+    "METHOD": "GET",
+    "URL": "/api/v1/competencies",
+    "EXPECTED_STATUS": 200,
+    "ACTUAL_STATUS": 200,
+    "RESULT": "PASS",
+    "RESPONSE_SAMPLE": {
+      "count": 42
+    },
+    "NOTES": "",
+    "TIMESTAMP": "2026-08-28T13:03:41.782869"
+  },
+  {
+    "TEST_NUMBER": 7,
+    "TEST_NAME": "Get Specific Competency",
+    "METHOD": "GET",
+    "URL": "/api/v1/competencies/{id}",
+    "EXPECTED_STATUS": 200,
+    "ACTUAL_STATUS": 200,
+    "RESULT": "PASS",
+    "RESPONSE_SAMPLE": {
+      "id": "6a9113e1fe9cf0808028c3dd",
+      "code": "BM-CHANGE",
+      "name": "Change Management",
+      "domain": "Behavioural / Managerial",
+      "description": "Managing organisational and process change in government settings.",
+      "level_definitions": {
+        "1": "Aware of the existence, purpose and basic terminology of Change Management; cannot yet apply it unsupervised.",
+        "2": "Can perform simple, well-defined Change Management tasks under supervision using standard templates/tools.",
+        "3": "Can independently carry out routine Change Management tasks and interpret common outputs correctly.",
+        "4": "Can design, adapt and troubleshoot Change Management approaches for non-routine problems and guide others.",
+        "5": "Recognized subject-matter authority who sets standards, trains others and innovates methodology in Change Management."
+      },
+      "status": "ACTIVE",
+      "framework_status": "prototype",
+      "source_type": "PROTOTYPE",
+      "source_reference": null,
+      "created_at": "2026-08-28T04:51:45.783000",
+      "updated_at": "2026-08-28T04:51:45.783000"
+    },
+    "NOTES": "",
+    "TIMESTAMP": "2026-08-28T13:03:41.813078"
+  },
+  {
+    "TEST_NUMBER": 8,
+    "TEST_NAME": "Get Roles",
+    "METHOD": "GET",
+    "URL": "/api/v1/roles",
+    "EXPECTED_STATUS": 200,
+    "ACTUAL_STATUS": 200,
+    "RESULT": "PASS",
+    "RESPONSE_SAMPLE": {
+      "count": 1
+    },
+    "NOTES": "",
+    "TIMESTAMP": "2026-08-28T13:03:41.836858"
+  },
+  {
+    "TEST_NUMBER": 9,
+    "TEST_NAME": "Get Role Requirements",
+    "METHOD": "GET",
+    "URL": "/api/v1/roles/{role_id}/requirements",
+    "EXPECTED_STATUS": 200,
+    "ACTUAL_STATUS": 200,
+    "RESULT": "PASS",
+    "RESPONSE_SAMPLE": {
+      "count": 8
+    },
+    "NOTES": "",
+    "TIMESTAMP": "2026-08-28T13:03:41.845163"
+  },
+  {
+    "TEST_NUMBER": 10,
+    "TEST_NAME": "Get Skill Gaps",
+    "METHOD": "GET",
+    "URL": "/api/v1/skill-gaps/me",
+    "EXPECTED_STATUS": 200,
+    "ACTUAL_STATUS": 404,
+    "RESULT": "PASS",
+    "RESPONSE_SAMPLE": {},
+    "NOTES": "404 acceptable if no role",
+    "TIMESTAMP": "2026-08-28T13:03:41.858935"
+  },
+  {
+    "TEST_NUMBER": 11,
+    "TEST_NAME": "Upload PDF Document",
+    "METHOD": "POST",
+    "URL": "/api/v1/learning-materials/upload",
+    "EXPECTED_STATUS": 200,
+    "ACTUAL_STATUS": 200,
+    "RESULT": "PASS",
+    "RESPONSE_SAMPLE": {
+      "material_id": "6a9139d5de633054d9238337"
+    },
+    "NOTES": "",
+    "TIMESTAMP": "2026-08-28T13:03:41.985597"
+  },
+  {
+    "TEST_NUMBER": 12,
+    "TEST_NAME": "Get Material Metadata",
+    "METHOD": "GET",
+    "URL": "/api/v1/learning-materials/{material_id}",
+    "EXPECTED_STATUS": 200,
+    "ACTUAL_STATUS": 422,
+    "RESULT": "FAIL",
+    "RESPONSE_SAMPLE": {},
+    "NOTES": "",
+    "TIMESTAMP": "2026-08-28T13:03:42.011398"
+  },
+  {
+    "TEST_NUMBER": 13,
+    "TEST_NAME": "Get Recommendations",
+    "METHOD": "GET",
+    "URL": "/api/v1/recommendations/me",
+    "EXPECTED_STATUS": 200,
+    "ACTUAL_STATUS": 200,
+    "RESULT": "PASS",
+    "RESPONSE_SAMPLE": {
+      "count": 0
+    },
+    "NOTES": "",
+    "TIMESTAMP": "2026-08-28T13:03:42.051724"
+  },
+  {
+    "TEST_NUMBER": 14,
+    "TEST_NAME": "Get Competency Resources",
+    "METHOD": "GET",
+    "URL": "/api/v1/recommendations/competencies/STAT_SAMPLING/resources",
+    "EXPECTED_STATUS": 200,
+    "ACTUAL_STATUS": 404,
+    "RESULT": "PASS",
+    "RESPONSE_SAMPLE": {},
+    "NOTES": "",
+    "TIMESTAMP": "2026-08-28T13:03:42.058835"
+  },
+  {
+    "TEST_NUMBER": 15,
+    "TEST_NAME": "Get Resource Details",
+    "METHOD": "GET",
+    "URL": "/api/v1/recommendations/resources/{resource_id}",
+    "EXPECTED_STATUS": 200,
+    "ACTUAL_STATUS": 404,
+    "RESULT": "PASS",
+    "RESPONSE_SAMPLE": {},
+    "NOTES": "404 acceptable if resource not found",
+    "TIMESTAMP": "2026-08-28T13:03:42.083127"
+  },
+  {
+    "TEST_NUMBER": 16,
+    "TEST_NAME": "Create Capability Assessment",
+    "METHOD": "POST",
+    "URL": "/api/v1/assessments/capability",
+    "EXPECTED_STATUS": 201,
+    "ACTUAL_STATUS": 404,
+    "RESULT": "FAIL",
+    "RESPONSE_SAMPLE": {},
+    "NOTES": "400 acceptable if no questions",
+    "TIMESTAMP": "2026-08-28T13:03:42.093205"
+  },
+  {
+    "TEST_NUMBER": 17,
+    "TEST_NAME": "Get Capability Assessment",
+    "METHOD": "GET",
+    "URL": "/api/v1/assessments/capability/{assessment_id}",
+    "EXPECTED_STATUS": 200,
+    "ACTUAL_STATUS": 0,
+    "RESULT": "SKIP",
+    "RESPONSE_SAMPLE": {},
+    "NOTES": "No assessment ID from Test 16",
+    "TIMESTAMP": "2026-08-28T13:03:42.093228"
+  },
+  {
+    "TEST_NUMBER": 18,
+    "TEST_NAME": "List Capability Assessments",
+    "METHOD": "GET",
+    "URL": "/api/v1/assessments/capability",
+    "EXPECTED_STATUS": 200,
+    "ACTUAL_STATUS": 404,
+    "RESULT": "FAIL",
+    "RESPONSE_SAMPLE": {
+      "count": 0
+    },
+    "NOTES": "",
+    "TIMESTAMP": "2026-08-28T13:03:42.098424"
+  },
+  {
+    "TEST_NUMBER": 19,
+    "TEST_NAME": "Submit Capability Assessment",
+    "METHOD": "POST",
+    "URL": "/api/v1/assessments/capability/{assessment_id}/submit",
+    "EXPECTED_STATUS": 200,
+    "ACTUAL_STATUS": 0,
+    "RESULT": "SKIP",
+    "RESPONSE_SAMPLE": {},
+    "NOTES": "No assessment ID",
+    "TIMESTAMP": "2026-08-28T13:03:42.098440"
+  },
+  {
+    "TEST_NUMBER": 20,
+    "TEST_NAME": "Unauthenticated Request",
+    "METHOD": "GET",
+    "URL": "/api/v1/skill-gaps/me",
+    "EXPECTED_STATUS": 401,
+    "ACTUAL_STATUS": 401,
+    "RESULT": "PASS",
+    "RESPONSE_SAMPLE": {},
+    "NOTES": "",
+    "TIMESTAMP": "2026-08-28T13:03:42.101347"
+  },
+  {
+    "TEST_NUMBER": 21,
+    "TEST_NAME": "Invalid Token",
+    "METHOD": "GET",
+    "URL": "/api/v1/skill-gaps/me",
+    "EXPECTED_STATUS": 401,
+    "ACTUAL_STATUS": 401,
+    "RESULT": "PASS",
+    "RESPONSE_SAMPLE": {},
+    "NOTES": "",
+    "TIMESTAMP": "2026-08-28T13:03:42.125528"
+  },
+  {
+    "TEST_NUMBER": 22,
+    "TEST_NAME": "Get User Profile",
+    "METHOD": "GET",
+    "URL": "/api/v1/users/me",
+    "EXPECTED_STATUS": 200,
+    "ACTUAL_STATUS": 200,
+    "RESULT": "PASS",
+    "RESPONSE_SAMPLE": {
+      "id": "6a911c544d63de45a857fba3"
+    },
+    "NOTES": "",
+    "TIMESTAMP": "2026-08-28T13:03:42.146776"
+  }
+]

@@ -56,9 +56,9 @@ def _get_supported_extractors() -> dict:
 
 @router.post("/upload", response_model=UploadResponse)
 async def upload_document(
+    request: Request,
     file: UploadFile = File(...),
     current_user: dict = Depends(get_current_user),
-    request: Request = Depends(),
 ) -> UploadResponse:
     """
     Upload a learning material document (PDF, DOCX, PPTX).
@@ -128,14 +128,14 @@ async def upload_document(
         )
 
         # Save to database
-        material_id = await LearningMaterialRepository.create(database, material)
+        material_id = LearningMaterialRepository.create(database, material)
 
         # Process document asynchronously (for now, synchronous for Round 1)
         try:
             await _process_document(database, material_id, file_path, file_ext, settings)
         except Exception as e:
             # Mark as failed but don't block upload
-            await LearningMaterialRepository.update_status(
+            LearningMaterialRepository.update_status(
                 database,
                 material_id,
                 "FAILED",
