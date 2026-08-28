@@ -48,7 +48,7 @@ class LearningMaterialRepository:
         except Exception:
             return None
         
-        doc = await collection.find_one({
+        doc = collection.find_one({
             "_id": obj_id,
             "user_id": user_id
         })
@@ -56,7 +56,7 @@ class LearningMaterialRepository:
         if not doc:
             return None
         
-        doc["id"] = str(doc["_id"])
+        doc["_id"] = str(doc["_id"])
         return LearningMaterial(**doc)
 
     @staticmethod

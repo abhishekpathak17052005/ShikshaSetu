@@ -233,8 +233,8 @@ async def _process_document(
 @router.get("/{material_id}", response_model=LearningMaterialResponse)
 async def get_material_metadata(
     material_id: str,
+    request: Request,
     current_user: dict = Depends(get_current_user),
-    request: Request = Depends(),
 ) -> LearningMaterialResponse:
     """
     Get metadata about a learning material (with ownership check).

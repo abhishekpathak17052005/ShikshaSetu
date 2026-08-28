@@ -5,6 +5,7 @@ import sys
 from app.core.config import get_settings
 from app.core.database import initialize_database
 from app.assessments.seed_capability import seed_capability_assessment_configs
+from app.questions.seed import seed_questions
 
 
 def main():
@@ -19,7 +20,7 @@ def main():
     print("-" * 80)
 
     # ONLY clearing Phase 3 seeded collections - NOT users/assessments/evidence/quiz data
-    collections_to_clear = ["competencies", "learning_resources", "learning_resource_mappings"]
+    collections_to_clear = ["competencies", "learning_resources", "learning_resource_mappings", "question_bank"]
     for coll_name in collections_to_clear:
         coll = database[coll_name]
         count = coll.count_documents({})
@@ -74,6 +75,18 @@ def main():
         client.close()
     except Exception as e:
         print(f"[FAIL] Assessment Configurations seeding failed: {e}")
+        return False
+
+    # Seed capability assessment question bank.
+    print(f"\nExecuting: Question Bank")
+    print("-" * 40)
+    try:
+        client, database = initialize_database(settings.mongodb_uri, settings.mongodb_database)
+        result = seed_questions(database)
+        print(f"[OK] Question Bank seeded successfully ({result['total_questions']} questions)")
+        client.close()
+    except Exception as e:
+        print(f"[FAIL] Question Bank seeding failed: {e}")
         return False
 
     print("\n" + "=" * 80)
