@@ -12,6 +12,39 @@ def get_assessment(database: Database, assessment_key: str) -> dict | None:
     return database.assessments.find_one({"assessment_key": assessment_key, "status": "active"})
 
 
+def get_assessment_configuration(database: Database, competency_code: str) -> dict | None:
+    """Get assessment configuration for a competency."""
+    return database.assessment_configurations.find_one({
+        "competency_code": competency_code,
+        "status": "ACTIVE"
+    })
+
+
+def get_all_assessment_configurations(database: Database) -> list[dict]:
+    """Get all active assessment configurations."""
+    return list(database.assessment_configurations.find({"status": "ACTIVE"}))
+
+
+def insert_assessment_configuration(database: Database, config: dict) -> str:
+    """Insert new assessment configuration."""
+    result = database.assessment_configurations.insert_one(config)
+    return str(result.inserted_id)
+
+
+def update_assessment_configuration(database: Database, config_id: str, update: dict) -> dict | None:
+    """Update assessment configuration."""
+    config_oid = object_id(config_id)
+    if config_oid is None:
+        return None
+    
+    result = database.assessment_configurations.find_one_and_update(
+        {"_id": config_oid},
+        {"$set": update},
+        return_document=True
+    )
+    return result
+
+
 def insert_attempt(database: Database, document: dict) -> None:
     database.assessment_attempts.insert_one(document)
 

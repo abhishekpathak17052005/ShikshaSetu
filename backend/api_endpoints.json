@@ -1,0 +1,495 @@
+{
+  "api_prefix": "/api/v1",
+  "app_version": "0.3.0",
+  "endpoints": [
+    {
+      "module": "health",
+      "method": "GET",
+      "path": "/api/v1/health",
+      "description": "Health check endpoint",
+      "auth_required": false,
+      "response_model": "HealthResponse",
+      "tags": ["health"]
+    },
+    {
+      "module": "auth",
+      "method": "POST",
+      "path": "/api/v1/auth/register",
+      "description": "User registration endpoint",
+      "auth_required": false,
+      "request_model": "RegisterRequest",
+      "response_model": "UserResponse",
+      "status_code": 201,
+      "tags": ["authentication"]
+    },
+    {
+      "module": "auth",
+      "method": "POST",
+      "path": "/api/v1/auth/login",
+      "description": "User login endpoint",
+      "auth_required": false,
+      "request_model": "LoginRequest",
+      "response_model": "TokenResponse",
+      "status_code": 200,
+      "tags": ["authentication"]
+    },
+    {
+      "module": "auth",
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "description": "Get current authenticated user",
+      "auth_required": true,
+      "response_model": "UserResponse",
+      "tags": ["authentication"]
+    },
+    {
+      "module": "assessments",
+      "method": "POST",
+      "path": "/api/v1/assessments",
+      "description": "Start an assessment attempt",
+      "auth_required": true,
+      "request_model": "StartAssessmentRequest",
+      "response_model": "AssessmentAttemptResponse",
+      "status_code": 201,
+      "path_parameters": [],
+      "query_parameters": [],
+      "tags": ["assessments"]
+    },
+    {
+      "module": "assessments",
+      "method": "GET",
+      "path": "/api/v1/assessments/{attempt_id}",
+      "description": "Get assessment attempt by ID",
+      "auth_required": true,
+      "response_model": "AssessmentAttemptResponse",
+      "path_parameters": [
+        {
+          "name": "attempt_id",
+          "type": "string",
+          "required": true
+        }
+      ],
+      "tags": ["assessments"]
+    },
+    {
+      "module": "assessments",
+      "method": "POST",
+      "path": "/api/v1/assessments/{attempt_id}/submit",
+      "description": "Submit assessment answers",
+      "auth_required": true,
+      "request_model": "SubmitAssessmentRequest",
+      "response_model": "AssessmentSubmissionResponse",
+      "path_parameters": [
+        {
+          "name": "attempt_id",
+          "type": "string",
+          "required": true
+        }
+      ],
+      "tags": ["assessments"]
+    },
+    {
+      "module": "assessments",
+      "method": "GET",
+      "path": "/api/v1/assessments/configs",
+      "description": "List all active assessment configurations",
+      "auth_required": false,
+      "response_model": "list[AssessmentConfigurationResponse]",
+      "tags": ["assessments"]
+    },
+    {
+      "module": "assessments",
+      "method": "GET",
+      "path": "/api/v1/assessments/configs/{competency_code}",
+      "description": "Get assessment configuration for a specific competency",
+      "auth_required": false,
+      "response_model": "AssessmentConfigurationResponse",
+      "path_parameters": [
+        {
+          "name": "competency_code",
+          "type": "string",
+          "required": true
+        }
+      ],
+      "tags": ["assessments"]
+    },
+    {
+      "module": "capability_assessments",
+      "method": "POST",
+      "path": "/api/v1/assessments/capability",
+      "description": "Create a capability assessment",
+      "auth_required": true,
+      "request_model": "CapabilityAssessmentCreateRequest",
+      "response_model": "CapabilityAssessmentResponse",
+      "status_code": 201,
+      "notes": "Loads questions from question bank based on configuration",
+      "tags": ["Capability Assessments"]
+    },
+    {
+      "module": "capability_assessments",
+      "method": "GET",
+      "path": "/api/v1/assessments/capability/{assessment_id}",
+      "description": "Get a capability assessment",
+      "auth_required": true,
+      "response_model": "CapabilityAssessmentResponse",
+      "path_parameters": [
+        {
+          "name": "assessment_id",
+          "type": "string",
+          "required": true
+        }
+      ],
+      "notes": "Does not expose answer keys",
+      "tags": ["Capability Assessments"]
+    },
+    {
+      "module": "capability_assessments",
+      "method": "POST",
+      "path": "/api/v1/assessments/capability/{assessment_id}/submit",
+      "description": "Submit assessment answers",
+      "auth_required": true,
+      "request_model": "CapabilityAssessmentSubmitRequest",
+      "response_model": "CapabilityAssessmentSubmitResponse",
+      "path_parameters": [
+        {
+          "name": "assessment_id",
+          "type": "string",
+          "required": true
+        }
+      ],
+      "notes": "Server-side scoring, evidence creation, and competency profile update",
+      "tags": ["Capability Assessments"]
+    },
+    {
+      "module": "capability_assessments",
+      "method": "GET",
+      "path": "/api/v1/assessments/capability/{assessment_id}/results",
+      "description": "Get assessment results",
+      "auth_required": true,
+      "response_model": "CapabilityAssessmentResultsResponse",
+      "path_parameters": [
+        {
+          "name": "assessment_id",
+          "type": "string",
+          "required": true
+        }
+      ],
+      "tags": ["Capability Assessments"]
+    },
+    {
+      "module": "capability_assessments",
+      "method": "GET",
+      "path": "/api/v1/assessments/capability",
+      "description": "List user's capability assessments",
+      "auth_required": true,
+      "response_model": "list[CapabilityAssessmentListResponse]",
+      "query_parameters": [
+        {
+          "name": "competency_code",
+          "type": "string",
+          "required": false
+        },
+        {
+          "name": "status_filter",
+          "type": "string",
+          "required": false,
+          "enum": ["IN_PROGRESS", "SUBMITTED"]
+        },
+        {
+          "name": "limit",
+          "type": "integer",
+          "required": false,
+          "default": 100
+        }
+      ],
+      "tags": ["Capability Assessments"]
+    },
+    {
+      "module": "competencies",
+      "method": "GET",
+      "path": "/api/v1/competencies",
+      "description": "List all competencies",
+      "auth_required": false,
+      "response_model": "list[CompetencyResponse]",
+      "tags": ["competencies"]
+    },
+    {
+      "module": "competencies",
+      "method": "GET",
+      "path": "/api/v1/competencies/{competency_id}",
+      "description": "Get a specific competency",
+      "auth_required": false,
+      "response_model": "CompetencyResponse",
+      "path_parameters": [
+        {
+          "name": "competency_id",
+          "type": "string",
+          "required": true
+        }
+      ],
+      "tags": ["competencies"]
+    },
+    {
+      "module": "quizzes",
+      "method": "POST",
+      "path": "/api/v1/quizzes",
+      "description": "Create a quiz from learning material",
+      "auth_required": true,
+      "request_model": "QuizCreateRequest",
+      "response_model": "QuizResponse",
+      "notes": "Generated questions hide correct answers until submission",
+      "tags": ["quizzes"]
+    },
+    {
+      "module": "quizzes",
+      "method": "GET",
+      "path": "/api/v1/quizzes/{quiz_id}",
+      "description": "Retrieve a quiz by ID",
+      "auth_required": true,
+      "response_model": "QuizResponse",
+      "path_parameters": [
+        {
+          "name": "quiz_id",
+          "type": "string",
+          "required": true
+        }
+      ],
+      "notes": "User can only retrieve their own quizzes",
+      "tags": ["quizzes"]
+    },
+    {
+      "module": "quizzes",
+      "method": "POST",
+      "path": "/api/v1/quizzes/{quiz_id}/submit",
+      "description": "Submit quiz answers",
+      "auth_required": true,
+      "request_model": "QuizSubmitRequest",
+      "response_model": "QuizResultResponse",
+      "path_parameters": [
+        {
+          "name": "quiz_id",
+          "type": "string",
+          "required": true
+        }
+      ],
+      "notes": "Server-side scoring, evidence creation, and competency profile update",
+      "tags": ["quizzes"]
+    },
+    {
+      "module": "roles",
+      "method": "GET",
+      "path": "/api/v1/roles",
+      "description": "List all roles",
+      "auth_required": false,
+      "response_model": "list[RoleResponse]",
+      "tags": ["roles"]
+    },
+    {
+      "module": "roles",
+      "method": "GET",
+      "path": "/api/v1/roles/{role_id}",
+      "description": "Get a specific role",
+      "auth_required": false,
+      "response_model": "RoleResponse",
+      "path_parameters": [
+        {
+          "name": "role_id",
+          "type": "string",
+          "required": true
+        }
+      ],
+      "tags": ["roles"]
+    },
+    {
+      "module": "roles",
+      "method": "GET",
+      "path": "/api/v1/roles/{role_id}/requirements",
+      "description": "Get role competency requirements",
+      "auth_required": false,
+      "response_model": "list[RoleRequirementResponse]",
+      "path_parameters": [
+        {
+          "name": "role_id",
+          "type": "string",
+          "required": true
+        }
+      ],
+      "tags": ["roles"]
+    },
+    {
+      "module": "skill_gaps",
+      "method": "GET",
+      "path": "/api/v1/skill-gaps/me",
+      "description": "Get skill gaps for authenticated employee",
+      "auth_required": true,
+      "response_model": "SkillGapResponse",
+      "status_code": 200,
+      "tags": ["skill-gaps"]
+    },
+    {
+      "module": "users",
+      "method": "GET",
+      "path": "/api/v1/users/me",
+      "description": "Get current user profile",
+      "auth_required": true,
+      "response_model": "UserResponse",
+      "tags": ["users"]
+    },
+    {
+      "module": "users",
+      "method": "PUT",
+      "path": "/api/v1/users/me",
+      "description": "Update current user profile",
+      "auth_required": true,
+      "request_model": "UserProfileUpdate",
+      "response_model": "UserResponse",
+      "tags": ["users"]
+    },
+    {
+      "module": "ai",
+      "method": "POST",
+      "path": "/api/v1/learning-materials/upload",
+      "description": "Upload a learning material document (PDF, DOCX, PPTX)",
+      "auth_required": true,
+      "request_model": "multipart/form-data (file)",
+      "response_model": "UploadResponse",
+      "notes": "Supported formats: PDF, DOCX, PPTX. Max size: 50MB (configurable)",
+      "tags": ["ai"]
+    },
+    {
+      "module": "ai",
+      "method": "GET",
+      "path": "/api/v1/learning-materials/{material_id}",
+      "description": "Get learning material metadata",
+      "auth_required": true,
+      "response_model": "LearningMaterialResponse",
+      "path_parameters": [
+        {
+          "name": "material_id",
+          "type": "string",
+          "required": true
+        }
+      ],
+      "tags": ["ai"]
+    },
+    {
+      "module": "ai",
+      "method": "POST",
+      "path": "/api/v1/learning-materials/{material_id}/generate-questions",
+      "description": "Generate grounded MCQs from a learning material",
+      "auth_required": true,
+      "request_model": "GenerationRequest",
+      "response_model": "GenerationResponse",
+      "path_parameters": [
+        {
+          "name": "material_id",
+          "type": "string",
+          "required": true
+        }
+      ],
+      "notes": "Generates questions with source traceability",
+      "tags": ["ai"]
+    },
+    {
+      "module": "learning_resources",
+      "method": "GET",
+      "path": "/api/v1/recommendations/me",
+      "description": "Get personalized learning recommendations",
+      "auth_required": true,
+      "response_model": "RecommendationResponse",
+      "query_parameters": [
+        {
+          "name": "limit",
+          "type": "integer",
+          "required": false
+        }
+      ],
+      "notes": "Uses user's skill gaps and role to generate ranked recommendations",
+      "tags": ["learning-resources"]
+    },
+    {
+      "module": "learning_resources",
+      "method": "GET",
+      "path": "/api/v1/recommendations/resources/{resource_id}",
+      "description": "Get detailed information about a learning resource",
+      "auth_required": true,
+      "response_model": "dict",
+      "path_parameters": [
+        {
+          "name": "resource_id",
+          "type": "string",
+          "required": true,
+          "example": "IGOT-12345 or NSSTA-PROTO-xxx"
+        }
+      ],
+      "tags": ["learning-resources"]
+    },
+    {
+      "module": "learning_resources",
+      "method": "GET",
+      "path": "/api/v1/recommendations/competencies/{competency_code}/resources",
+      "description": "Get all learning resources mapped to a competency",
+      "auth_required": true,
+      "response_model": "dict",
+      "path_parameters": [
+        {
+          "name": "competency_code",
+          "type": "string",
+          "required": true,
+          "example": "STAT-SAMPLING"
+        }
+      ],
+      "query_parameters": [
+        {
+          "name": "provider",
+          "type": "string",
+          "required": false,
+          "enum": ["IGOT", "NSSTA"]
+        }
+      ],
+      "tags": ["learning-resources"]
+    },
+    {
+      "module": "learning_resources",
+      "method": "GET",
+      "path": "/api/v1/recommendations/resources/unmapped",
+      "description": "Get learning resources with no competency mappings",
+      "auth_required": true,
+      "response_model": "dict",
+      "query_parameters": [
+        {
+          "name": "provider",
+          "type": "string",
+          "required": false,
+          "enum": ["IGOT", "NSSTA"]
+        },
+        {
+          "name": "limit",
+          "type": "integer",
+          "required": false,
+          "default": 10
+        }
+      ],
+      "notes": "Browseable resources only",
+      "tags": ["learning-resources"]
+    }
+  ],
+  "summary": {
+    "total_endpoints": 32,
+    "authenticated_endpoints": 21,
+    "public_endpoints": 11,
+    "modules": [
+      "health",
+      "auth",
+      "assessments",
+      "capability_assessments",
+      "competencies",
+      "quizzes",
+      "roles",
+      "skill_gaps",
+      "users",
+      "ai",
+      "learning_resources"
+    ]
+  }
+}

@@ -32,7 +32,7 @@ def create_quiz(
     Correct answers are hidden until submission.
     """
     database = getattr(request.app.state, "database", None)
-    if not database:
+    if database is None:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Database not available",
@@ -102,7 +102,7 @@ def get_quiz(
     User can only retrieve their own quizzes.
     """
     database = getattr(request.app.state, "database", None)
-    if not database:
+    if database is None:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Database not available",
@@ -162,7 +162,7 @@ def submit_quiz(
     Evidence is created and linked to the quiz attempt.
     """
     database = getattr(request.app.state, "database", None)
-    if not database:
+    if database is None:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Database not available",

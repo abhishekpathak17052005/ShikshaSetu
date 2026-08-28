@@ -29,3 +29,22 @@ def ensure_framework_indexes(database: Database) -> None:
         [("user_id", ASCENDING), ("competency_id", ASCENDING)],
         name="ix_user_competency_evidence",
     )
+    
+    # Phase 2: Question Bank Indexes
+    database.question_bank.create_index([("competency_code", ASCENDING)], name="ix_question_competency")
+    database.question_bank.create_index([("question_type", ASCENDING)], name="ix_question_type")
+    database.question_bank.create_index(
+        [("competency_code", ASCENDING), ("question_type", ASCENDING)],
+        name="ix_question_competency_type",
+    )
+    database.question_bank.create_index([("status", ASCENDING)], name="ix_question_status")
+    
+    # Phase 2: Capability Assessments Indexes
+    database.capability_assessments.create_index([("user_id", ASCENDING)], name="ix_cap_assess_user")
+    database.capability_assessments.create_index([("competency_code", ASCENDING)], name="ix_cap_assess_competency")
+    database.capability_assessments.create_index(
+        [("user_id", ASCENDING), ("competency_code", ASCENDING)],
+        name="ix_cap_assess_user_competency",
+    )
+    database.capability_assessments.create_index([("status", ASCENDING)], name="ix_cap_assess_status")
+    database.capability_assessments.create_index([("created_at", ASCENDING)], name="ix_cap_assess_created")

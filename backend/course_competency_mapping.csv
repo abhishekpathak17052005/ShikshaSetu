@@ -1,0 +1,69 @@
+course_id,course_title,competency_id,competency_name,mapping_type,evidence,confidence
+do_1144751221174108161801,Artificial Intelligence for Public Governance,TECH-AIML,AI/ML,DERIVED,Course title contains a keyword associated with this competency,0.5
+do_1144751221174108161801,Artificial Intelligence for Public Governance,TECH-AIML-ML,Machine Learning Fundamentals,DERIVED,Course title contains a keyword associated with this subskill,0.45
+do_11435133174226124811008,Large Language Models: Concepts and Applications,TECH-AIML,AI/ML,DERIVED,Course title contains a keyword associated with this competency,0.5
+do_11435133174226124811008,Large Language Models: Concepts and Applications,TECH-AIML-GENAI,Generative AI / LLMs,DERIVED,Course title contains a keyword associated with this subskill,0.45
+do_1142424672815677441135,AI in Government: Transforming Public Service Delivery,TECH-AIML,AI/ML,DERIVED,Course title contains a keyword associated with this competency,0.5
+do_1142424672815677441135,AI in Government: Transforming Public Service Delivery,TECH-AIML-ML,Machine Learning Fundamentals,DERIVED,Course title contains a keyword associated with this subskill,0.45
+do_1145242891094835201284,Artificial Intelligence for Karmayogis | Artificial Intelligence for Smarter Governance,TECH-AIML,AI/ML,DERIVED,Course title contains a keyword associated with this competency,0.5
+do_1145242891094835201284,Artificial Intelligence for Karmayogis | Artificial Intelligence for Smarter Governance,TECH-AIML-ML,Machine Learning Fundamentals,DERIVED,Course title contains a keyword associated with this subskill,0.45
+do_1144314741016166401174,YUVA AI for All,TECH-AIML,AI/ML,DERIVED,Course title contains a keyword associated with this competency,0.5
+do_1144314741016166401174,YUVA AI for All,TECH-AIML-ML,Machine Learning Fundamentals,DERIVED,Course title contains a keyword associated with this subskill,0.45
+do_114371136825573376161,Introduction to Artificial Intelligence,TECH-AIML,AI/ML,DERIVED,Course title contains a keyword associated with this competency,0.5
+do_114371136825573376161,Introduction to Artificial Intelligence,TECH-AIML-ML,Machine Learning Fundamentals,DERIVED,Course title contains a keyword associated with this subskill,0.45
+do_1143584122272481281396,"[Hindi title - Devanagari script, garbled in source PDF text extraction] (approx. 'Fundamentals of Artificial Intelligence: Learning, Application and Ethics')",BM-ETHICS,Ethics,DERIVED,Course title contains a keyword associated with this competency,0.5
+do_1143584122272481281396,"[Hindi title - Devanagari script, garbled in source PDF text extraction] (approx. 'Fundamentals of Artificial Intelligence: Learning, Application and Ethics')",TECH-AIML,AI/ML,DERIVED,Course title contains a keyword associated with this competency,0.5
+do_1143584122272481281396,"[Hindi title - Devanagari script, garbled in source PDF text extraction] (approx. 'Fundamentals of Artificial Intelligence: Learning, Application and Ethics')",TECH-AIML-ML,Machine Learning Fundamentals,DERIVED,Course title contains a keyword associated with this subskill,0.45
+do_1144377652256768001186,"[Hindi title - Devanagari script, garbled in source PDF text extraction] (approx. 'Use of Responsible AI in Governance')",TECH-AIML,AI/ML,DERIVED,Course title contains a keyword associated with this competency,0.5
+do_1144377652256768001186,"[Hindi title - Devanagari script, garbled in source PDF text extraction] (approx. 'Use of Responsible AI in Governance')",TECH-AIML-ML,Machine Learning Fundamentals,DERIVED,Course title contains a keyword associated with this subskill,0.45
+do_114318843800133632145,Artificial Intelligence in Finance,TECH-AIML,AI/ML,DERIVED,Course title contains a keyword associated with this competency,0.5
+do_114318843800133632145,Artificial Intelligence in Finance,TECH-AIML-ML,Machine Learning Fundamentals,DERIVED,Course title contains a keyword associated with this subskill,0.45
+do_114371167997878272169,Core Areas of Artificial Intelligence,TECH-AIML,AI/ML,DERIVED,Course title contains a keyword associated with this competency,0.5
+do_114371167997878272169,Core Areas of Artificial Intelligence,TECH-AIML-ML,Machine Learning Fundamentals,DERIVED,Course title contains a keyword associated with this subskill,0.45
+do_1144765880866242561928,"[Hindi title - Devanagari script, garbled in source PDF text extraction] (approx. 'YUVA AI for All')",TECH-AIML,AI/ML,DERIVED,Course title contains a keyword associated with this competency,0.5
+do_1144765880866242561928,"[Hindi title - Devanagari script, garbled in source PDF text extraction] (approx. 'YUVA AI for All')",TECH-AIML-ML,Machine Learning Fundamentals,DERIVED,Course title contains a keyword associated with this subskill,0.45
+do_11391672014338457611,Cybersecurity,DGOV-CYBER,Cybersecurity,DERIVED,Course title contains a keyword associated with this competency,0.5
+do_114485182745616384147,Cyber Security Fundamentals and National Initiatives,DGOV-CYBER,Cybersecurity,DERIVED,Course title contains a keyword associated with this competency,0.5
+do_114326494177443840183,Cybersecurity Fundamentals for Leaders,DGOV-CYBER,Cybersecurity,DERIVED,Course title contains a keyword associated with this competency,0.5
+do_1142432002191196161252,Cybersecurity (Basic Level),DGOV-CYBER,Cybersecurity,DERIVED,Course title contains a keyword associated with this competency,0.5
+do_114433385736724480188,CERT-In and Fundamentals of Cyber Hygiene,DGOV-CYBER,Cybersecurity,DERIVED,Course title contains a keyword associated with this competency,0.5
+do_11431731643726233611211,Staying Safe in Cyberspace,DGOV-CYBER,Cybersecurity,DERIVED,Course title contains a keyword associated with this competency,0.5
+do_114403087819890688158,Cyber Hygiene Essentials,DGOV-CYBER,Cybersecurity,DERIVED,Course title contains a keyword associated with this competency,0.5
+ext_114471827688087552171,Foundations of Cybersecurity,DGOV-CYBER,Cybersecurity,DERIVED,Course title contains a keyword associated with this competency,0.5
+do_114408755027574784176,"[Marathi title - Devanagari script, garbled in source PDF text extraction] (approx. 'Digital Personal Data Protection Act 2023: An Overview')",DGOV-PRIVACY,Data Privacy,DERIVED,Course title contains a keyword associated with this competency,0.5
+do_11363681497528729611020,Microsoft Excel Advanced,TECH-DATAVIZ,Data Visualization,DERIVED,Course title contains a keyword associated with this competency,0.5
+do_11363681486120550411019,Microsoft Word Advanced,TECH-DATAVIZ,Data Visualization,DERIVED,Course title contains a keyword associated with this competency,0.5
+do_1140994741049999361127,Responsible Data Management,STAT-DQ,Data Quality Frameworks,DERIVED,Course title contains a keyword associated with this competency,0.5
+do_1143089865482649601691,Fundamentals of Public Policy,BM-DECISION,Decision Making,DERIVED,Course title contains a keyword associated with this competency,0.5
+do_114371224734089216131,Fundamentals of Generative Artificial Intelligence,TECH-AIML,AI/ML,DERIVED,Course title contains a keyword associated with this competency,0.5
+do_114371224734089216131,Fundamentals of Generative Artificial Intelligence,TECH-AIML-GENAI,Generative AI / LLMs,DERIVED,Course title contains a keyword associated with this subskill,0.45
+do_114371224734089216131,Fundamentals of Generative Artificial Intelligence,TECH-AIML-ML,Machine Learning Fundamentals,DERIVED,Course title contains a keyword associated with this subskill,0.45
+do_1144065387771084801508,AI Applications in Government,TECH-AIML,AI/ML,DERIVED,Course title contains a keyword associated with this competency,0.5
+do_1144065387771084801508,AI Applications in Government,TECH-AIML-ML,Machine Learning Fundamentals,DERIVED,Course title contains a keyword associated with this subskill,0.45
+do_11440583652548608011174,"[Hindi title - Devanagari script, garbled in source PDF text extraction] (approx. 'AI Ethics in Good Governance')",BM-ETHICS,Ethics,DERIVED,Course title contains a keyword associated with this competency,0.5
+do_11440583652548608011174,"[Hindi title - Devanagari script, garbled in source PDF text extraction] (approx. 'AI Ethics in Good Governance')",TECH-AIML,AI/ML,DERIVED,Course title contains a keyword associated with this competency,0.5
+do_11440583652548608011174,"[Hindi title - Devanagari script, garbled in source PDF text extraction] (approx. 'AI Ethics in Good Governance')",TECH-AIML-ML,Machine Learning Fundamentals,DERIVED,Course title contains a keyword associated with this subskill,0.45
+ext_114471816202444800118,Advanced Prompt Engineering for Everyone,TECH-AIML,AI/ML,DERIVED,Course title contains a keyword associated with this competency,0.5
+ext_114471816202444800118,Advanced Prompt Engineering for Everyone,TECH-AIML-GENAI,Generative AI / LLMs,DERIVED,Course title contains a keyword associated with this subskill,0.45
+ext_114471818487185408124,Build and Execute an Organisational AI Strategy,TECH-AIML,AI/ML,DERIVED,Course title contains a keyword associated with this competency,0.5
+ext_114471818487185408124,Build and Execute an Organisational AI Strategy,TECH-AIML-ML,Machine Learning Fundamentals,DERIVED,Course title contains a keyword associated with this subskill,0.45
+ext_114471827876872192172,AI for Education (Intermediate),TECH-AIML,AI/ML,DERIVED,Course title contains a keyword associated with this competency,0.5
+ext_114471827876872192172,AI for Education (Intermediate),TECH-AIML-ML,Machine Learning Fundamentals,DERIVED,Course title contains a keyword associated with this subskill,0.45
+ext_114471829010751488181,AI for Energy and Biomedical Applications,TECH-AIML,AI/ML,DERIVED,Course title contains a keyword associated with this competency,0.5
+ext_114471829010751488181,AI for Energy and Biomedical Applications,TECH-AIML-ML,Machine Learning Fundamentals,DERIVED,Course title contains a keyword associated with this subskill,0.45
+do_1142432175613706241256,Cybersecurity (Intermediate Level),DGOV-CYBER,Cybersecurity,DERIVED,Course title contains a keyword associated with this competency,0.5
+ext_114471828231954432176,Leadership Skills,BM-LEADERSHIP,Leadership,DERIVED,Course title contains a keyword associated with this competency,0.5
+ext_114471817693544448133,"Law, Governance, and Public Policy",BM-DECISION,Decision Making,DERIVED,Course title contains a keyword associated with this competency,0.5
+ext_114471836936683520192,Introduction to Quantum Information,TECH-AIML,AI/ML,DERIVED,Course title contains a keyword associated with this competency,0.5
+ext_114471842702008320196,Negotiation Fundamentals,BM-COMM,Communication,DERIVED,Course title contains a keyword associated with this competency,0.5
+ext_114471819367686144139,Analysis and Interpretation of Large-Scale Programs,BM-PM,Project Management,DERIVED,Course title contains a keyword associated with this competency,0.5
+ext_114471819373109248140,Blockchain Platforms,TECH-CLOUD,Cloud Computing,DERIVED,Course title contains a keyword associated with this competency,0.5
+do_113981544641339392163,Design Thinking for Excellence in Public Services,TECH-DATAVIZ,Data Visualization,DERIVED,Course title contains a keyword associated with this competency,0.5
+do_113956369201438720137,Evidence Based Policy Making,BM-DECISION,Decision Making,DERIVED,Course title contains a keyword associated with this competency,0.5
+do_1143195977640345601231,Driving Sustainability through Policy & Governance,BM-CHANGE,Change Management,DERIVED,Course title contains a keyword associated with this competency,0.5
+do_1143195977640345601231,Driving Sustainability through Policy & Governance,BM-DECISION,Decision Making,DERIVED,Course title contains a keyword associated with this competency,0.5
+do_114085334432260096152,Gen AI for Everyone,TECH-AIML,AI/ML,DERIVED,Course title contains a keyword associated with this competency,0.5
+do_114085334432260096152,Gen AI for Everyone,TECH-AIML-GENAI,Generative AI / LLMs,DERIVED,Course title contains a keyword associated with this subskill,0.45
+do_114085334432260096152,Gen AI for Everyone,TECH-AIML-ML,Machine Learning Fundamentals,DERIVED,Course title contains a keyword associated with this subskill,0.45
+do_1141085925442682881296,Basics of Communication,BM-COMM,Communication,DERIVED,Course title contains a keyword associated with this competency,0.5
+do_1143174291487703041758,Time Management Skills,BM-PM,Project Management,DERIVED,Course title contains a keyword associated with this competency,0.5
