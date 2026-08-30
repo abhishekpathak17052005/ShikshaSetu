@@ -6,6 +6,7 @@ from app.core.config import get_settings
 from .base import LLMProvider
 from .mock_provider import MockLLMProvider
 from .openai_provider import OpenAIProvider
+from .gemini_provider import GeminiLLMProvider
 
 
 def get_llm_provider() -> LLMProvider:
@@ -30,8 +31,15 @@ def get_llm_provider() -> LLMProvider:
                 "Set LLM_API_KEY environment variable or use LLM_PROVIDER=mock for testing."
             )
         return OpenAIProvider(api_key=settings.llm_api_key, model=settings.llm_model)
+    elif provider_name == "gemini":
+        if not settings.llm_api_key:
+            raise ValueError(
+                "Gemini provider selected but LLM_API_KEY not configured. "
+                "Set LLM_API_KEY environment variable or use LLM_PROVIDER=mock for testing."
+            )
+        return GeminiLLMProvider(api_key=settings.llm_api_key, model=settings.llm_model)
     else:
         raise ValueError(
             f"Unknown LLM provider: {provider_name}. "
-            f"Supported: 'mock', 'openai'"
+            f"Supported: 'mock', 'openai', 'gemini'"
         )

@@ -30,13 +30,13 @@ class TextCleaner:
         # Remove leading/trailing whitespace from each line
         lines = [line.rstrip() for line in text.split('\n')]
         
-        # Remove excessive blank lines (more than 2 consecutive)
+        # Remove excessive blank lines (more than 1 consecutive)
         cleaned_lines = []
         blank_count = 0
         for line in lines:
             if line.strip() == '':
                 blank_count += 1
-                if blank_count <= 2:
+                if blank_count <= 1:
                     cleaned_lines.append(line)
             else:
                 blank_count = 0
