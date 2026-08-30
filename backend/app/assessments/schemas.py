@@ -6,7 +6,6 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator, model_valida
 
 class AssessmentType(StrEnum):
     INITIAL_COMPETENCY = "INITIAL_COMPETENCY"
-    CAPABILITY_ASSESSMENT = "CAPABILITY_ASSESSMENT"
 
 
 class QuestionType(StrEnum):
@@ -132,90 +131,3 @@ class ComponentScores(BaseModel):
     training_evidence: float | None = Field(default=None, ge=1, le=5)
 
     model_config = ConfigDict(extra="forbid")
-
-
-class AssessmentConfiguration(BaseModel):
-    """Configuration for capability assessments per competency."""
-    
-    competency_code: str = Field(
-        ...,
-        description="Competency code (e.g., TECH_SQL)"
-    )
-    assessment_types: list[str] = Field(
-        default=["MCQ", "SCENARIO"],
-        description="Question types for this assessment (MCQ, SCENARIO)"
-    )
-    number_of_questions: int = Field(
-        default=10,
-        ge=1,
-        le=50,
-        description="Total number of questions"
-    )
-    difficulty: str = Field(
-        default="MIXED",
-        pattern="^(EASY|MEDIUM|HARD|MIXED)$",
-        description="Difficulty level or MIXED"
-    )
-    passing_threshold: float = Field(
-        default=60.0,
-        ge=0,
-        le=100,
-        description="Passing percentage"
-    )
-    time_limit_minutes: int | None = Field(
-        default=None,
-        ge=5,
-        description="Optional time limit in minutes"
-    )
-    show_correct_answers_after: bool = Field(
-        default=True,
-        description="Show correct answers after submission"
-    )
-    allow_retake: bool = Field(
-        default=True,
-        description="Allow user to retake assessment"
-    )
-    status: str = Field(
-        default="ACTIVE",
-        pattern="^(ACTIVE|INACTIVE|DEPRECATED)$"
-    )
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
-
-    @field_validator("assessment_types")
-    @classmethod
-    def validate_assessment_types(cls, value: list[str]) -> list[str]:
-        """Validate assessment types."""
-        valid_types = {"MCQ", "SCENARIO"}
-        invalid = set(value) - valid_types
-        if invalid:
-            raise ValueError(f"Invalid assessment types: {invalid}. Must be: {valid_types}")
-        return value
-
-
-class AssessmentConfigurationResponse(BaseModel):
-    """Assessment configuration response."""
-    
-    model_config = ConfigDict(from_attributes=True)
-    
-    id: str = Field(alias="_id")
-    competency_code: str
-    assessment_types: list[str]
-    number_of_questions: int
-    difficulty: str
-    passing_threshold: float
-    time_limit_minutes: int | None
-    show_correct_answers_after: bool
-    allow_retake: bool
-    status: str
-    created_at: datetime
-    updated_at: datetime
-
-
-class CapabilityAssessmentRequest(BaseModel):
-    """Request to create a capability assessment for a competency."""
-    
-    competency_code: str = Field(
-        ...,
-        description="Competency code to assess"
-    )

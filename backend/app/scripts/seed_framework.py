@@ -119,9 +119,6 @@ def seed_framework(database: Database) -> dict[str, int]:
     )
     role = database.roles.find_one({"role_code": "STATISTICAL_OFFICER"}, {"_id": 1})
 
-    # Clear old role_requirements before upserting new ones to avoid orphaned records
-    database.role_requirements.delete_many({"role_id": role["_id"]})
-
     operations = []
     for code, (required_level, priority) in ROLE_REQUIREMENTS.items():
         operations.append(
