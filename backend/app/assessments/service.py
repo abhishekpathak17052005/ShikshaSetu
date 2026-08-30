@@ -165,27 +165,3 @@ def submit_assessment(database, user_id: str, attempt_id: str, submission: Submi
     if updated_attempt is None:
         raise HTTPException(status_code=409, detail="Assessment attempt is already submitted")
     return {"attempt_id": str(updated_attempt["_id"]), "status": updated_attempt["status"], "competency_results": results}
-
-
-# Assessment Configuration Management
-
-def get_assessment_configuration(database, competency_code: str) -> dict:
-    """Get assessment configuration for a competency."""
-    database = database_or_error(database)
-    config = repository.get_assessment_configuration(database, competency_code)
-    if config is None:
-        raise HTTPException(
-            status_code=404,
-            detail=f"Assessment configuration not found for competency {competency_code}"
-        )
-    return {"_id": str(config["_id"]), **{k: v for k, v in config.items() if k != "_id"}}
-
-
-def get_all_assessment_configurations(database) -> list[dict]:
-    """Get all active assessment configurations."""
-    database = database_or_error(database)
-    configs = repository.get_all_assessment_configurations(database)
-    return [
-        {"_id": str(config["_id"]), **{k: v for k, v in config.items() if k != "_id"}}
-        for config in configs
-    ]
