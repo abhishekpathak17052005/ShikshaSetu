@@ -19,7 +19,8 @@ from .schemas import (
     UploadResponse,
     GeneratedMCQ,
 )
-from .providers.factory import get_llm_provider, get_embedding_provider
+from .providers.factory import get_llm_provider
+from .embeddings.factory import get_embedding_provider
 from .embeddings.base import EmbeddingProvider
 from .extraction.pdf import PDFExtractor
 from .extraction.docx import DOCXExtractor

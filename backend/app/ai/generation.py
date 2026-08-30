@@ -133,6 +133,8 @@ CRITICAL RULES:
 CONTEXT FROM DOCUMENT:
 {context}
 
+AVAILABLE SOURCE CHUNK IDs: {json.dumps(chunk_ids)}
+
 Generate {batch_size} multiple-choice questions based ONLY on the above context.
 Return a JSON array with exactly {batch_size} question objects.
 
@@ -142,7 +144,7 @@ Each question object must have:
 - "correct_answer": string (single letter: A, B, C, or D)
 - "explanation": string (explanation referencing the source material)
 - "difficulty": string (EASY, MEDIUM, or HARD)
-- "source_chunks": array of chunk identifiers from the context
+- "source_chunks": array of chunk IDs from AVAILABLE SOURCE CHUNK IDs that support this question
 
 RESPONSE FORMAT (valid JSON array only, no markdown, no extra text):
 [
@@ -152,7 +154,7 @@ RESPONSE FORMAT (valid JSON array only, no markdown, no extra text):
     "correct_answer": "B",
     "explanation": "...",
     "difficulty": "MEDIUM",
-    "source_chunks": {chunk_ids}
+    "source_chunks": ["chunk-id-1", "chunk-id-2"]
   }}
 ]"""
 
