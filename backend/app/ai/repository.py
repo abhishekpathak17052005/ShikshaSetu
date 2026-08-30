@@ -12,7 +12,7 @@ class LearningMaterialRepository:
     """Repository for LearningMaterial documents."""
 
     @staticmethod
-    async def create(database: Database, material: LearningMaterial) -> str:
+    def create(database: Database, material: LearningMaterial) -> str:
         """
         Create a new learning material.
 
@@ -25,7 +25,7 @@ class LearningMaterialRepository:
         """
         collection = database["learning_materials"]
         
-        result = await collection.insert_one(material.model_dump(by_alias=True, exclude={"id"}))
+        result = collection.insert_one(material.model_dump(by_alias=True, exclude={"id"}))
         return str(result.inserted_id)
 
     @staticmethod
@@ -48,7 +48,7 @@ class LearningMaterialRepository:
         except Exception:
             return None
         
-        doc = await collection.find_one({
+        doc = collection.find_one({
             "_id": obj_id,
             "user_id": user_id
         })
@@ -56,7 +56,7 @@ class LearningMaterialRepository:
         if not doc:
             return None
         
-        doc["id"] = str(doc["_id"])
+        doc["_id"] = str(doc["_id"])
         return LearningMaterial(**doc)
 
     @staticmethod
@@ -84,7 +84,7 @@ class LearningMaterialRepository:
         return materials
 
     @staticmethod
-    async def update_status(database: Database, material_id: str, status: str, extraction_status: Optional[str] = None, error: Optional[str] = None) -> bool:
+    def update_status(database: Database, material_id: str, status: str, extraction_status: Optional[str] = None, error: Optional[str] = None) -> bool:
         """
         Update material processing status.
 
@@ -116,7 +116,7 @@ class LearningMaterialRepository:
         if error is not None:
             update_data["extraction_error"] = error
         
-        result = await collection.update_one(
+        result = collection.update_one(
             {"_id": obj_id},
             {"$set": update_data}
         )

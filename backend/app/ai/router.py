@@ -19,7 +19,8 @@ from .schemas import (
     UploadResponse,
     GeneratedMCQ,
 )
-from .providers.factory import get_llm_provider, get_embedding_provider
+from .providers.factory import get_llm_provider
+from .embeddings.factory import get_embedding_provider
 from .embeddings.base import EmbeddingProvider
 from .extraction.pdf import PDFExtractor
 from .extraction.docx import DOCXExtractor
@@ -55,9 +56,9 @@ def _get_supported_extractors() -> dict:
 
 @router.post("/upload", response_model=UploadResponse)
 async def upload_document(
+    request: Request,
     file: UploadFile = File(...),
     current_user: dict = Depends(get_current_user),
-    request: Request = Depends(),
 ) -> UploadResponse:
     """
     Upload a learning material document (PDF, DOCX, PPTX).
@@ -127,14 +128,14 @@ async def upload_document(
         )
 
         # Save to database
-        material_id = await LearningMaterialRepository.create(database, material)
+        material_id = LearningMaterialRepository.create(database, material)
 
         # Process document asynchronously (for now, synchronous for Round 1)
         try:
             await _process_document(database, material_id, file_path, file_ext, settings)
         except Exception as e:
             # Mark as failed but don't block upload
-            await LearningMaterialRepository.update_status(
+            LearningMaterialRepository.update_status(
                 database,
                 material_id,
                 "FAILED",
@@ -232,8 +233,8 @@ async def _process_document(
 @router.get("/{material_id}", response_model=LearningMaterialResponse)
 async def get_material_metadata(
     material_id: str,
+    request: Request,
     current_user: dict = Depends(get_current_user),
-    request: Request = Depends(),
 ) -> LearningMaterialResponse:
     """
     Get metadata about a learning material (with ownership check).
@@ -280,7 +281,7 @@ async def generate_questions(
     material_id: str,
     request_body: GenerationRequest,
     current_user: dict = Depends(get_current_user),
-    request: Request = Depends(),
+    request: Request,
 ) -> GenerationResponse:
     """
     Generate grounded MCQs from a learning material.

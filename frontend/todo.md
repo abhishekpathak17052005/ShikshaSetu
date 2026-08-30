@@ -1,0 +1,24 @@
+# ShikshaSetu Expansion Tasks
+
+- [ ] Add real learner-facing views for My Competencies, Skill Gaps, Recommendations, Learning, Learning Evidence, Progress, and Profile.
+- [ ] Add an AI competency assessment experience with role context, assessment readiness, generated questions, score summary, and capability update state.
+- [ ] Add a complete skill-gap analysis view showing required competency, current capability, priority, rationale, and learning next step.
+- [ ] Add recommendation views for iGOT course modules and NSSTA TPAC recommended training programmes, including provider filters and explainable scoring.
+- [ ] Add AI-powered uploaded-content quiz generation UI with upload state, question configuration, generated MCQ preview, and quiz action states.
+- [ ] Add an Administrator dashboard with learner coverage, competency health, gap trends, provider utilisation, assessment activity, and content-to-quiz workflow.
+- [ ] Update navigation and responsive interactions so each menu item opens a meaningful view rather than a placeholder toast.
+- [ ] Preserve the Civic Clarity design system, accessibility, reduced-motion support, and integration-ready copy without inventing backend behaviour.
+- [ ] Validate routes, responsive layouts, type checks, production build, and visual screenshots before saving the next checkpoint.
+- [ ] Hide administrator navigation from learner users and expose it only inside an administrator context.
+- [ ] Replace the learner-facing admin switch control with a Logout action in the account area.
+- [ ] Add login and registration screens with field validation, error, loading, and unauthorized states.
+- [ ] Add protected-session presentation for JWT-ready auth, profile loading, 401 handling, and logout.
+- [ ] Add competency list/detail views for domains, descriptions, levels 1–5, current proficiency, required level, and gap.
+- [ ] Add an assessment start, question-by-question flow, self-rating, MCQ, scenario, and training evidence question states.
+- [ ] Add assessment results and history views with confidence and component breakdowns.
+- [ ] Add role requirements view for required competencies and current-versus-required comparisons.
+- [ ] Add editable profile form with immutable email, role, access role, and status fields.
+- [ ] Add API feedback patterns: loading, validation, success/error toasts, 401 redirect, retry, and submission protection.
+- [ ] Replace the separate login-first entry with a landing page that embeds sign-in in the hero section.
+- [ ] Add landing sections for platform value, workflow, capabilities, provider ecosystem, and role-based outcomes.
+- [ ] Preserve a clear authentication transition from the embedded sign-in form into the existing dashboard experience.

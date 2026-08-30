@@ -1,0 +1,47 @@
+programme_id,programme_name,competency_id,competency_name,mapping_type,evidence,confidence
+NSSTA-PROT-001,Survey Methodology and Data Analysis,STAT-SURVEY,Survey Design,DERIVED,Official NSSTA programme title/topic (training calendar),0.55
+NSSTA-PROT-009,Agriculture & Allied Statistics,STAT-AGRI,Agricultural Statistics,DERIVED,Official NSSTA programme title/topic (training calendar),0.55
+NSSTA-PROT-010,Team Building and Leadership through Adventure Sports (Trekking),BM-LEADERSHIP,Leadership,DERIVED,Official NSSTA programme title/topic (training calendar),0.55
+NSSTA-PROT-013,Labour Force Statistics & Price Statistics,STAT-LABOUR,Labour Statistics,DERIVED,Official NSSTA programme title/topic (training calendar),0.55
+NSSTA-PROT-013,Labour Force Statistics & Price Statistics,STAT-PRICE,Price Statistics,DERIVED,Official NSSTA programme title/topic (training calendar),0.55
+NSSTA-PROT-015,Foundation Course on Machine Learning using Python,TECH-AIML,AI/ML,DERIVED,Official NSSTA programme title/topic (training calendar),0.55
+NSSTA-PROT-015,Foundation Course on Machine Learning using Python,TECH-PYTHON,Python,DERIVED,Official NSSTA programme title/topic (training calendar),0.55
+NSSTA-PROT-017,"Big Data, Data Mining, Data Warehousing, Data Analytics, AI, Python, Hadoop",TECH-AIML,AI/ML,DERIVED,Official NSSTA programme title/topic (training calendar),0.55
+NSSTA-PROT-017,"Big Data, Data Mining, Data Warehousing, Data Analytics, AI, Python, Hadoop",TECH-PYTHON,Python,DERIVED,Official NSSTA programme title/topic (training calendar),0.55
+NSSTA-PROT-018,National Account Statistics / Social Statistics / Education Statistics,STAT-NATACC,National Accounts,DERIVED,Official NSSTA programme title/topic (training calendar),0.55
+NSSTA-PROT-019,Professional Communication and Effective Presentation,BM-COMM,Communication,DERIVED,Official NSSTA programme title/topic (training calendar),0.55
+NSSTA-PROT-020,Industrial Statistics & Trade Statistics,STAT-INDUS,Industrial Statistics,DERIVED,Official NSSTA programme title/topic (training calendar),0.55
+NSSTA-PROT-023,"Application of GIS, Forest Statistics & Data Tools",TECH-GIS,GIS,DERIVED,Official NSSTA programme title/topic (training calendar),0.55
+NSSTA-PROT-027,Sampling Techniques & Large-Scale Sample Surveys,STAT-SAMPLING,Sampling,DERIVED,Official NSSTA programme title/topic (training calendar),0.55
+NSSTA-PROT-027,Sampling Techniques & Large-Scale Sample Surveys,STAT-SURVEY,Survey Design,DERIVED,Official NSSTA programme title/topic (training calendar),0.55
+NSSTA-PROT-028,Cyber Security,DGOV-CYBER,Cybersecurity,DERIVED,Official NSSTA programme title/topic (training calendar),0.55
+NSSTA-PROT-029,Monitoring & Evaluation,BM-PM,Project Management,DERIVED,Official NSSTA programme title/topic (training calendar),0.55
+NSSTA-PROT-030,Communication & Presentation Skills,BM-COMM,Communication,DERIVED,Official NSSTA programme title/topic (training calendar),0.55
+NSSTA-PROT-031,"Design, Evaluation and Execution of Projects",BM-PM,Project Management,DERIVED,Official NSSTA programme title/topic (training calendar),0.55
+NSSTA-PROT-033,"Data Ethics, Governance, and Quality in a Changing Data Ecosystem",DGOV-PRIVACY,Data Privacy,DERIVED,Official NSSTA programme title/topic (training calendar),0.55
+NSSTA-PROT-033,"Data Ethics, Governance, and Quality in a Changing Data Ecosystem",STAT-DQ,Data Quality Frameworks,DERIVED,Official NSSTA programme title/topic (training calendar),0.55
+NSSTA-PROT-035,Leadership and Management Training Programme,BM-LEADERSHIP,Leadership,DERIVED,Official NSSTA programme title/topic (training calendar),0.55
+NSSTA-PROT-038,Overview of Big Data & AI/ML,TECH-AIML,AI/ML,DERIVED,Official NSSTA programme title/topic (training calendar),0.55
+NSSTA-PROT-041,"Basic Statistics, Official Statistics, Survey Methodology and Behavioural/Functional Competencies",STAT-SURVEY,Survey Design,DERIVED,Official NSSTA programme title/topic (training calendar),0.55
+NSSTA-PROT-042,Communication Skill & Development,BM-COMM,Communication,DERIVED,Official NSSTA programme title/topic (training calendar),0.55
+NSSTA-PROT-043,Data Analytics & Visualization,TECH-DATAVIZ,Data Visualization,DERIVED,Official NSSTA programme title/topic (training calendar),0.55
+NSSTA-PROT-044,Time Series and Applied Econometrics,STAT-NATACC,National Accounts,DERIVED,Official NSSTA programme title/topic (training calendar),0.55
+NSSTA-PROT-045,Technological Skills: Basic & Advance IT including NSS Data Extraction,TECH-CLOUD,Cloud Computing,DERIVED,Official NSSTA programme title/topic (training calendar),0.55
+NSSTA-PROT-049,e-Office (Hands-on Practice),TECH-CLOUD,Cloud Computing,DERIVED,Official NSSTA programme title/topic (training calendar),0.55
+NSSTA-PROT-050,"Data Analysis, Interpretation and Visualization using R",TECH-R,R,DERIVED,Official NSSTA programme title/topic (training calendar),0.55
+NSSTA-PROT-051,Leadership and Strategic Management,BM-LEADERSHIP,Leadership,DERIVED,Official NSSTA programme title/topic (training calendar),0.55
+NSSTA-PROT-053,Price Statistics (DES Programme),STAT-PRICE,Price Statistics,DERIVED,Official NSSTA programme title/topic (training calendar),0.55
+NSSTA-PROT-055,Large Scale Sample Survey (UN SIAP),STAT-SURVEY,Survey Design,DERIVED,Official NSSTA programme title/topic (training calendar),0.55
+NSSTA-PROT-056,Project Work (ISS Probationary),BM-PM,Project Management,DERIVED,Official NSSTA programme title/topic (training calendar),0.55
+NSSTA-PROT-058,System of Environment-Economic Accounting (SEEA) & National Account Statistics (NAS),STAT-NATACC,National Accounts,DERIVED,Official NSSTA programme title/topic (training calendar),0.55
+NSSTA-PROT-059,"Ethics, Data Governance and Integrity in Public Service",BM-ETHICS,Ethics,DERIVED,Official NSSTA programme title/topic (training calendar),0.55
+NSSTA-PROT-061,Theory & Practices in Official Statistics for Monitoring SDGs,STAT-SDG,SDG Indicators,DERIVED,Official NSSTA programme title/topic (training calendar),0.55
+NSSTA-PROT-066,Monitoring Outcomes & Evaluating Impact,BM-PM,Project Management,DERIVED,Official NSSTA programme title/topic (training calendar),0.55
+NSSTA-PROT-068,Econometrics and Time Series Analysis,STAT-NATACC,National Accounts,DERIVED,Official NSSTA programme title/topic (training calendar),0.55
+NSSTA-PROT-070,National Strategy for the Development of Statistics (NSDS) & Advanced Data Planning Tool (ADAPT),STAT-META,Metadata Standards,DERIVED,Official NSSTA programme title/topic (training calendar),0.55
+NSSTA-PROT-072,"Advance IT, Data Visualization",TECH-DATAVIZ,Data Visualization,DERIVED,Official NSSTA programme title/topic (training calendar),0.55
+NSSTA-PROT-073,Foundation Course on Artificial Intelligence and Big Data,TECH-AIML,AI/ML,DERIVED,Official NSSTA programme title/topic (training calendar),0.55
+NSSTA-PROT-074,Survey Methodology & Data Analysis (HSD/EnSD/FOD/DGCI&S),STAT-SURVEY,Survey Design,DERIVED,Official NSSTA programme title/topic (training calendar),0.55
+NSSTA-PROT-079,"Big Data, Artificial Intelligence with Python, ML",TECH-AIML,AI/ML,DERIVED,Official NSSTA programme title/topic (training calendar),0.55
+NSSTA-PROT-079,"Big Data, Artificial Intelligence with Python, ML",TECH-PYTHON,Python,DERIVED,Official NSSTA programme title/topic (training calendar),0.55
+NSSTA-PROT-080,Stress Management,BM-PM,Project Management,DERIVED,Official NSSTA programme title/topic (training calendar),0.55

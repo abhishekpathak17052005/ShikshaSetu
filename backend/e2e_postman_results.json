@@ -1,0 +1,97 @@
+[
+  {
+    "TEST": "Register Test User",
+    "RESULT": "PASS",
+    "RESPONSE": {
+      "id": "6a906491890e6cc43263937e",
+      "email": "e2etest_1787847825.241363@example.com",
+      "full_name": "E2E Test Employee",
+      "role_id": "6a8fe8048524f6da8ebb9881",
+      "designation": "Data Analyst",
+      "department": "Analytics",
+      "employee_id": "E2E1787847825",
+      "status": "active",
+      "access_role": "EMPLOYEE"
+    },
+    "NOTES": "role_id=6a8fe8048524f6da8ebb9881"
+  },
+  {
+    "TEST": "Login & Get JWT",
+    "RESULT": "PASS",
+    "RESPONSE": {
+      "token_type": "bearer"
+    },
+    "NOTES": "Bearer token"
+  },
+  {
+    "TEST": "Get Competencies",
+    "RESULT": "PASS",
+    "RESPONSE": {
+      "count": 33
+    },
+    "NOTES": "33 competencies"
+  },
+  {
+    "TEST": "Get Skill Gaps",
+    "RESULT": "PASS",
+    "RESPONSE": {
+      "gap_count": 8,
+      "sample": {
+        "competency_id": "6a9063298524f6da8ebb98c5",
+        "competency_code": "STAT_DATA_QUALITY_FRAMEWORKS",
+        "competency_name": "Data Quality Frameworks",
+        "domain": "STATISTICAL",
+        "required_level": 4.0,
+        "current_level": null,
+        "gap": 4.0,
+        "gap_category": "CRITICAL",
+        "assessment_status": "NOT_ASSESSED",
+        "confidence": 0.0,
+        "priority": 1,
+        "importance": 1.0,
+        "priority_score": 1.0,
+        "last_assessed_at": null
+      }
+    },
+    "NOTES": "8 gaps"
+  },
+  {
+    "TEST": "Get Recommendations",
+    "RESULT": "PASS",
+    "RESPONSE": {
+      "total": 38,
+      "first_resource_id": "NSSTA-NSSTA-PROT-033",
+      "first_score": 0.645
+    },
+    "NOTES": "38 recommendations returned"
+  },
+  {
+    "TEST": "Verify MongoDB Data",
+    "RESULT": "PASS",
+    "RESPONSE": {
+      "resource_exists": true,
+      "competency_exists": true,
+      "mapping_exists": false
+    },
+    "NOTES": "All data verified"
+  },
+  {
+    "TEST": "Determinism Check",
+    "RESULT": "PASS",
+    "RESPONSE": {
+      "call1_count": 38,
+      "call2_count": 38,
+      "same_ordering": true,
+      "same_scores": true
+    },
+    "NOTES": "Identical results"
+  },
+  {
+    "TEST": "Security: No Auth",
+    "RESULT": "PASS",
+    "RESPONSE": {
+      "detail": "Could not validate credentials"
+    },
+    "NOTES": "Correctly rejected"
+  }
+]

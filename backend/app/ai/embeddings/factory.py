@@ -4,6 +4,7 @@ from app.core.config import get_settings
 from .base import EmbeddingProvider
 from .mock_provider import MockEmbeddingProvider
 from .openai_provider import OpenAIEmbeddingProvider
+from .gemini_provider import GeminiEmbeddingProvider
 
 
 def get_embedding_provider() -> EmbeddingProvider:
@@ -31,8 +32,19 @@ def get_embedding_provider() -> EmbeddingProvider:
             api_key=settings.llm_api_key,
             model=settings.embedding_model,
         )
+    elif provider_name == "gemini":
+        if not settings.llm_api_key:
+            raise ValueError(
+                "Gemini embedding provider selected but LLM_API_KEY not configured. "
+                "Set LLM_API_KEY environment variable or use EMBEDDING_PROVIDER=mock for testing."
+            )
+        return GeminiEmbeddingProvider(
+            api_key=settings.llm_api_key,
+            model=settings.embedding_model,
+            dimension=settings.embedding_dimension,
+        )
     else:
         raise ValueError(
             f"Unknown embedding provider: {provider_name}. "
-            f"Supported: 'mock', 'openai'"
+            f"Supported: 'mock', 'openai', 'gemini'"
         )

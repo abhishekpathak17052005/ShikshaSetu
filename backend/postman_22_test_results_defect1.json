@@ -1,0 +1,176 @@
+{
+  "timestamp": "2026-08-28T11:22:16.879841",
+  "tests": [
+    {
+      "test": 1,
+      "name": "Health Check",
+      "method": "GET",
+      "endpoint": "/health",
+      "expected_status": 200,
+      "actual_status": 200,
+      "passed": true
+    },
+    {
+      "test": 2,
+      "name": "Register User",
+      "method": "POST",
+      "endpoint": "/auth/register",
+      "expected_status": 200,
+      "actual_status": 422,
+      "passed": false
+    },
+    {
+      "test": 3,
+      "name": "Login User",
+      "method": "POST",
+      "endpoint": "/auth/login",
+      "expected_status": 200,
+      "actual_status": 422,
+      "passed": false
+    },
+    {
+      "test": 4,
+      "name": "Get BEH_CHANGE_MANAGEMENT Config",
+      "method": "GET",
+      "endpoint": "/assessments/configs/BEH_CHANGE_MANAGEMENT",
+      "expected_status": 404,
+      "actual_status": 404,
+      "passed": true
+    },
+    {
+      "test": 5,
+      "name": "List Assessment Configs (Public)",
+      "method": "GET",
+      "endpoint": "/assessments/configs",
+      "expected_status": 200,
+      "actual_status": 200,
+      "passed": true
+    },
+    {
+      "test": 6,
+      "name": "Get Competencies",
+      "method": "GET",
+      "endpoint": "/competencies",
+      "expected_status": 200,
+      "actual_status": 500,
+      "passed": false
+    },
+    {
+      "test": 8,
+      "name": "List Roles",
+      "method": "GET",
+      "endpoint": "/roles",
+      "expected_status": 200,
+      "actual_status": 200,
+      "passed": true
+    },
+    {
+      "test": 9,
+      "name": "Get Role Requirements",
+      "method": "GET",
+      "endpoint": "/roles/STAT_OFF/requirements",
+      "expected_status": 200,
+      "actual_status": 404,
+      "passed": false
+    },
+    {
+      "test": 10,
+      "name": "Get Skill Gaps",
+      "method": "GET",
+      "endpoint": "/skill-gaps/me",
+      "expected_status": 401,
+      "actual_status": 401,
+      "passed": true
+    },
+    {
+      "test": 11,
+      "name": "Upload Learning Material",
+      "method": "POST",
+      "endpoint": "/learning-materials/upload",
+      "expected_status": 400,
+      "actual_status": 401,
+      "passed": false
+    },
+    {
+      "test": 12,
+      "name": "Get Learning Material",
+      "method": "GET",
+      "endpoint": "/learning-materials/6a911c544d63de45a857fba5",
+      "expected_status": 422,
+      "actual_status": 401,
+      "passed": false
+    },
+    {
+      "test": 13,
+      "name": "Get Recommendations",
+      "method": "GET",
+      "endpoint": "/recommendations/me",
+      "expected_status": 401,
+      "actual_status": 401,
+      "passed": true
+    },
+    {
+      "test": 14,
+      "name": "Get Competency Resources",
+      "method": "GET",
+      "endpoint": "/recommendations/competencies/TECH_SQL/resources",
+      "expected_status": 200,
+      "actual_status": 401,
+      "passed": false
+    },
+    {
+      "test": 15,
+      "name": "Get Resource Details",
+      "method": "GET",
+      "endpoint": "/recommendations/resources/6a911c544d63de45a857fbab",
+      "expected_status": 200,
+      "actual_status": 401,
+      "passed": false
+    },
+    {
+      "test": 16,
+      "name": "Create Capability Assessment",
+      "method": "POST",
+      "endpoint": "/assessments/capability",
+      "expected_status": 404,
+      "actual_status": 401,
+      "passed": false
+    },
+    {
+      "test": 18,
+      "name": "List User Assessments",
+      "method": "GET",
+      "endpoint": "/assessments/capability",
+      "expected_status": 404,
+      "actual_status": 401,
+      "passed": false
+    },
+    {
+      "test": 20,
+      "name": "Skill Gaps No Auth",
+      "method": "GET",
+      "endpoint": "/skill-gaps/me",
+      "expected_status": 401,
+      "actual_status": 401,
+      "passed": true
+    },
+    {
+      "test": 21,
+      "name": "Skill Gaps Bad Token",
+      "method": "GET",
+      "endpoint": "/skill-gaps/me",
+      "expected_status": 401,
+      "actual_status": 401,
+      "passed": true
+    },
+    {
+      "test": 22,
+      "name": "Get User Profile",
+      "method": "GET",
+      "endpoint": "/users/me",
+      "expected_status": 401,
+      "actual_status": 401,
+      "passed": true
+    }
+  ]
+}
