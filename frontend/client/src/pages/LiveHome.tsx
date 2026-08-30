@@ -146,10 +146,13 @@ function Auth({ onLogin }: { onLogin: (user: User) => void }) {
     <div className="flex min-h-screen items-center justify-center bg-[#eef4f8] px-5">
       <div className="w-full max-w-[480px] rounded-3xl border border-[#dfe7f0] bg-white p-8 shadow-xl">
         <div className="mb-8">
+          <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-teal/20 bg-[#e8f6f3] px-3 py-1 text-[11px] font-bold text-teal">
+            Smart India Hackathon · Capability Intelligence
+          </div>
           <div className="text-2xl font-extrabold text-navy">ShikshaSetu</div>
           <p className="mt-2 text-sm text-slate-500">
             {register
-              ? "Create your employee account"
+              ? "Create your civil services employee account"
               : "Sign in to your capability workspace"}
           </p>
         </div>
@@ -283,6 +286,23 @@ function Dashboard({ gaps, competencies, loading, gapError, go }: any) {
 
   return (
     <>
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#dfe7f0] bg-white p-4 shadow-sm">
+        <div>
+          <div className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">National Capability Lifecycle</div>
+          <div className="text-xs font-bold text-navy">Closed-Loop Competency Development</div>
+        </div>
+        <div className="flex flex-wrap items-center gap-1.5 text-[10px] font-extrabold">
+          <span className="rounded-lg bg-[#e8f6f3] px-2.5 py-1 text-teal">1. Baseline Assessment</span>
+          <span className="text-slate-300">→</span>
+          <span className="rounded-lg bg-[#e8f6f3] px-2.5 py-1 text-teal">2. Skill Gap Engine</span>
+          <span className="text-slate-300">→</span>
+          <span className="rounded-lg bg-[#e8f6f3] px-2.5 py-1 text-teal">3. 5-Factor Recommendations</span>
+          <span className="text-slate-300">→</span>
+          <span className="rounded-lg bg-[#fff0e6] px-2.5 py-1 text-orange">4. AI Learning & Quiz</span>
+          <span className="text-slate-300">→</span>
+          <span className="rounded-lg bg-[#f0ecfc] px-2.5 py-1 text-violet">5. Measured Growth</span>
+        </div>
+      </div>
       <Heading eyebrow="Your capability overview">Welcome back</Heading>
       <div className="mb-6 grid gap-4 sm:grid-cols-3">
         <Card>
@@ -490,8 +510,135 @@ function LearningFlow({ recommendations, gaps, competencies, loading, error, go 
   };
   if (loading) return <Card><div className="text-sm font-bold text-navy">Loading learning resources...</div></Card>;
   if (error) return <Card><div className="text-sm font-bold text-red-700">Unable to load learning resources.</div><p className="mt-2 text-sm text-slate-500">{error.message}</p></Card>;
-  if (quizResult) return <><Heading eyebrow="Quiz result">Learning evidence created</Heading><Card><div className="text-4xl font-extrabold text-navy">{quizResult.percentage}%</div><p className="mt-2 text-sm text-slate-500">{quizResult.correct_count} of {quizResult.total_questions} answers correct.</p><div className="mt-5 grid gap-3 sm:grid-cols-3"><div><div className="text-xs text-slate-400">Competency</div><div className="font-bold text-navy">{quizResult.competency?.competency_code}</div></div><div><div className="text-xs text-slate-400">Updated level</div><div className="font-bold text-teal">{quizResult.competency?.competency_level_after}</div></div><div><div className="text-xs text-slate-400">Gap after</div><div className="font-bold text-orange">{quizResult.skill_gap?.gap_after}</div></div></div><div className="mt-6 flex flex-wrap gap-3"><button onClick={() => go("My Competencies")} className="rounded-xl bg-orange px-4 py-3 text-sm font-bold text-white">View My Competencies</button><button onClick={() => go("Skill Gaps")} className="rounded-xl border border-slate-200 px-4 py-3 text-sm font-bold text-navy">View Skill Gaps</button></div></Card></>;
-  return <><Heading eyebrow="Learning workspace">Learn from your material</Heading>{errorMessage && <div role="alert" className="mb-5 rounded-lg bg-red-50 p-3 text-sm text-red-700">{errorMessage}</div>}<Card><div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Selected learning resource</div><h2 className="mt-2 text-xl font-bold text-navy">{selected?.resource?.title || "Upload learning material"}</h2><p className="mt-2 text-sm text-slate-500">{selected ? `${selected.provider} · ${selected.competency_name} · score ${selected.score}` : "No recommended resource is available yet. You can still upload material when a competency is selected."}</p><input className="mt-5 block w-full text-sm text-slate-500" type="file" accept=".pdf,.docx,.pptx" onChange={event => setFile(event.target.files?.[0] || null)} /><button disabled={busy === "uploading"} onClick={upload} className="mt-5 rounded-xl bg-orange px-4 py-3 text-sm font-bold text-white disabled:opacity-60">{busy === "uploading" ? "Uploading..." : "Upload material"}</button>{material && <div className="mt-5 rounded-xl bg-[#f4fbf9] p-4 text-sm text-teal">{material.original_filename} · {material.status} · {material.chunk_count} chunks processed</div>}</Card>{material && !generated && <Card><Heading eyebrow="AI generation">Generate practice questions</Heading><p className="text-sm text-slate-500">Questions will be generated from the uploaded material for {competencyCode}.</p><button disabled={busy === "generating"} onClick={generate} className="mt-5 rounded-xl bg-orange px-4 py-3 text-sm font-bold text-white disabled:opacity-60">{busy === "generating" ? "Generating questions..." : "Generate Practice Questions"}</button></Card>}{generated && !quiz && <Card><Heading eyebrow="Generated questions">Review before quiz</Heading><div className="space-y-4">{generated.questions.map((question: any, index: number) => <div className="rounded-xl border border-slate-100 p-4" key={index}><div className="text-xs font-bold text-teal">Question {index + 1} · {question.difficulty}</div><div className="mt-2 text-sm font-bold text-navy">{question.question}</div><div className="mt-2 text-xs text-slate-500">{question.options.join(" · ")}</div></div>)}</div><button disabled={busy === "creating"} onClick={createQuiz} className="mt-5 rounded-xl bg-orange px-4 py-3 text-sm font-bold text-white disabled:opacity-60">{busy === "creating" ? "Creating quiz..." : "Start Quiz"}</button></Card>}{quiz && <Card><Heading eyebrow="Quiz">{quiz.title}</Heading><div className="mb-5 text-sm text-slate-500">{Object.keys(answers).length} answered · {quiz.questions.length - Object.keys(answers).length} remaining</div><div className="space-y-5">{quiz.questions.map((question: any, index: number) => <div key={question.question_id}><div className="text-xs font-bold text-teal">Question {index + 1} of {quiz.questions.length}</div><div className="mt-2 text-sm font-bold text-navy">{question.question}</div><div className="mt-3 space-y-2">{question.options.map((option: string, optionIndex: number) => { const letter = String.fromCharCode(65 + optionIndex); return <label className="flex gap-2 text-sm text-slate-600" key={option}><input type="radio" name={question.question_id} checked={answers[question.question_id] === letter} onChange={() => setAnswers(old => ({ ...old, [question.question_id]: letter }))} />{option}</label>; })}</div></div>)}</div><button disabled={busy === "submitting"} onClick={submitQuiz} className="mt-6 rounded-xl bg-orange px-4 py-3 text-sm font-bold text-white disabled:opacity-60">{busy === "submitting" ? "Submitting..." : "Submit Quiz"}</button></Card>}</>;
+  if (quizResult)
+    return (
+      <>
+        <Heading eyebrow="Quiz result">Learning evidence created</Heading>
+        <Card>
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <div className="text-[10px] font-extrabold uppercase tracking-wider text-teal">Quiz Completed & Verified</div>
+              <div className="mt-2 text-4xl font-extrabold text-navy">{quizResult.percentage}%</div>
+              <p className="mt-2 text-sm text-slate-500">{quizResult.correct_count} of {quizResult.total_questions} answers correct.</p>
+            </div>
+            <div className="rounded-2xl border border-teal/30 bg-[#f4fbf9] p-4 text-center">
+              <div className="text-xs font-bold text-teal">Evidence Logged</div>
+              <div className="mt-1 text-sm font-extrabold text-navy">Source: AI_QUIZ</div>
+            </div>
+          </div>
+          <div className="mt-6 grid gap-4 rounded-xl bg-[#f7fafc] p-4 sm:grid-cols-3">
+            <div>
+              <div className="text-xs font-bold text-slate-400">Competency</div>
+              <div className="mt-1 font-bold text-navy">{quizResult.competency?.competency_code}</div>
+            </div>
+            <div>
+              <div className="text-xs font-bold text-slate-400">Updated Level</div>
+              <div className="mt-1 font-bold text-teal">{quizResult.competency?.competency_level_after} / 5.0</div>
+            </div>
+            <div>
+              <div className="text-xs font-bold text-slate-400">Skill Gap After</div>
+              <div className="mt-1 font-bold text-orange">{quizResult.skill_gap?.gap_after}</div>
+            </div>
+          </div>
+          <div className="mt-6 flex flex-wrap gap-3">
+            <button onClick={() => go("My Competencies")} className="rounded-xl bg-orange px-4 py-3 text-sm font-bold text-white shadow-sm">
+              View My Competencies
+            </button>
+            <button onClick={() => go("Skill Gaps")} className="rounded-xl border border-slate-200 px-4 py-3 text-sm font-bold text-navy">
+              View Skill Gaps
+            </button>
+          </div>
+        </Card>
+      </>
+    );
+
+  return (
+    <>
+      <Heading eyebrow="Learning workspace">Learn from your material</Heading>
+      {errorMessage && <div role="alert" className="mb-5 rounded-lg bg-red-50 p-3 text-sm text-red-700">{errorMessage}</div>}
+      <Card>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Selected learning resource</div>
+          <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-[10px] font-bold text-slate-600">PDF · DOCX · PPTX</span>
+        </div>
+        <h2 className="mt-2 text-xl font-bold text-navy">{selected?.resource?.title || "Upload learning material"}</h2>
+        <p className="mt-2 text-sm text-slate-500">
+          {selected
+            ? `${selected.provider} · ${selected.competency_name} · Match Score: ${selected.score}`
+            : "Select or upload learning materials to generate source-grounded practice questions for your targeted competencies."}
+        </p>
+        <div className="mt-5 rounded-xl border border-dashed border-[#dfe7f0] bg-[#fafcfe] p-5 text-center">
+          <input className="block w-full text-sm text-slate-500 file:mr-4 file:rounded-lg file:border-0 file:bg-teal/10 file:px-4 file:py-2 file:text-xs file:font-bold file:text-teal hover:file:bg-teal/20" type="file" accept=".pdf,.docx,.pptx" onChange={event => setFile(event.target.files?.[0] || null)} />
+        </div>
+        <button disabled={busy === "uploading"} onClick={upload} className="mt-5 rounded-xl bg-orange px-5 py-3 text-sm font-bold text-white shadow-sm disabled:opacity-60">
+          {busy === "uploading" ? "Ingesting & Chunking..." : "Upload & Ingest Material"}
+        </button>
+        {material && (
+          <div className="mt-5 rounded-xl border border-teal/20 bg-[#f4fbf9] p-4 text-sm font-bold text-teal">
+            ✓ {material.original_filename} · Status: {material.status} · {material.chunk_count || 0} text chunks indexed
+          </div>
+        )}
+      </Card>
+      {material && !generated && (
+        <Card>
+          <Heading eyebrow="AI question generation">Generate practice questions</Heading>
+          <p className="text-sm text-slate-500">
+            Source-grounded multiple choice questions will be synthesized from the indexed material chunks for <b>{competencyCode}</b>.
+          </p>
+          <button disabled={busy === "generating"} onClick={generate} className="mt-5 rounded-xl bg-orange px-5 py-3 text-sm font-bold text-white shadow-sm disabled:opacity-60">
+            {busy === "generating" ? "Generating Questions with AI..." : "Generate Practice Questions"}
+          </button>
+        </Card>
+      )}
+      {generated && !quiz && (
+        <Card>
+          <Heading eyebrow="Generated questions">Review before quiz</Heading>
+          <div className="space-y-4">
+            {generated.questions.map((question: any, index: number) => (
+              <div className="rounded-xl border border-slate-100 bg-[#f8fafc] p-4" key={index}>
+                <div className="text-xs font-bold text-teal">Question {index + 1} · {question.difficulty}</div>
+                <div className="mt-2 text-sm font-bold text-navy">{question.question}</div>
+                <div className="mt-2 text-xs text-slate-500">{question.options.join(" · ")}</div>
+              </div>
+            ))}
+          </div>
+          <button disabled={busy === "creating"} onClick={createQuiz} className="mt-5 rounded-xl bg-orange px-5 py-3 text-sm font-bold text-white shadow-sm disabled:opacity-60">
+            {busy === "creating" ? "Preparing Quiz Session..." : "Start Practice Quiz"}
+          </button>
+        </Card>
+      )}
+      {quiz && (
+        <Card>
+          <Heading eyebrow="Interactive Quiz">{quiz.title || "Competency Assessment Quiz"}</Heading>
+          <div className="mb-5 text-sm text-slate-500">
+            {Object.keys(answers).length} answered · {quiz.questions.length - Object.keys(answers).length} remaining
+          </div>
+          <div className="space-y-5">
+            {quiz.questions.map((question: any, index: number) => (
+              <div key={question.question_id} className="rounded-xl border border-slate-100 p-4">
+                <div className="text-xs font-bold text-teal">Question {index + 1} of {quiz.questions.length}</div>
+                <div className="mt-2 text-sm font-bold text-navy">{question.question}</div>
+                <div className="mt-3 space-y-2">
+                  {question.options.map((option: string, optionIndex: number) => {
+                    const letter = String.fromCharCode(65 + optionIndex);
+                    return (
+                      <label className="flex cursor-pointer items-start gap-2.5 text-sm text-slate-700 hover:bg-slate-50 p-1.5 rounded" key={option}>
+                        <input type="radio" className="mt-0.5" name={question.question_id} checked={answers[question.question_id] === letter} onChange={() => setAnswers(old => ({ ...old, [question.question_id]: letter }))} />
+                        <span>{option}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+          <button disabled={busy === "submitting"} onClick={submitQuiz} className="mt-6 rounded-xl bg-orange px-6 py-3.5 text-sm font-bold text-white shadow-md disabled:opacity-60">
+            {busy === "submitting" ? "Evaluating Answers & Updating Competency..." : "Submit Quiz & Log Evidence"}
+          </button>
+        </Card>
+      )}
+    </>
+  );
 }
 function AssessmentPage({ attempt, setAttempt, onResult }: any) {
   const [answers, setAnswers] = useState<any[]>([]);
@@ -624,7 +771,69 @@ function AssessmentExperience({ attempt, setAttempt, gaps, go, onResult, onAuthE
     return <Card><Heading eyebrow="Assessment">Ready to measure your capability?</Heading><p className="text-sm text-slate-500">The backend will calculate your competency level and update your profile.</p>{error && <p className="mt-3 text-sm text-red-700">{error}</p>}<button disabled={busy} onClick={start} className="mt-5 rounded-xl bg-orange px-4 py-3 text-sm font-bold text-white disabled:opacity-60">{busy ? "Loading assessment..." : "Start assessment"}</button></Card>;
   if (submitted)
     return <><Heading eyebrow="Assessment completed">Competency updated</Heading><div className="mb-5 rounded-xl border border-[#b9e1dc] bg-[#f4fbf9] p-4 text-sm text-teal">Your answers were scored by the backend and your competency profile was updated.</div><div className="grid gap-4 md:grid-cols-2">{(submitted.competency_results || []).map((item: any) => { const previous = gaps?.gaps?.find((gap: any) => gap.competency_id === item.competency_id); const nextGap = previous ? Math.max(0, previous.required_level - item.score) : null; return <Card key={item.competency_id}><div className="text-xs font-bold text-slate-400">Competency {item.competency_id}</div><div className="mt-3 flex items-end justify-between"><div><div className="text-3xl font-extrabold text-navy">{item.score.toFixed(1)} / 5</div><div className="text-xs text-slate-500">Current level · {Math.round(item.confidence * 100)}% confidence</div></div>{nextGap != null && <div className="text-right"><div className="text-lg font-extrabold text-orange">{nextGap.toFixed(1)}</div><div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Updated gap</div></div>}</div></Card>; })}</div><div className="mt-6 flex flex-wrap gap-3"><button onClick={() => go("Skill Gaps")} className="rounded-xl bg-orange px-4 py-3 text-sm font-bold text-white">View Skill Gaps <ArrowRight size={15} className="ml-1 inline" /></button><button onClick={() => go("Recommendations")} className="rounded-xl border border-slate-200 px-4 py-3 text-sm font-bold text-navy">View Recommendations <ArrowRight size={15} className="ml-1 inline" /></button></div></>;
-  return <><Heading eyebrow="Live assessment">Answer every question</Heading><div className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-white p-4 text-sm"><span className="font-bold text-navy">Question progress</span><span className="text-slate-500">{answeredCount} answered · {questions.length - answeredCount} remaining of {questions.length}</span><div className="h-2 w-full rounded bg-slate-100"><div className="h-2 rounded bg-teal transition-all" style={{ width: `${questions.length ? answeredCount / questions.length * 100 : 0}%` }} /></div></div>{error && <div role="alert" className="mb-5 rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</div>}<div className="space-y-4">{questions.map((question: any, index: number) => <Card key={question.question_id}><div className="flex justify-between text-xs font-bold text-teal"><span>{question.question_type}</span><span>{index + 1} / {questions.length}</span></div><h3 className="mt-2 font-bold text-navy">{question.scenario_context || question.question_text}</h3>{question.question_type === "SELF_RATING" ? <div className="mt-4 flex flex-wrap gap-2">{[1, 2, 3, 4, 5].map(value => <button key={value} onClick={() => setRatings((old: any) => ({ ...old, [question.competency_id]: value }))} className={`rounded-lg border px-4 py-2 font-bold ${ratings[question.competency_id] === value ? "border-teal bg-[#e8f6f3] text-teal" : "border-slate-200 text-slate-500"}`}>{value}</button>)}</div> : <div className="mt-4 space-y-2">{question.options.map((option: string) => <label className="flex cursor-pointer gap-2 text-sm text-slate-600" key={option}><input type="radio" name={question.question_id} checked={answers.find(answer => answer.question_id === question.question_id)?.answer === option} onChange={() => setAnswers(old => [...old.filter(answer => answer.question_id !== question.question_id), { question_id: question.question_id, answer: option }])} />{option}</label>)}</div>}</Card>)}</div><button disabled={busy || answeredCount !== questions.length} onClick={submit} className="mt-6 rounded-xl bg-orange px-4 py-3 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-50">{busy ? "Submitting..." : "Submit assessment"}</button></>;
+  return (
+    <>
+      <Heading eyebrow="Live assessment">Answer every question</Heading>
+      <div className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-white p-4 text-sm shadow-sm">
+        <span className="font-bold text-navy">Assessment Progress</span>
+        <span className="text-slate-500">{answeredCount} answered · {questions.length - answeredCount} remaining of {questions.length}</span>
+        <div className="h-2 w-full rounded bg-slate-100">
+          <div className="h-2 rounded bg-teal transition-all" style={{ width: `${questions.length ? (answeredCount / questions.length) * 100 : 0}%` }} />
+        </div>
+      </div>
+      {error && <div role="alert" className="mb-5 rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</div>}
+      <div className="space-y-4">
+        {questions.map((question: any, index: number) => {
+          const typeLabel = question.question_type === "SELF_RATING" ? "Self-Evaluation (Level 1–5)" : question.question_type === "MCQ" ? "Domain Knowledge Check" : "Situational Judgment Scenario";
+          const typeColor = question.question_type === "SELF_RATING" ? "bg-[#e8f6f3] text-teal" : question.question_type === "MCQ" ? "bg-[#fff0e6] text-[#d96b27]" : "bg-[#f0ecfc] text-[#6d5bc3]";
+          return (
+            <Card key={question.question_id}>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <span className={`rounded-full px-3 py-1 text-[10px] font-extrabold uppercase tracking-wider ${typeColor}`}>{typeLabel}</span>
+                <span className="text-xs font-bold text-slate-400">Question {index + 1} of {questions.length}</span>
+              </div>
+              <h3 className="mt-3 text-base font-bold text-navy">{question.scenario_context || question.question_text}</h3>
+              {question.question_type === "SELF_RATING" ? (
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {[1, 2, 3, 4, 5].map(value => (
+                    <button
+                      key={value}
+                      onClick={() => setRatings((old: any) => ({ ...old, [question.competency_id]: value }))}
+                      className={`rounded-lg border px-4 py-2 font-bold transition-colors ${ratings[question.competency_id] === value ? "border-teal bg-[#e8f6f3] text-teal" : "border-slate-200 text-slate-600 hover:bg-slate-50"}`}
+                    >
+                      {value}
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className="mt-4 space-y-2">
+                  {question.options.map((option: string) => (
+                    <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-transparent p-2 text-sm text-slate-700 hover:bg-slate-50" key={option}>
+                      <input
+                        type="radio"
+                        className="mt-0.5"
+                        name={question.question_id}
+                        checked={answers.find(answer => answer.question_id === question.question_id)?.answer === option}
+                        onChange={() => setAnswers(old => [...old.filter(answer => answer.question_id !== question.question_id), { question_id: question.question_id, answer: option }])}
+                      />
+                      <span>{option}</span>
+                    </label>
+                  ))}
+                </div>
+              )}
+            </Card>
+          );
+        })}
+      </div>
+      <button
+        disabled={busy || answeredCount !== questions.length}
+        onClick={submit}
+        className="mt-6 rounded-xl bg-orange px-6 py-3.5 text-sm font-bold text-white shadow-md disabled:cursor-not-allowed disabled:opacity-50"
+      >
+        {busy ? "Submitting & Scoring..." : "Submit Assessment & Update Profile"}
+      </button>
+    </>
+  );
 }
 function ProfilePage({ user, setUser }: any) {
   const [form, setForm] = useState(user);

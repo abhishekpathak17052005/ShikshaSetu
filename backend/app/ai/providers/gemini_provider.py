@@ -1,9 +1,10 @@
-"""Google Gemini LLM Provider."""
+"""Google Gemini LLM Provider using the modern google.genai SDK."""
 import json
 import logging
 from typing import Optional
 
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 
 from .base import LLMProvider
 
@@ -14,7 +15,7 @@ class GeminiLLMProvider(LLMProvider):
     """
     Google Gemini LLM provider implementation.
     
-    Uses Google's official generativeai SDK for Gemini API access.
+    Uses Google's modern google.genai SDK for Gemini API access.
     """
 
     def __init__(self, api_key: str, model: str = "gemini-2.0-flash"):
@@ -28,14 +29,12 @@ class GeminiLLMProvider(LLMProvider):
         self.api_key = api_key
         self.model_name = model
         
-        # Configure the API
-        genai.configure(api_key=api_key)
-        
         try:
-            self.model = genai.GenerativeModel(model_name=model)
+            self.client = genai.Client(api_key=api_key)
             self._available = True
         except Exception as e:
-            logger.error(f"Failed to initialize Gemini model {model}: {e}")
+            logger.error(f"Failed to initialize Gemini client for model {model}: {e}")
+            self.client = None
             self._available = False
 
     def generate(
@@ -58,18 +57,19 @@ class GeminiLLMProvider(LLMProvider):
         Raises:
             Exception: If generation fails.
         """
-        if not self._available:
+        if not self._available or self.client is None:
             raise Exception("Gemini model not properly configured")
 
         try:
-            generation_config = genai.types.GenerationConfig(
+            config = types.GenerateContentConfig(
                 temperature=temperature,
                 max_output_tokens=max_tokens or 1000,
             )
             
-            response = self.model.generate_content(
-                prompt,
-                generation_config=generation_config,
+            response = self.client.models.generate_content(
+                model=self.model_name,
+                contents=prompt,
+                config=config,
             )
             
             if not response or not response.text:
@@ -101,7 +101,7 @@ class GeminiLLMProvider(LLMProvider):
         Raises:
             Exception: If generation or JSON parsing fails.
         """
-        if not self._available:
+        if not self._available or self.client is None:
             raise Exception("Gemini model not properly configured")
 
         try:
@@ -110,14 +110,16 @@ class GeminiLLMProvider(LLMProvider):
             if "json" not in prompt.lower():
                 json_prompt += "\n\nRespond with ONLY valid JSON, no markdown, no extra text."
             
-            generation_config = genai.types.GenerationConfig(
+            config = types.GenerateContentConfig(
                 temperature=temperature,
                 max_output_tokens=max_tokens or 2000,
+                response_mime_type="application/json",
             )
             
-            response = self.model.generate_content(
-                json_prompt,
-                generation_config=generation_config,
+            response = self.client.models.generate_content(
+                model=self.model_name,
+                contents=json_prompt,
+                config=config,
             )
             
             if not response or not response.text:

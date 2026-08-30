@@ -496,3 +496,115 @@ class TestRetrieverService:
         assert len(chunk_ids) == 2
         assert "Chunk 0" in context
         assert "Page 1" in context
+
+
+class TestDocumentExtractors:
+    """Test PDF, DOCX, and PPTX document extractors."""
+
+    def test_pdf_extractor_with_pypdf(self):
+        """Test PDF extraction using pypdf."""
+        from app.ai.extraction.pdf import PDFExtractor
+        import os
+        
+        pdf_path = os.path.join(os.path.dirname(__file__), "fixtures", "sample_sql.pdf")
+        if os.path.exists(pdf_path):
+            text, pages_metadata = PDFExtractor.extract(pdf_path)
+            assert len(text) > 0
+            assert len(pages_metadata) >= 1
+            assert pages_metadata[0]["page"] == 1
+            assert "SQL" in text
+
+    def test_pdf_extractor_nonexistent_file(self):
+        """Test PDF extraction on missing file raises exception."""
+        from app.ai.extraction.pdf import PDFExtractor
+        with pytest.raises(Exception):
+            PDFExtractor.extract("non_existent_file.pdf")
+
+    def test_docx_extractor(self):
+        """Test DOCX extraction."""
+        from app.ai.extraction.docx import DOCXExtractor
+        import os
+        
+        docx_path = os.path.join(os.path.dirname(__file__), "fixtures", "sample_python.docx")
+        if os.path.exists(docx_path):
+            text, pages_metadata = DOCXExtractor.extract(docx_path)
+            assert len(text) > 0
+            assert len(pages_metadata) >= 1
+
+    def test_pptx_extractor(self):
+        """Test PPTX extraction."""
+        from app.ai.extraction.pptx import PPTXExtractor
+        import os
+        
+        pptx_path = os.path.join(os.path.dirname(__file__), "fixtures", "sample_intro.pptx")
+        if os.path.exists(pptx_path):
+            text, pages_metadata = PPTXExtractor.extract(pptx_path)
+            assert len(text) > 0
+            assert len(pages_metadata) >= 1
+
+
+class TestModernGeminiProviders:
+    """Test modernized Gemini LLM and Embedding providers with mocks."""
+
+    def test_gemini_llm_provider_generation(self):
+        """Test GeminiLLMProvider generate method with mocked client."""
+        from app.ai.providers.gemini_provider import GeminiLLMProvider
+
+        with patch("google.genai.Client") as mock_client_cls:
+            mock_client = MagicMock()
+            mock_client_cls.return_value = mock_client
+            
+            mock_response = MagicMock()
+            mock_response.text = "Python is a programming language."
+            mock_client.models.generate_content.return_value = mock_response
+
+            provider = GeminiLLMProvider(api_key="fake-key-for-testing")
+            assert provider.is_available() is True
+
+            result = provider.generate("Explain Python")
+            assert result == "Python is a programming language."
+            assert mock_client.models.generate_content.called
+
+    def test_gemini_llm_provider_json_generation(self):
+        """Test GeminiLLMProvider generate_json method with mocked client."""
+        from app.ai.providers.gemini_provider import GeminiLLMProvider
+
+        with patch("google.genai.Client") as mock_client_cls:
+            mock_client = MagicMock()
+            mock_client_cls.return_value = mock_client
+            
+            mock_response = MagicMock()
+            mock_response.text = '{"question": "What is Python?", "options": ["A", "B", "C", "D"], "correct_answer": "A"}'
+            mock_client.models.generate_content.return_value = mock_response
+
+            provider = GeminiLLMProvider(api_key="fake-key-for-testing")
+            json_result = provider.generate_json("Generate MCQ")
+            assert isinstance(json_result, dict)
+            assert json_result["question"] == "What is Python?"
+            assert json_result["correct_answer"] == "A"
+
+    def test_gemini_embedding_provider(self):
+        """Test GeminiEmbeddingProvider embedding with mocked client."""
+        from app.ai.embeddings.gemini_provider import GeminiEmbeddingProvider
+
+        with patch("google.genai.Client") as mock_client_cls:
+            mock_client = MagicMock()
+            mock_client_cls.return_value = mock_client
+
+            mock_emb = MagicMock()
+            mock_emb.values = [0.1] * 768
+            mock_response = MagicMock()
+            mock_response.embeddings = [mock_emb]
+            mock_client.models.embed_content.return_value = mock_response
+
+            provider = GeminiEmbeddingProvider(api_key="fake-key-for-testing", dimension=768)
+            assert provider.is_available() is True
+
+            vec = provider.embed_text("Sample statistical text")
+            assert len(vec) == 768
+            assert vec[0] == 0.1
+
+            vecs = provider.embed_texts(["Text A", "Text B"])
+            assert len(vecs) == 2
+            assert len(vecs[0]) == 768
+

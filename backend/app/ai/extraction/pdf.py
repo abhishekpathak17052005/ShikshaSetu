@@ -1,7 +1,7 @@
 """PDF document extraction."""
 from typing import List, Tuple
 
-from PyPDF2 import PdfReader
+from pypdf import PdfReader
 
 
 class PDFExtractor:

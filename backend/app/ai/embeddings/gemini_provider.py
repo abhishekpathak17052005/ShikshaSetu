@@ -1,8 +1,9 @@
-"""Google Gemini Embedding Provider."""
+"""Google Gemini Embedding Provider using the modern google.genai SDK."""
 import logging
 from typing import List
 
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 
 from .base import EmbeddingProvider
 
@@ -13,13 +14,13 @@ class GeminiEmbeddingProvider(EmbeddingProvider):
     """
     Google Gemini embedding provider implementation.
     
-    Uses Google's official generativeai SDK for text embeddings.
+    Uses Google's modern google.genai SDK for text embeddings.
     """
 
     def __init__(
         self,
         api_key: str,
-        model: str = "models/embedding-001",
+        model: str = "text-embedding-004",
         dimension: int = 768,
     ):
         """
@@ -27,36 +28,35 @@ class GeminiEmbeddingProvider(EmbeddingProvider):
 
         Args:
             api_key: Google API key for Gemini API.
-            model: Model name for embeddings (default: models/embedding-001).
-            dimension: Expected embedding dimension (default: 768 for embedding-001).
+            model: Model name for embeddings (default: text-embedding-004).
+            dimension: Expected embedding dimension (default: 768 for text-embedding-004).
         """
         self.api_key = api_key
         self.model_name = model
         self._dimension = dimension
         
-        # Configure the API
-        genai.configure(api_key=api_key)
-        
         try:
-            # Test the model by embedding a simple text
+            self.client = genai.Client(api_key=api_key)
             self._test_embedding()
             self._available = True
         except Exception as e:
             logger.error(f"Failed to initialize Gemini embedding model {model}: {e}")
+            self.client = None
             self._available = False
 
     def _test_embedding(self) -> None:
         """Test that embedding model is working."""
         try:
-            result = genai.embed_content(
+            if not self.client:
+                raise Exception("Client not initialized")
+            response = self.client.models.embed_content(
                 model=self.model_name,
-                content="test"
+                contents="test",
             )
-            if "embedding" not in result:
+            if not response or not response.embeddings:
                 raise Exception("Invalid embedding response format")
-            # Update dimension based on actual response
-            if "embedding" in result:
-                self._dimension = len(result["embedding"])
+            if response.embeddings and hasattr(response.embeddings[0], "values"):
+                self._dimension = len(response.embeddings[0].values)
         except Exception as e:
             raise Exception(f"Embedding model test failed: {str(e)}")
 
@@ -73,28 +73,29 @@ class GeminiEmbeddingProvider(EmbeddingProvider):
         Raises:
             Exception: If embedding generation fails.
         """
-        if not self._available:
+        if not self._available or self.client is None:
             raise Exception("Gemini embedding model not properly configured")
 
         if not text or not text.strip():
             raise ValueError("Text cannot be empty")
 
         try:
-            result = genai.embed_content(
+            response = self.client.models.embed_content(
                 model=self.model_name,
-                content=text.strip()
+                contents=text.strip(),
             )
             
-            if "embedding" not in result:
-                raise Exception("Invalid embedding response: no 'embedding' field")
+            if not response or not response.embeddings:
+                raise Exception("Invalid embedding response: no 'embeddings' field")
             
-            embedding = result["embedding"]
+            first_embedding = response.embeddings[0]
+            values = first_embedding.values if hasattr(first_embedding, "values") else first_embedding
             
-            if not isinstance(embedding, list):
-                raise Exception(f"Expected embedding to be list, got {type(embedding).__name__}")
+            if not isinstance(values, (list, tuple)):
+                raise Exception(f"Expected embedding to be list/tuple, got {type(values).__name__}")
             
-            # Convert to float if needed
-            return [float(x) for x in embedding]
+            # Convert to float
+            return [float(x) for x in values]
         
         except Exception as e:
             logger.error(f"Gemini embedding failed for text: {e}")
@@ -113,7 +114,7 @@ class GeminiEmbeddingProvider(EmbeddingProvider):
         Raises:
             Exception: If embedding generation fails.
         """
-        if not self._available:
+        if not self._available or self.client is None:
             raise Exception("Gemini embedding model not properly configured")
 
         if not texts:
@@ -122,8 +123,6 @@ class GeminiEmbeddingProvider(EmbeddingProvider):
         embeddings = []
         
         try:
-            # Gemini API prefers to embed texts one at a time or in small batches
-            # We'll embed one at a time for reliability
             for text in texts:
                 if text and text.strip():
                     embedding = self.embed_text(text)
