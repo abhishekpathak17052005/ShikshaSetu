@@ -45,12 +45,17 @@ class QuizService:
         4. Store questions in quiz
         5. Return quiz
         """
+        if not ObjectId.is_valid(user_id):
+            raise QuizServiceError("Invalid user ID")
+        if not ObjectId.is_valid(material_id):
+            raise QuizServiceError("Invalid material ID")
+
         user_oid = ObjectId(user_id)
         material_oid = ObjectId(material_id)
 
         # Validate material exists and belongs to user
         material = self.db.learning_materials.find_one(
-            {"_id": material_oid, "user_id": user_oid}
+            {"_id": material_oid, "user_id": {"$in": [str(user_id), user_oid]}}
         )
         if not material:
             raise QuizServiceError("Material not found or does not belong to user")
@@ -219,11 +224,16 @@ class QuizService:
         competency_code = quiz["competency_code"]
         competency_before = self._get_current_competency(user_oid, competency_code)
 
+        # Get competency ObjectId
+        competency_doc = self.db.competencies.find_one({"code": competency_code})
+        competency_oid = ObjectId(competency_doc["_id"]) if competency_doc else ObjectId()
+
         # Create evidence
         evidence_doc = {
             "_id": ObjectId(),
             "user_id": user_oid,
             "competency_code": competency_code,
+            "competency_id": competency_oid,
             "evidence_type": EvidenceType.QUIZ,
             "source": "AI_QUIZ",
             "quiz_id": ObjectId(quiz_id),
@@ -283,14 +293,14 @@ class QuizService:
                 "competency_level_after": competency_after["level"],
                 "confidence_before": competency_before["confidence"],
                 "confidence_after": competency_after["confidence"],
-                "improvement": competency_after["level"] - competency_before["level"],
+                "improvement": round(competency_after["level"] - competency_before["level"], 2),
             },
             "skill_gap": {
                 "competency_code": competency_code,
                 "current_level": competency_after["level"],
-                "required_level": skill_gap_after["required"],
-                "gap_before": skill_gap_before,
-                "gap_after": skill_gap_after,
+                "required_level": skill_gap_after["required_level"],
+                "gap_before": skill_gap_before["gap"],
+                "gap_after": skill_gap_after["gap"],
             },
             "explanations": explanations,
             "submitted_at": now,
@@ -373,31 +383,32 @@ class QuizService:
         user_id: ObjectId,
         competency_code: str,
         competency_state: dict,
-    ) -> float:
+    ) -> dict:
         """
         Calculate skill gap for a competency.
         
         Reuses Phase 5 logic:
         gap = max(0, required_level - current_level)
         """
-        # Get role requirement for this competency
         user = self.db.users.find_one({"_id": user_id})
-        if not user or not user.get("role"):
-            return 0.0
-
-        framework = self.db.competency_frameworks.find_one({
-            "role": user["role"],
-            "competency_code": competency_code,
-        })
-
-        if not framework:
-            return 0.0
-
-        required_level = framework.get("required_level", 3.0)
-        current_level = competency_state["level"]
-
-        gap = max(0, required_level - current_level)
-        return gap
+        role_id = user.get("role_id") if user else None
+        
+        competency = self.db.competencies.find_one({"code": competency_code})
+        competency_oid = competency["_id"] if competency else None
+        
+        req = None
+        if role_id and competency_oid:
+            role_oid = ObjectId(role_id) if isinstance(role_id, str) and ObjectId.is_valid(role_id) else role_id
+            req = self.db.role_requirements.find_one({"role_id": role_oid, "competency_id": competency_oid})
+            
+        required_level = float(req.get("required_level", 3.0)) if req else 3.0
+        current_level = float(competency_state.get("level", 1.0))
+        gap = max(0.0, round(required_level - current_level, 2))
+        
+        return {
+            "required_level": required_level,
+            "gap": gap
+        }
 
     def _extract_all_source_chunks(self, questions: list[dict]) -> list[str]:
         """Extract all unique source chunks from quiz questions."""

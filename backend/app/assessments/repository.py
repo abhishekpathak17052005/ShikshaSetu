@@ -46,3 +46,12 @@ def upsert_profile(database: Database, user_id: ObjectId, competency_id: ObjectI
 
 def insert_evidence(database: Database, document: dict) -> None:
     database.competency_evidence.insert_one(document)
+
+
+def get_assessment_configuration(database: Database, competency_code: str) -> dict | None:
+    return database.assessment_configurations.find_one({"competency_code": competency_code, "status": "ACTIVE"})
+
+
+def get_all_assessment_configurations(database: Database) -> list[dict]:
+    return list(database.assessment_configurations.find({"status": "ACTIVE"}))
+

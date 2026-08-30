@@ -280,8 +280,8 @@ async def get_material_metadata(
 async def generate_questions(
     material_id: str,
     request_body: GenerationRequest,
-    current_user: dict = Depends(get_current_user),
     request: Request,
+    current_user: dict = Depends(get_current_user),
 ) -> GenerationResponse:
     """
     Generate grounded MCQs from a learning material.

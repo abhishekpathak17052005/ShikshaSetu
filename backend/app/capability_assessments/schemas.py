@@ -28,9 +28,9 @@ class CapabilityAssessmentQuestionResponse(BaseModel):
 class CapabilityAssessmentResponse(BaseModel):
     """Response when retrieving a capability assessment."""
     
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
     
-    id: str = Field(alias="_id")
+    id: str
     competency_code: str
     assessment_type: str
     title: str
@@ -71,6 +71,8 @@ class CompetencyResult(BaseModel):
 class CapabilityAssessmentSubmitResponse(BaseModel):
     """Response after submitting an assessment."""
     
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+    
     assessment_id: str
     competency_code: str
     status: str
@@ -84,9 +86,9 @@ class CapabilityAssessmentSubmitResponse(BaseModel):
 class CapabilityAssessmentResultsResponse(BaseModel):
     """Full results for a submitted assessment."""
     
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
     
-    assessment_id: str = Field(alias="_id")
+    assessment_id: str
     competency_code: str
     status: str
     score: float
@@ -103,9 +105,9 @@ class CapabilityAssessmentResultsResponse(BaseModel):
 class CapabilityAssessmentListResponse(BaseModel):
     """Capability assessment in a list view."""
     
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
     
-    id: str = Field(alias="_id")
+    id: str
     competency_code: str
     title: str
     status: str
@@ -113,3 +115,4 @@ class CapabilityAssessmentListResponse(BaseModel):
     percentage: float | None = None
     started_at: datetime
     submitted_at: datetime | None = None
+

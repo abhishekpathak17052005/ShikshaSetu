@@ -39,6 +39,58 @@ class AssessmentScoringConfig(BaseModel):
         return self
 
 
+class AssessmentConfiguration(BaseModel):
+    competency_code: str
+    assessment_types: list[str] = Field(default_factory=lambda: ["MCQ", "SCENARIO"])
+    number_of_questions: int = Field(default=10, ge=1)
+    difficulty: str = Field(default="MIXED")
+    passing_threshold: float = Field(default=60.0, ge=0.0, le=100.0)
+    time_limit_minutes: int | None = Field(default=30)
+    show_correct_answers_after: bool = True
+    allow_retake: bool = True
+    status: str = "ACTIVE"
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
+
+    @field_validator("assessment_types")
+    @classmethod
+    def validate_assessment_types(cls, value: list[str]) -> list[str]:
+        valid_types = {"MCQ", "SCENARIO"}
+        if not set(value).issubset(valid_types):
+            raise ValueError(f"Invalid assessment types: {value}. Allowed: {valid_types}")
+        return value
+
+    @field_validator("difficulty")
+    @classmethod
+    def validate_difficulty(cls, value: str) -> str:
+        valid_difficulties = {"EASY", "MEDIUM", "HARD", "MIXED"}
+        if value not in valid_difficulties:
+            raise ValueError(f"Invalid difficulty: {value}. Allowed: {valid_difficulties}")
+        return value
+
+
+class AssessmentConfigurationResponse(BaseModel):
+    id: str = Field(alias="_id")
+    competency_code: str
+    assessment_types: list[str] = Field(default_factory=lambda: ["MCQ", "SCENARIO"])
+    number_of_questions: int = Field(default=10)
+    difficulty: str = Field(default="MIXED")
+    passing_threshold: float = Field(default=60.0)
+    time_limit_minutes: int | None = Field(default=30)
+    show_correct_answers_after: bool = True
+    allow_retake: bool = True
+    status: str = "ACTIVE"
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
+
+    model_config = ConfigDict(populate_by_name=True, from_attributes=True)
+
+    @field_validator("id", mode="before")
+    @classmethod
+    def convert_id(cls, value):
+        return str(value) if value is not None else value
+
+
 class QuestionResponse(BaseModel):
     question_id: str
     competency_id: str

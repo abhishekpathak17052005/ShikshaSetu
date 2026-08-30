@@ -341,6 +341,8 @@ def submit_capability_assessment(
     
     # Calculate duration
     started_at = assessment.get("started_at")
+    if started_at and started_at.tzinfo is None:
+        started_at = started_at.replace(tzinfo=UTC)
     now = datetime.now(UTC)
     duration_seconds = int((now - started_at).total_seconds()) if started_at else None
     

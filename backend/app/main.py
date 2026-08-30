@@ -10,6 +10,7 @@ from app.api.health import router as health_router
 from app.auth.router import router as auth_router
 from app.ai.router import router as learning_materials_router
 from app.assessments.router import router as assessments_router
+from app.capability_assessments.router import router as capability_assessments_router
 from app.competencies.router import router as competencies_router
 from app.core.config import Settings, get_settings
 from app.core.database import close_database, initialize_database
@@ -76,6 +77,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     application.include_router(health_router, prefix=app_settings.api_prefix)
     application.include_router(auth_router, prefix=app_settings.api_prefix)
     application.include_router(learning_materials_router, prefix=app_settings.api_prefix)
+    application.include_router(capability_assessments_router)
     application.include_router(assessments_router, prefix=app_settings.api_prefix)
     application.include_router(competencies_router, prefix=app_settings.api_prefix)
     application.include_router(roles_router, prefix=app_settings.api_prefix)

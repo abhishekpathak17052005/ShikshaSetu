@@ -1,7 +1,19 @@
 .env
+.env.*
+!.env.example
 .venv/
 __pycache__/
 .pytest_cache/
 *.py[cod]
 .coverage
-htmlcov/ n 
+htmlcov/
+node_modules/
+dist/
+build/
+.vite/
+frontend/.vite/
+backend/uploads/materials/*.pdf
+backend/uploads/materials/*.docx
+backend/uploads/materials/*.pptx
+backend/uploads/materials/*.txt
+*.log

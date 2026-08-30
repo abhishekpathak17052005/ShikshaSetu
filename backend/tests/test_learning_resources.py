@@ -21,7 +21,7 @@ def sample_competency(database):
     comp_id = ObjectId()
     database.competencies.insert_one({
         "_id": comp_id,
-        "code": "STAT-SAMPLING",
+        "code": "STAT_SAMPLING",
         "name": "Sampling",
         "domain": "Statistical Competencies",
         "description": "Sampling theory",
@@ -53,7 +53,7 @@ def sample_igot_resource(database, sample_competency):
             "target_roles": ["Statistical Officer"],
             "prerequisites": [],
         },
-        "competencies": ["STAT-SAMPLING"],
+        "competencies": ["STAT_SAMPLING"],
         "source": {
             "source_type": "GOVERNMENT_PUBLICATION",
             "source_url": "https://igot.example.com/course/12345",
@@ -89,7 +89,7 @@ def sample_nssta_resource(database, sample_competency):
             "target_roles": [],
             "prerequisites": [],
         },
-        "competencies": ["STAT-SAMPLING"],
+        "competencies": ["STAT_SAMPLING"],
         "source": {
             "source_type": "GOVERNMENT_PUBLICATION",
             "source_url": "https://mospi.gov.in/nssta",
@@ -116,7 +116,7 @@ def sample_mappings(database, sample_competency, sample_igot_resource, sample_ns
     database.learning_resource_mappings.insert_many([
         {
             "resource_id": sample_igot_resource,
-            "competency_code": "STAT-SAMPLING",
+            "competency_code": "STAT_SAMPLING",
             "competency_name": "Sampling",
             "provider": "IGOT",
             "mapping_confidence": 0.9,
@@ -126,7 +126,7 @@ def sample_mappings(database, sample_competency, sample_igot_resource, sample_ns
         },
         {
             "resource_id": sample_nssta_resource,
-            "competency_code": "STAT-SAMPLING",
+            "competency_code": "STAT_SAMPLING",
             "competency_name": "Sampling",
             "provider": "NSSTA",
             "mapping_confidence": 0.7,
@@ -160,7 +160,7 @@ class TestLearningResourceRepository:
     def test_get_resources_by_competency(self, database, sample_competency, sample_mappings):
         """Test retrieving resources for a competency."""
         repo = LearningResourceRepository(database)
-        resources = repo.get_resources_by_competency("STAT-SAMPLING")
+        resources = repo.get_resources_by_competency("STAT_SAMPLING")
         
         assert len(resources) >= 2
         providers = {r["provider"] for r in resources}
@@ -170,7 +170,7 @@ class TestLearningResourceRepository:
     def test_get_resources_by_competency_and_provider(self, database, sample_competency, sample_mappings):
         """Test filtering resources by competency and provider."""
         repo = LearningResourceRepository(database)
-        resources = repo.get_resources_by_competency_and_provider("STAT-SAMPLING", "IGOT")
+        resources = repo.get_resources_by_competency_and_provider("STAT_SAMPLING", "IGOT")
         
         assert len(resources) >= 1
         assert all(r["provider"] == "IGOT" for r in resources)
@@ -207,7 +207,7 @@ class TestProviders:
     ):
         """Test iGOT provider retrieves resources."""
         provider = PrototypeIGOTProvider(database)
-        resources = provider.get_resources_for_competency("STAT-SAMPLING")
+        resources = provider.get_resources_for_competency("STAT_SAMPLING")
         
         assert len(resources) >= 1
         assert all(r["provider"] == "IGOT" for r in resources)
@@ -314,14 +314,14 @@ class TestRecommendationService:
     def test_get_resources_by_competency(self, database, sample_competency, sample_mappings):
         """Test getting resources for a competency."""
         service = RecommendationService(database)
-        resources = service.get_resources_by_competency("STAT-SAMPLING")
+        resources = service.get_resources_by_competency("STAT_SAMPLING")
         
         assert len(resources) >= 2
 
     def test_get_resources_by_competency_filtered(self, database, sample_competency, sample_mappings):
         """Test getting resources for a competency filtered by provider."""
         service = RecommendationService(database)
-        resources = service.get_resources_by_competency("STAT-SAMPLING", "IGOT")
+        resources = service.get_resources_by_competency("STAT_SAMPLING", "IGOT")
         
         assert len(resources) >= 1
         assert all(r["provider"] == "IGOT" for r in resources)
@@ -360,7 +360,7 @@ class TestProviderSeparation:
     def test_candidates_separated_by_provider(self, database, sample_competency, sample_mappings):
         """Test that candidates correctly identify their provider."""
         repo = LearningResourceRepository(database)
-        resources = repo.get_resources_by_competency("STAT-SAMPLING")
+        resources = repo.get_resources_by_competency("STAT_SAMPLING")
         
         igot_resources = [r for r in resources if r["provider"] == "IGOT"]
         nssta_resources = [r for r in resources if r["provider"] == "NSSTA"]

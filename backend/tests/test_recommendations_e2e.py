@@ -25,8 +25,22 @@ def test_client(database, test_app):
 
 
 @pytest.fixture
-def test_user(test_client):
+def test_user(test_client, database):
     """Create and return authenticated test user."""
+    # Find an active role from database or create one if needed
+    role = database.roles.find_one({"status": "active"})
+    if not role:
+        role_id = ObjectId()
+        database.roles.insert_one({
+            "_id": role_id,
+            "role_code": "STATISTICAL_OFFICER",
+            "role_name": "Statistical Officer",
+            "description": "Statistical Officer Role",
+            "status": "active",
+        })
+    else:
+        role_id = role["_id"]
+
     # Register user with existing role
     register_payload = {
         "email": "e2e_test@example.com",
@@ -35,7 +49,7 @@ def test_user(test_client):
         "designation": "Statistical Officer",
         "department": "Testing",
         "employee_id": "E2E001",
-        "role_id": "6a8fe8048524f6da8ebb9881",  # Use existing role from database
+        "role_id": str(role_id),
     }
     
     response = test_client.post("/api/v1/auth/register", json=register_payload)
@@ -140,7 +154,7 @@ class TestRecommendationsE2E:
             headers = {"Authorization": f"Bearer {token}"}
         
         response = test_client.get(
-            "/api/v1/competencies/STAT-SAMPLING/resources",
+            "/api/v1/recommendations/competencies/STAT_SAMPLING/resources",
             headers=headers,
         )
         
