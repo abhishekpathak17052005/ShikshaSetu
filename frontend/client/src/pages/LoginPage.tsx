@@ -51,7 +51,7 @@ export default function LoginPage() {
         setIsRegister(false);
         setPassword("");
       } else {
-        await login(email, password);
+        await login(email.trim(), password.trim());
         // AuthContext sets the user; Router in App.tsx redirects automatically
       }
     } catch (err: unknown) {
