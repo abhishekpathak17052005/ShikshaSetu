@@ -681,6 +681,64 @@ export type AssistantChatPayload = {
   current_resource_id?: string;
 };
 
+// ─── Adaptive Capability Assessment Types ────────────────────────────────────
+
+export type AdaptiveQuestionItem = {
+  question_id: string;
+  question_type: string;
+  question_text: string;
+  options: string[];
+  difficulty: string;
+  scenario_context?: string | null;
+};
+
+export type AdaptiveStartResponse = {
+  session_id: string;
+  competency_code: string;
+  competency_name: string;
+  estimated_level: number;
+  difficulty: string;
+  proficiency_tier: string;
+  current_question_number: number;
+  total_questions_planned: number;
+  question?: AdaptiveQuestionItem | null;
+  status: string;
+};
+
+export type AdaptiveAnswerResponse = {
+  session_id: string;
+  is_correct: boolean;
+  explanation?: string | null;
+  previous_estimated_level: number;
+  updated_estimated_level: number;
+  next_difficulty: string;
+  proficiency_tier: string;
+  questions_completed: number;
+  total_questions_planned: number;
+  is_complete: boolean;
+  next_question?: AdaptiveQuestionItem | null;
+};
+
+export type AdaptiveFinalizeResponse = {
+  session_id: string;
+  competency_code: string;
+  competency_name: string;
+  final_demonstrated_level: number;
+  proficiency_tier: string;
+  total_questions: number;
+  correct_count: number;
+  accuracy_pct: number;
+  previous_competency_level: number;
+  updated_competency_level: number;
+  previous_skill_gap: number;
+  updated_skill_gap: number;
+  evidence_record_id: string;
+  evidence_type: string;
+  evidence_confidence: number;
+  completed_at: string;
+  status: string;
+};
+
 // ─── HTTP helper ─────────────────────────────────────────────────────────────
 
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
@@ -1035,6 +1093,24 @@ export const api = {
       request<AssistantChatResponse>("/assistant/chat", {
         method: "POST",
         body: JSON.stringify(payload),
+      }),
+  },
+
+  // ─── Adaptive Capability Assessments namespace ──────────────────────────────
+  adaptiveAssessments: {
+    start: (competency_code: string, max_questions = 5) =>
+      request<AdaptiveStartResponse>("/adaptive-assessments/start", {
+        method: "POST",
+        body: JSON.stringify({ competency_code, max_questions }),
+      }),
+    answer: (session_id: string, question_id: string, selected_answer: string) =>
+      request<AdaptiveAnswerResponse>(`/adaptive-assessments/${session_id}/answer`, {
+        method: "POST",
+        body: JSON.stringify({ question_id, selected_answer }),
+      }),
+    finalize: (session_id: string) =>
+      request<AdaptiveFinalizeResponse>(`/adaptive-assessments/${session_id}/finalize`, {
+        method: "POST",
       }),
   },
 

@@ -24,6 +24,7 @@ from app.trainer.router import router as trainer_router
 from app.users.router import router as users_router
 from app.igot.router import router as igot_router
 from app.assistant.router import router as assistant_router
+from app.adaptive_assessments.router import router as adaptive_assessments_router
 
 logging.basicConfig(
     level=logging.INFO,
@@ -96,6 +97,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     application.include_router(users_router, prefix=app_settings.api_prefix)
     application.include_router(igot_router, prefix=app_settings.api_prefix)
     application.include_router(assistant_router, prefix=app_settings.api_prefix)
+    application.include_router(adaptive_assessments_router, prefix=app_settings.api_prefix)
 
     @application.exception_handler(Exception)
     async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
