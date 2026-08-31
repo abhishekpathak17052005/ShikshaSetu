@@ -14,6 +14,7 @@ from app.capability_assessments.router import router as capability_assessments_r
 from app.competencies.router import router as competencies_router
 from app.core.config import Settings, get_settings
 from app.core.database import close_database, initialize_database
+from app.learning_activities.router import router as learning_activities_router
 from app.learning_resources.router import router as recommendations_router
 from app.quizzes.router import router as quizzes_router
 from app.roles.router import router as roles_router
@@ -80,6 +81,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     application.include_router(capability_assessments_router)
     application.include_router(assessments_router, prefix=app_settings.api_prefix)
     application.include_router(competencies_router, prefix=app_settings.api_prefix)
+    application.include_router(learning_activities_router, prefix=app_settings.api_prefix)
     application.include_router(roles_router, prefix=app_settings.api_prefix)
     application.include_router(recommendations_router, prefix=app_settings.api_prefix)
     application.include_router(quizzes_router, prefix=app_settings.api_prefix)
