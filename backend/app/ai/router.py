@@ -7,7 +7,7 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, status, Request
 from bson import ObjectId
 
-from app.auth.dependencies import get_current_user
+from app.auth.dependencies import get_current_user, require_trainer
 from app.core.config import get_settings
 
 from .models import LearningMaterial, DocumentChunk
@@ -58,7 +58,7 @@ def _get_supported_extractors() -> dict:
 async def upload_document(
     request: Request,
     file: UploadFile = File(...),
-    current_user: dict = Depends(get_current_user),
+    current_user: dict = Depends(require_trainer),
 ) -> UploadResponse:
     """
     Upload a learning material document (PDF, DOCX, PPTX).
@@ -168,6 +168,7 @@ async def _process_document(
 ) -> None:
     """
     Process a document: extract, clean, chunk, embed, and index.
+    Note: Uses sync PyMongo despite async signature for FastAPI.
 
     Args:
         database: MongoDB database instance.
@@ -178,7 +179,7 @@ async def _process_document(
     """
     try:
         # Update status to PROCESSING
-        await LearningMaterialRepository.update_status(database, material_id, "PROCESSING")
+        LearningMaterialRepository.update_status(database, material_id, "PROCESSING")
 
         # Extract text
         extractor = _get_supported_extractors()[file_ext]
@@ -202,7 +203,7 @@ async def _process_document(
             raise Exception("No chunks created from document")
 
         # Persist chunks
-        chunk_count = await DocumentChunkRepository.create_many(database, chunks)
+        chunk_count = DocumentChunkRepository.create_many(database, chunks)
 
         # Embed and index chunks
         embedding_provider = get_embedding_provider()
@@ -213,13 +214,13 @@ async def _process_document(
         _vector_stores[material_id] = vector_store
 
         # Update material status
-        await LearningMaterialRepository.update_status(
+        LearningMaterialRepository.update_status(
             database,
             material_id,
             "READY",
             "SUCCESS"
         )
-        await LearningMaterialRepository.update_chunk_counts(
+        LearningMaterialRepository.update_chunk_counts(
             database,
             material_id,
             chunk_count,
@@ -253,7 +254,7 @@ async def get_material_metadata(
     database = request.app.state.database
     user_id = str(current_user["_id"])
 
-    material = await LearningMaterialRepository.get_by_id(database, material_id, user_id)
+    material = LearningMaterialRepository.get_by_id(database, material_id, user_id)
 
     if not material:
         raise HTTPException(status_code=404, detail="Material not found")
@@ -281,7 +282,7 @@ async def generate_questions(
     material_id: str,
     request_body: GenerationRequest,
     request: Request,
-    current_user: dict = Depends(get_current_user),
+    current_user: dict = Depends(require_trainer),
 ) -> GenerationResponse:
     """
     Generate grounded MCQs from a learning material.
@@ -303,7 +304,7 @@ async def generate_questions(
     settings = get_settings()
 
     # Check material exists and is ready
-    material = await LearningMaterialRepository.get_by_id(database, material_id, user_id)
+    material = LearningMaterialRepository.get_by_id(database, material_id, user_id)
 
     if not material:
         raise HTTPException(status_code=404, detail="Material not found")
@@ -318,7 +319,7 @@ async def generate_questions(
         # Get or load vector store
         if material_id not in _vector_stores:
             # Reload from database
-            chunks = await DocumentChunkRepository.get_by_material(database, material_id)
+            chunks = DocumentChunkRepository.get_by_material(database, material_id)
 
             if not chunks:
                 raise HTTPException(
@@ -355,7 +356,7 @@ async def generate_questions(
 
         # Validate questions
         chunk_repo = DocumentChunkRepository()
-        valid_questions, invalid_questions = await GroundingValidator.validate_batch(
+        valid_questions, invalid_questions = GroundingValidator.validate_batch(
             questions,
             chunk_repo,
             material_id,
@@ -372,6 +373,18 @@ async def generate_questions(
         retrieved_chunks = set()
         for q in valid_questions:
             retrieved_chunks.update(q.source_chunks)
+
+        # Persist questions into Trainer Review Studio
+        try:
+            from app.trainer.service import TrainerService
+            TrainerService(database).save_generated_questions(
+                trainer_id=user_id,
+                material_id=material_id,
+                competency_code=request_body.competency_code,
+                questions=[q.dict() if hasattr(q, "dict") else q for q in valid_questions],
+            )
+        except Exception:
+            pass
 
         return GenerationResponse(
             material_id=material_id,

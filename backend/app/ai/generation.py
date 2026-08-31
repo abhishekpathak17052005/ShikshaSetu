@@ -197,9 +197,9 @@ RESPONSE FORMAT (valid JSON array only, no markdown, no extra text):
             for q_data in questions_data:
                 try:
                     mcq = GeneratedMCQ(**q_data)
-                    # Ensure source chunks are set
-                    if not mcq.source_chunks:
-                        mcq.source_chunks = chunk_ids
+                    # Ensure source chunks are mapped to retrieved chunk IDs
+                    valid_chunk_ids = [cid for cid in mcq.source_chunks if cid in chunk_ids]
+                    mcq.source_chunks = valid_chunk_ids if valid_chunk_ids else chunk_ids[:2]
                     validated_questions.append(mcq)
                 except Exception as e:
                     # Skip invalid questions

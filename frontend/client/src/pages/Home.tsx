@@ -5,8 +5,9 @@ import * as React from "react";
 import { useState } from "react";
 import { toast } from "sonner";
 import {
-  ArrowRight, BarChart3, Bell, BookOpen, BriefcaseBusiness, Check, ChevronDown, CircleHelp, ClipboardCheck, FileCheck2, Filter, Gauge, GraduationCap, LayoutDashboard, LineChart, Menu, Search, Settings, ShieldCheck, Sparkles, Target, TrendingUp, UserRound, Upload, Users, X, BrainCircuit, SlidersHorizontal, Database, CalendarCheck, RefreshCw, Eye, EyeOff, LockKeyhole, Mail, ArrowUpRight, CheckCircle2,
+  ArrowRight, BarChart3, Bell, BookOpen, BriefcaseBusiness, Check, ChevronDown, CircleHelp, ClipboardCheck, FileCheck2, Filter, Gauge, GraduationCap, LayoutDashboard, LineChart, Menu, Search, Settings, ShieldCheck, Sparkles, Target, TrendingUp, UserRound, Upload, Users, X, BrainCircuit, SlidersHorizontal, Database, CalendarCheck, RefreshCw, Eye, EyeOff, LockKeyhole, Mail, ArrowUpRight, CheckCircle2, Play,
 } from "lucide-react";
+import { useLearningActivities } from "../hooks/useLearningActivities";
 
 const navItems = [
   { label: "Dashboard", icon: LayoutDashboard }, { label: "My Competencies", icon: Gauge }, { label: "Skill Gaps", icon: Target, badge: "3" }, { label: "Recommendations", icon: Sparkles }, { label: "Learning", icon: BookOpen }, { label: "Assessments", icon: ClipboardCheck }, { label: "Results", icon: LineChart }, { label: "Role Requirements", icon: BriefcaseBusiness }, { label: "Learning Evidence", icon: FileCheck2 }, { label: "Progress", icon: TrendingUp }, { label: "Profile", icon: UserRound },
@@ -27,9 +28,275 @@ function Dashboard({ go }: { go: (x: string) => void }) { return <><PageHead eye
 
 function Competencies({ go }: { go: (x: string) => void }) { return <><PageHead eyebrow="Capability profile" title="My Competencies" subtitle="Your role requirements and current capability, in one clear view." action={<Action onClick={() => go("AI Assessment")}><BrainCircuit size={15} /> Take AI competency assessment</Action>} /><Card><div className="mb-5 flex flex-wrap items-center justify-between gap-3"><div className="flex gap-2"><Pill>All domains</Pill><Pill tone="navy">Needs improvement</Pill><Pill tone="violet">High priority</Pill></div><button className="flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-xs font-bold text-slate-500"><SlidersHorizontal size={14} /> Filter</button></div><div className="overflow-x-auto"><table className="w-full min-w-[680px] text-left"><thead className="border-y border-slate-100 text-[10px] uppercase tracking-[.12em] text-slate-400"><tr><th className="py-4">Competency framework</th><th>Domain</th><th>Current</th><th>Required</th><th>Gap</th><th>Status</th></tr></thead><tbody>{gaps.concat([{name:"Digital Governance",domain:"Governance",current:3.8,required:4,priority:"Low",color:"navy"}]).map(g => <tr key={g.name} className="border-b border-slate-50 text-xs"><td className="py-5 font-bold text-navy">{g.name}</td><td className="text-slate-500">{g.domain}</td><td className="font-bold text-navy">{g.current}</td><td className="text-slate-500">{g.required}</td><td className="font-bold text-orange">{(g.required-g.current).toFixed(1)}</td><td><Pill tone={g.priority === "High" ? "orange" : g.priority === "Low" ? "navy" : "teal"}>{g.priority === "Low" ? "On track" : g.priority === "High" ? "Needs improvement" : "Developing"}</Pill></td></tr>)}</tbody></table></div></Card></>; }
 function SkillGaps({ go }: { go: (x: string) => void }) { return <><PageHead eyebrow="Skill gap engine" title="Skill Gap Analysis" subtitle="Understand where your current capability differs from your role requirements." /><Card className="mb-6 bg-[#f9fbfd]"><div className="flex flex-wrap items-center justify-between gap-4"><div className="flex items-center gap-3"><div className="step-circle">1</div><div><div className="text-[10px] font-bold uppercase tracking-[.12em] text-slate-400">Role requirements</div><div className="font-bold text-navy">Statistical Officer framework</div></div></div><ArrowRight className="text-slate-300" /><div className="flex items-center gap-3"><div className="step-circle teal">2</div><div><div className="text-[10px] font-bold uppercase tracking-[.12em] text-slate-400">Current capability</div><div className="font-bold text-navy">Latest AI assessment</div></div></div><ArrowRight className="text-slate-300" /><div className="flex items-center gap-3"><div className="step-circle orange">3</div><div><div className="text-[10px] font-bold uppercase tracking-[.12em] text-slate-400">Gap priority</div><div className="font-bold text-navy">Learning action</div></div></div></div></Card><div className="space-y-4">{gaps.map(g => <Card key={g.name}><div className="flex flex-col justify-between gap-5 lg:flex-row lg:items-center"><div className="min-w-[180px]"><Pill tone={g.priority === "High" ? "orange" : "teal"}>{g.priority} priority</Pill><h2 className="mt-3 text-lg font-bold text-navy">{g.name}</h2><p className="mt-1 text-xs text-slate-500">Required for your current role responsibilities.</p></div><div className="flex-1 lg:max-w-[520px]"><Signal current={g.current} required={g.required} /></div><Action onClick={() => go("Recommendations")}>View learning <ArrowRight size={14} /></Action></div></Card>)}</div></>; }
-function Recommendations({ go }: { go: (x: string) => void }) { const [provider, setProvider] = useState("All providers"); return <><PageHead eyebrow="Recommendation engine" title="Personalized Recommendations" subtitle="Learning resources ranked specifically for your role and skill gaps." action={<div className="flex gap-2"><Pill tone="teal">Competency match 40%</Pill><Pill tone="orange">Gap priority 25%</Pill></div>} /><Card className="mb-6"><div className="flex flex-wrap items-center gap-2"><Filter size={16} className="text-slate-400" />{["All providers","iGOT","NSSTA","High priority"].map(x => <button key={x} onClick={() => setProvider(x)} className={`rounded-lg px-3 py-2 text-xs font-bold ${provider===x ? "bg-[#e8f5f3] text-teal" : "text-slate-400 hover:bg-slate-50"}`}>{x}</button>)}</div><p className="mt-5 max-w-3xl text-xs leading-5 text-slate-500">Recommendations combine competency match, gap priority, role match, difficulty match, and prerequisite match. The reasoning is visible so every next step is understandable.</p></Card><div className="grid gap-5 lg:grid-cols-3">{resources.filter(r => provider === "All providers" || provider === r.provider || provider === "High priority").map(r => <Card key={r.title} className="flex flex-col"><div className="mb-6 flex justify-between"><Pill tone={r.tone}>{r.provider}</Pill><span className="flex items-center gap-1 text-xs font-bold text-teal"><TrendingUp size={13} />{r.score}</span></div><h2 className="text-lg font-bold leading-6 text-navy">{r.title}</h2><p className="mt-3 text-xs text-slate-500">Targets: {r.target}</p><p className="mt-1 text-xs text-slate-400">{r.meta}</p><div className="mt-6 border-l-2 border-orange pl-3 text-xs leading-5 text-slate-500">Matches your skill gap and is appropriate for your current capability.</div><div className="mt-auto flex gap-2 pt-7"><Action onClick={() => go("Learning")}>Start learning <ArrowRight size={14} /></Action><Action secondary onClick={() => toast("Recommendation details opened.")}>Details</Action></div></Card>)}</div></>; }
-function Learning({ go }: { go: (x: string) => void }) { return <><PageHead eyebrow="Focused learning" title="Learning" subtitle="A distraction-free path to improve the competency that matters next." action={<Pill tone="navy">iGOT course module</Pill>} /><div className="grid gap-6 xl:grid-cols-[1.3fr_.7fr]"><Card><div className="mb-6 flex items-center justify-between"><div><Eyebrow>Current resource</Eyebrow><h2 className="text-2xl font-bold text-navy">Python for Public Data Analysis</h2><p className="mt-2 text-xs text-slate-500">Improve Python capability from 2.5 toward required level 4.0.</p></div><div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#e7f6f3] text-teal"><BookOpen size={24} /></div></div><ProgressBar value={38} /><div className="mt-2 flex justify-between text-xs font-bold text-slate-400"><span>38% complete</span><span>2h 25m remaining</span></div><div className="mt-8 flex border-b border-slate-100">{["Overview","Learning material","Practice","Assessment"].map((x,i) => <button key={x} className={`border-b-2 px-4 py-3 text-xs font-bold ${i===0 ? "border-teal text-teal" : "border-transparent text-slate-400"}`}>{x}</button>)}</div><div className="mt-7 rounded-xl bg-[#f7fafc] p-5"><Eyebrow>Learning objective</Eyebrow><p className="text-sm leading-6 text-navy">Prepare, validate, and interpret public datasets with reproducible Python workflows.</p></div><div className="mt-6 flex justify-between"><Action onClick={() => toast("Learning material opened.")}>Continue learning <ArrowRight size={14} /></Action><button onClick={() => go("Quiz Studio")} className="text-xs font-bold text-teal">Generate practice quiz</button></div></Card><Card><Eyebrow>Capability target</Eyebrow><div className="mt-4 space-y-5"><div><div className="mb-2 flex justify-between text-xs font-bold"><span className="text-slate-500">Current capability</span><span className="text-navy">2.5</span></div><ProgressBar value={50} color="bg-orange" /></div><div><div className="mb-2 flex justify-between text-xs font-bold"><span className="text-slate-500">Target capability</span><span className="text-navy">4.0</span></div><ProgressBar value={80} color="bg-teal" /></div></div><div className="mt-8 border-t border-slate-100 pt-6"><div className="flex items-center gap-2 text-xs font-bold text-teal"><ShieldCheck size={16} /> Evidence will update your profile</div><p className="mt-2 text-xs leading-5 text-slate-500">Complete practice and assessment to generate measurable learning evidence.</p></div></Card></div></>; }
-function Evidence({ go }: { go: (x: string) => void }) { return <><PageHead eyebrow="Proof of learning" title="Learning Evidence" subtitle="See how learning activities become evidence and update your capability profile." action={<Action onClick={() => go("Learning")}>Continue learning <ArrowRight size={14} /></Action>} /><Card className="mb-6"><div className="flex flex-wrap items-center justify-between gap-3"><div className="workflow-steps"><span className="workflow-step active">Learn</span><ArrowRight size={13} /><span className="workflow-step active">Practice</span><ArrowRight size={13} /><span className="workflow-step active">Assess</span><ArrowRight size={13} /><span className="workflow-step active">Evidence</span><ArrowRight size={13} /><span className="workflow-step">Capability update</span></div><Pill>2 evidence items this month</Pill></div></Card><div className="grid gap-5 md:grid-cols-2"><Card><div className="flex items-start justify-between"><div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#e7f6f3] text-teal"><ClipboardCheck size={20} /></div><Pill>14 Aug 2026</Pill></div><h2 className="mt-5 text-lg font-bold text-navy">Python Assessment</h2><p className="mt-2 text-xs text-slate-500">Assessment · Python competency</p><div className="mt-6 flex items-end justify-between"><div><div className="text-3xl font-extrabold text-navy">82%</div><div className="text-[10px] font-bold uppercase tracking-[.12em] text-slate-400">Assessment score</div></div><Check className="text-teal" /></div></Card><Card className="border-teal/30 bg-[#f4fbf9]"><div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white text-teal"><RefreshCw size={20} /></div><h2 className="mt-5 text-lg font-bold text-navy">Capability profile updated</h2><p className="mt-2 text-xs leading-5 text-slate-500">Your Python capability moved from 2.5 to 3.2 after the latest evidence was reviewed.</p><div className="mt-6"><ProgressBar value={64} /></div><div className="mt-2 text-xs font-bold text-teal">+0.7 improvement</div></Card></div></>; }
+function Recommendations({ go }: { go: (x: string) => void }) { 
+  const [provider, setProvider] = useState("All providers"); 
+  const { startActivity } = useLearningActivities(false);
+
+  const handleStartLearning = async (resource: any) => {
+    const activity = await startActivity(resource.id || resource.resource_id || resource.title, resource.target?.split('·')[0]?.trim() || 'PA01');
+    if (activity) {
+      toast(`Started learning: ${resource.title}`);
+      go('Learning');
+    }
+  };
+
+  return <>
+    <PageHead eyebrow="Recommendation engine" title="Personalized Recommendations" subtitle="Learning resources ranked specifically for your role and skill gaps." action={<div className="flex gap-2"><Pill tone="teal">Competency match 40%</Pill><Pill tone="orange">Gap priority 25%</Pill></div>} />
+    <Card className="mb-6">
+      <div className="flex flex-wrap items-center gap-2">
+        <Filter size={16} className="text-slate-400" />
+        {["All providers","iGOT","NSSTA","High priority"].map(x => <button key={x} onClick={() => setProvider(x)} className={`rounded-lg px-3 py-2 text-xs font-bold ${provider===x ? "bg-[#e8f5f3] text-teal" : "text-slate-400 hover:bg-slate-50"}`}>{x}</button>)}
+      </div>
+      <p className="mt-5 max-w-3xl text-xs leading-5 text-slate-500">Recommendations combine competency match, gap priority, role match, difficulty match, and prerequisite match. The reasoning is visible so every next step is understandable.</p>
+    </Card>
+    <div className="grid gap-5 lg:grid-cols-3">
+      {resources.filter(r => provider === "All providers" || provider === r.provider || provider === "High priority").map(r => <Card key={r.title} className="flex flex-col">
+        <div className="mb-6 flex justify-between">
+          <Pill tone={r.tone}>{r.provider}</Pill>
+          <span className="flex items-center gap-1 text-xs font-bold text-teal"><TrendingUp size={13} />{r.score}</span>
+        </div>
+        <h2 className="text-lg font-bold leading-6 text-navy">{r.title}</h2>
+        <p className="mt-3 text-xs text-slate-500">Targets: {r.target}</p>
+        <p className="mt-1 text-xs text-slate-400">{r.meta}</p>
+        <div className="mt-6 border-l-2 border-orange pl-3 text-xs leading-5 text-slate-500">Matches your skill gap and is appropriate for your current capability.</div>
+        <div className="mt-auto flex gap-2 pt-7">
+          <Action onClick={() => handleStartLearning(r)}>Start learning <ArrowRight size={14} /></Action>
+          <Action secondary onClick={() => toast("Recommendation details opened.")}>Details</Action>
+        </div>
+      </Card>)}
+    </div>
+  </>;
+}
+function Learning({ go }: { go: (x: string) => void }) { 
+  const { activities, currentActivity, loading, updateProgress, completeActivity } = useLearningActivities(true);
+  const [selectedTab, setSelectedTab] = React.useState(0);
+  const [showCompleteModal, setShowCompleteModal] = React.useState(false);
+  const [completionScore, setCompletionScore] = React.useState<number | undefined>(undefined);
+
+  // Get current activity (first in-progress or completed)
+  const active = currentActivity || activities.find(a => a.status === 'in_progress') || activities[0];
+  
+  const remainingTime = active ? Math.max(0, (active.progress_percent < 100 ? 120 - Math.floor((active.progress_percent / 100) * 120) : 0)) : 0;
+
+  const handleProgress = async (percent: number) => {
+    if (!active) return;
+    await updateProgress(active.activity_id, percent, Math.floor((percent / 100) * 120));
+  };
+
+  const handleComplete = async () => {
+    if (!active) return;
+    const result = await completeActivity(active.activity_id, completionScore, 'Learning module completed');
+    if (result) {
+      setShowCompleteModal(false);
+      setCompletionScore(undefined);
+      toast('Learning activity completed! Supporting evidence recorded. Next: Take an assessment to update competency.');
+    }
+  };
+
+  if (loading && !active) {
+    return <><PageHead eyebrow="Focused learning" title="Learning" subtitle="Loading your learning activity..." /><Card className="p-8 text-center"><div className="text-slate-500">Loading...</div></Card></>;
+  }
+
+  if (!active) {
+    return <><PageHead eyebrow="Focused learning" title="Learning" subtitle="No active learning activities. Start one from Recommendations." /><Card className="text-center p-8"><div className="text-slate-500 mb-4">You don't have an active learning activity yet.</div><Action onClick={() => go('Recommendations')}>Browse recommendations <ArrowRight size={14} /></Action></Card></>;
+  }
+
+  return <>
+    <PageHead eyebrow="Focused learning" title="Learning" subtitle="A distraction-free path to improve the competency that matters next." action={<Pill tone="navy">{active.resource_id}</Pill>} />
+    <div className="grid gap-6 xl:grid-cols-[1.3fr_.7fr]">
+      <Card>
+        <div className="mb-6 flex items-center justify-between">
+          <div>
+            <Eyebrow>Current resource</Eyebrow>
+            <h2 className="text-2xl font-bold text-navy">{active.resource_id}</h2>
+            <p className="mt-2 text-xs text-slate-500">Competency: {active.competency_id}</p>
+          </div>
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#e7f6f3] text-teal">
+            <BookOpen size={24} />
+          </div>
+        </div>
+        <ProgressBar value={active.progress_percent} />
+        <div className="mt-2 flex justify-between text-xs font-bold text-slate-400">
+          <span>{active.progress_percent}% complete</span>
+          <span>{remainingTime}m remaining</span>
+        </div>
+        <div className="mt-8 flex border-b border-slate-100">
+          {['Overview', 'Learning material', 'Practice', 'Assessment'].map((x, i) => (
+            <button
+              key={x}
+              onClick={() => setSelectedTab(i)}
+              className={`border-b-2 px-4 py-3 text-xs font-bold ${
+                selectedTab === i ? 'border-teal text-teal' : 'border-transparent text-slate-400'
+              }`}
+            >
+              {x}
+            </button>
+          ))}
+        </div>
+        <div className="mt-7 rounded-xl bg-[#f7fafc] p-5">
+          <Eyebrow>Learning objective</Eyebrow>
+          <p className="text-sm leading-6 text-navy">
+            Master {active.competency_id} competency through structured learning and practice.
+          </p>
+        </div>
+        <div className="mt-6 space-y-3">
+          {active.status === 'in_progress' && (
+            <div className="flex gap-2">
+              <Action onClick={() => handleProgress(Math.min(100, active.progress_percent + 10))}>
+                Update progress <ArrowRight size={14} />
+              </Action>
+              <button
+                onClick={() => setShowCompleteModal(true)}
+                className="flex items-center gap-2 rounded-xl border border-teal bg-white px-4 py-3 text-xs font-bold text-teal transition hover:bg-teal/5"
+              >
+                Mark complete
+              </button>
+            </div>
+          )}
+          {active.status === 'completed' && (
+            <div className="flex items-center gap-2 rounded-xl bg-teal/10 px-4 py-3 text-xs font-bold text-teal">
+              <Check size={16} />
+              Learning completed
+            </div>
+          )}
+          <button onClick={() => go('Quiz Studio')} className="w-full text-xs font-bold text-teal">
+            Generate practice quiz
+          </button>
+        </div>
+      </Card>
+
+      <Card>
+        <Eyebrow>Capability status</Eyebrow>
+        <div className="mt-4 space-y-5">
+          <div>
+            <div className="mb-2 flex justify-between text-xs font-bold">
+              <span className="text-slate-500">Current level</span>
+              <span className="text-navy">2.5</span>
+            </div>
+            <ProgressBar value={50} color="bg-orange" />
+          </div>
+          <div>
+            <div className="mb-2 flex justify-between text-xs font-bold">
+              <span className="text-slate-500">Target level</span>
+              <span className="text-navy">4.0</span>
+            </div>
+            <ProgressBar value={80} color="bg-teal" />
+          </div>
+        </div>
+        <div className="mt-8 border-t border-slate-100 pt-6 rounded-xl bg-[#f4fbf9] p-4 text-xs leading-5 text-teal">
+          <b>Supporting evidence</b><br />
+          Learning completion records evidence (confidence 0.3). Assessment evidence is needed to update competency.
+        </div>
+      </Card>
+    </div>
+
+    {showCompleteModal && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-navy/30 p-4">
+        <Card className="max-w-sm">
+          <Eyebrow>Complete learning activity</Eyebrow>
+          <h2 className="text-xl font-bold text-navy">Mark as complete</h2>
+          <p className="mt-2 text-sm text-slate-500">
+            Learning evidence will be recorded. Next step: take an assessment to demonstrate competency.
+          </p>
+          <div className="mt-6">
+            <label className="text-xs font-bold text-navy">
+              Final learning score (optional)
+              <input
+                type="number"
+                min="0"
+                max="100"
+                value={completionScore ?? ''}
+                onChange={(e) => setCompletionScore(e.target.value ? parseInt(e.target.value) : undefined)}
+                className="form-input mt-1"
+                placeholder="0-100"
+              />
+            </label>
+          </div>
+          <div className="mt-6 flex gap-2">
+            <button
+              onClick={() => setShowCompleteModal(false)}
+              className="flex-1 rounded-xl border border-slate-200 px-4 py-3 text-xs font-bold text-navy transition hover:bg-slate-50"
+            >
+              Cancel
+            </button>
+            <Action onClick={handleComplete}>Complete</Action>
+          </div>
+        </Card>
+      </div>
+    )}
+  </>;
+}
+function Evidence({ go }: { go: (x: string) => void }) { 
+  const { activities } = useLearningActivities(true);
+  const completedActivities = activities.filter(a => a.status === 'completed');
+
+  return <>
+    <PageHead eyebrow="Proof of learning" title="Learning Evidence" subtitle="See how learning activities become evidence and update your capability profile." action={<Action onClick={() => go("Learning")}>Continue learning <ArrowRight size={14} /></Action>} />
+    <Card className="mb-6">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="workflow-steps">
+          <span className="workflow-step active">Learn</span>
+          <ArrowRight size={13} />
+          <span className="workflow-step active">Practice</span>
+          <ArrowRight size={13} />
+          <span className="workflow-step active">Complete</span>
+          <ArrowRight size={13} />
+          <span className="workflow-step active">Evidence</span>
+          <ArrowRight size={13} />
+          <span className="workflow-step">Assess</span>
+        </div>
+        <Pill>{completedActivities.length} learning evidence items</Pill>
+      </div>
+    </Card>
+    <div className="grid gap-5 md:grid-cols-2">
+      {completedActivities.length > 0 ? (
+        completedActivities.map((activity) => (
+          <Card key={activity.activity_id}>
+            <div className="flex items-start justify-between">
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#e7f6f3] text-teal">
+                <ClipboardCheck size={20} />
+              </div>
+              <Pill>Learning Activity</Pill>
+            </div>
+            <h2 className="mt-5 text-lg font-bold text-navy">{activity.resource_id}</h2>
+            <p className="mt-2 text-xs text-slate-500">Learning Activity · {activity.competency_id} competency</p>
+            <div className="mt-6 flex items-end justify-between">
+              <div>
+                <div className="text-3xl font-extrabold text-navy">{activity.progress_percent}%</div>
+                <div className="text-[10px] font-bold uppercase tracking-[.12em] text-slate-400">Learning score</div>
+              </div>
+              <Check className="text-teal" />
+            </div>
+            <div className="mt-6 rounded-xl border border-teal/20 bg-[#f4fbf9] p-4 text-xs leading-5 text-teal">
+              <b>Supporting evidence (confidence 0.3)</b><br />
+              Learning completion is recorded as supporting evidence. Take an assessment to demonstrate capability and update your competency level.
+            </div>
+          </Card>
+        ))
+      ) : (
+        <Card className="col-span-2 p-8 text-center">
+          <div className="text-slate-500">
+            <p>No learning evidence yet.</p>
+            <p className="mt-2 text-xs">Complete a learning activity to generate supporting evidence.</p>
+            <div className="mt-4">
+              <Action secondary onClick={() => go('Learning')}>Start learning</Action>
+            </div>
+          </div>
+        </Card>
+      )}
+      <Card className="border-teal/30 bg-[#f4fbf9]">
+        <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white text-teal">
+          <RefreshCw size={20} />
+        </div>
+        <h2 className="mt-5 text-lg font-bold text-navy">Assessment evidence</h2>
+        <p className="mt-2 text-xs leading-5 text-slate-500">Take capability assessments to generate authoritative evidence (confidence 0.8) that updates your competency level.</p>
+        <div className="mt-6 flex gap-2">
+          <Action onClick={() => go('Assessments')}>Take assessment <ArrowRight size={14} /></Action>
+        </div>
+      </Card>
+    </div>
+  </>;
+}
 function Progress({ go }: { go: (x: string) => void }) { return <><PageHead eyebrow="Capability growth" title="Progress" subtitle="Track how learning activity reduces gaps and builds capability over time." /><div className="mb-6 grid gap-4 md:grid-cols-3">{[["Resources completed","12","of 18",BookOpen],["Assessments completed","04","this quarter",ClipboardCheck],["Evidence generated","08","verified items",FileCheck2]].map(([a,b,c,I]) => <Card key={String(a)} className="p-5">{React.createElement(I as React.ElementType, { className: "mb-5 text-teal", size: 19 })}<div className="text-2xl font-extrabold text-navy">{b}</div><div className="mt-1 text-xs font-bold text-slate-500">{a}</div><div className="mt-1 text-[11px] text-slate-400">{c}</div></Card>)}</div><div className="grid gap-6 xl:grid-cols-2"><Card><Eyebrow>Capability growth</Eyebrow><h2 className="mb-7 text-lg font-bold text-navy">Before → after</h2>{[["Python",2.5,3.2],["Data Analysis",3,3.6],["Data Quality",2.8,3.7]].map(([name,before,after]) => <div className="mb-6" key={String(name)}><div className="mb-2 flex justify-between text-xs font-bold"><span className="text-navy">{name}</span><span className="text-teal">{before} → {after}</span></div><ProgressBar value={Number(after)*20} /></div>)}</Card><Card><Eyebrow>Next priority</Eyebrow><h2 className="text-lg font-bold text-navy">Continue improving Python</h2><p className="mt-3 text-sm leading-6 text-slate-500">You have reduced your Python gap by 0.7 points. One more learning module and an assessment will move this competency closer to the role requirement.</p><div className="mt-6"><Action onClick={() => go("Recommendations")}>See next learning action <ArrowRight size={14} /></Action></div></Card></div></>; }
 function Profile() { return <><PageHead eyebrow="Employee profile" title="Profile" subtitle="Your identity, role context, and learning preferences." /><div className="grid gap-6 xl:grid-cols-[.8fr_1.2fr]"><Card><div className="flex items-center gap-4"><div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#f6d5b5] text-lg font-bold text-[#7d4725]">AM</div><div><h2 className="text-xl font-bold text-navy">Ananya Mehta</h2><p className="text-xs text-slate-500">Employee ID · GOV-28417</p></div></div><div className="mt-8 space-y-5 border-t border-slate-100 pt-6">{[["Department","Ministry of Statistics"],["Designation","Statistical Officer"],["Assigned role","Statistical Officer · Level 4"]].map(([a,b]) => <div key={a}><Eyebrow>{a}</Eyebrow><div className="text-sm font-bold text-navy">{b}</div></div>)}</div></Card><Card><Eyebrow>Role context</Eyebrow><h2 className="text-lg font-bold text-navy">Required competencies</h2><div className="mt-5 flex flex-wrap gap-2">{["Python","Statistical Analysis","Data Quality","Digital Governance","Evidence-based decisions"].map(x => <Pill key={x} tone="navy">{x}</Pill>)}</div><div className="mt-8 border-t border-slate-100 pt-6"><Eyebrow>Learning preferences</Eyebrow><div className="grid gap-3 sm:grid-cols-2"><div className="rounded-xl bg-[#f7fafc] p-4 text-xs font-bold text-navy">Short practical modules<br /><span className="font-medium text-slate-400">30–90 minute sessions</span></div><div className="rounded-xl bg-[#f7fafc] p-4 text-xs font-bold text-navy">Applied assessments<br /><span className="font-medium text-slate-400">Evidence-led progress</span></div></div></div></Card></div></>; }
 function ProfileManagement() { const [editing, setEditing] = useState(false); const [saving, setSaving] = useState(false); const save = () => { setSaving(true); setTimeout(() => { setSaving(false); setEditing(false); toast("Profile changes saved. Connect to PUT /api/v1/users/me."); }, 650); }; return <><PageHead eyebrow="Employee profile" title="Profile" subtitle="Manage editable employee information while protected account fields remain read-only." action={editing ? <Action onClick={save}>{saving ? <RefreshCw className="animate-spin" size={14} /> : <Check size={14} />} Save profile</Action> : <Action secondary onClick={() => setEditing(true)}>Edit profile</Action>} /><div className="grid gap-6 xl:grid-cols-[.8fr_1.2fr]"><Card><div className="flex items-center gap-4"><div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#f6d5b5] text-lg font-bold text-[#7d4725]">AM</div><div><h2 className="text-xl font-bold text-navy">Ananya Mehta</h2><p className="text-xs text-slate-500">Employee ID · GOV-28417</p></div></div><div className="mt-8 border-t border-slate-100 pt-6"><Eyebrow>Account status</Eyebrow><div className="flex items-center gap-2 text-sm font-bold text-teal"><span className="h-2 w-2 rounded-full bg-teal" />Active employee</div><div className="mt-5"><Eyebrow>Access role</Eyebrow><Pill tone="navy">EMPLOYEE</Pill></div></div></Card><Card><div className="mb-6 flex items-center justify-between"><div><Eyebrow>{editing ? "Editable information" : "Profile information"}</Eyebrow><h2 className="text-lg font-bold text-navy">Employee details</h2></div><UserRound className="text-teal" size={20} /></div><div className="grid gap-4 sm:grid-cols-2">{[["Email address","ananya.mehta@department.gov.in",false],["Full name","Ananya Mehta",true],["Employee ID","GOV-28417",true],["Designation","Statistical Officer",true],["Department","Ministry of Statistics",true],["Professional role","Statistical Officer",false]].map(([label,value,editable]) => <label className="text-xs font-bold text-navy" key={label}>{label}<input className={`form-input ${!editable ? "bg-slate-50 text-slate-400" : ""}`} defaultValue={value as string} disabled={!editing || !editable} /></label>)}</div><div className="mt-7 rounded-xl border-l-2 border-teal bg-[#f4f8fb] p-4 text-xs leading-5 text-slate-500">Email, professional role, access role, and active status are controlled by the authenticated backend and cannot be edited here.</div></Card></div></>; }

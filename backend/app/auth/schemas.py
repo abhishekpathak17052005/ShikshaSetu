@@ -4,8 +4,10 @@ from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
 
 class AccessRole(StrEnum):
-    EMPLOYEE = "EMPLOYEE"
+    OFFICIAL = "OFFICIAL"
+    TRAINER = "TRAINER"
     ADMIN = "ADMIN"
+    EMPLOYEE = "EMPLOYEE"  # Legacy alias for backward compatibility
 
 
 def normalize_email(value: str) -> str:
@@ -20,6 +22,7 @@ class RegisterRequest(BaseModel):
     designation: str = Field(min_length=1, max_length=200)
     department: str = Field(min_length=1, max_length=200)
     employee_id: str = Field(min_length=1, max_length=100)
+    access_role: AccessRole = Field(default=AccessRole.OFFICIAL)
 
     @field_validator("email", mode="before")
     @classmethod

@@ -1,7 +1,7 @@
 """LLM Provider Factory."""
 from typing import Optional
 
-from app.core.config import get_settings
+from app.core.config import Settings, get_settings
 
 from .base import LLMProvider
 from .mock_provider import MockLLMProvider
@@ -9,7 +9,7 @@ from .openai_provider import OpenAIProvider
 from .gemini_provider import GeminiLLMProvider
 
 
-def get_llm_provider() -> LLMProvider:
+def get_llm_provider(settings: Optional[Settings] = None) -> LLMProvider:
     """
     Get the configured LLM provider based on settings.
 
@@ -19,8 +19,8 @@ def get_llm_provider() -> LLMProvider:
     Raises:
         ValueError: If provider is not recognized or not properly configured.
     """
-    settings = get_settings()
-    provider_name = settings.llm_provider.lower()
+    app_settings = settings or get_settings()
+    provider_name = app_settings.llm_provider.lower()
 
     if provider_name == "mock":
         return MockLLMProvider()

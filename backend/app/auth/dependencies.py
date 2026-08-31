@@ -41,7 +41,56 @@ def get_current_user(
     return user
 
 
+def require_role(*roles: AccessRole | str):
+    """Dependency factory enforcing that current_user has one of the allowed access_roles."""
+    allowed_values = set()
+    for r in roles:
+        val = r.value if isinstance(r, AccessRole) else str(r)
+        allowed_values.add(val)
+        if val in ("OFFICIAL", AccessRole.OFFICIAL.value):
+            allowed_values.add("EMPLOYEE")
+
+    def dependency(current_user: Annotated[dict, Depends(get_current_user)]) -> dict:
+        user_role = current_user.get("access_role")
+        if user_role not in allowed_values:
+            role_names = [r.value if isinstance(r, AccessRole) else str(r) for r in roles]
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Access forbidden: required role in {role_names}",
+            )
+        return current_user
+
+    return dependency
+
+
+def require_official(current_user: Annotated[dict, Depends(get_current_user)]) -> dict:
+    """Allows OFFICIAL (and legacy EMPLOYEE), TRAINER, and ADMIN users to access learner/official workflows."""
+    return current_user
+
+
+def require_trainer(
+    current_user: Annotated[
+        dict,
+        Depends(require_role(AccessRole.TRAINER, AccessRole.ADMIN)),
+    ],
+) -> dict:
+    """Enforces that user is either a TRAINER or an ADMIN."""
+    return current_user
+
+
 def require_admin(current_user: Annotated[dict, Depends(get_current_user)]) -> dict:
+    """Legacy and standard admin check: user must be ADMIN."""
     if current_user.get("access_role") != AccessRole.ADMIN.value:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin access required")
     return current_user
+
+
+def require_admin_role(
+    current_user: Annotated[
+        dict,
+        Depends(require_role(AccessRole.ADMIN)),
+    ],
+) -> dict:
+    """Standard role-based admin check: user must be ADMIN."""
+    return current_user
+

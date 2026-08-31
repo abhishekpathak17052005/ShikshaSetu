@@ -1,4 +1,4 @@
-"""Quiz router - endpoints for quiz creation, retrieval, and submission."""
+from datetime import UTC, datetime
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
@@ -13,10 +13,52 @@ from app.quizzes.schemas import (
     QuizResultResponse,
     QuizQuestionResponse,
 )
+from app.trainer.repository import TrainerRepository
 
 
 router = APIRouter(prefix="/quizzes", tags=["quizzes"])
 CurrentUser = Annotated[dict, Depends(get_current_user)]
+
+
+@router.get("/assigned", response_model=list[QuizResponse])
+def get_assigned_quizzes(
+    request: Request,
+    current_user: CurrentUser,
+) -> list[dict]:
+    """
+    List all trainer-assigned and published quizzes available for the current learner.
+    """
+    database = getattr(request.app.state, "database", None)
+    if database is None:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Database not available",
+        )
+    user_id = str(current_user["_id"])
+    quizzes = TrainerRepository.list_assigned_quizzes_for_learner(database, user_id)
+    
+    result = []
+    for quiz in quizzes:
+        questions_response = []
+        for q in quiz.get("questions", []):
+            questions_response.append(QuizQuestionResponse(
+                question_id=str(q.get("question_id", q.get("_id", ""))),
+                question=q.get("question", ""),
+                options=q.get("options", []),
+                difficulty=q.get("difficulty", "MEDIUM"),
+                source_chunks=q.get("source_chunks", []),
+            ))
+        result.append(QuizResponse(
+            _id=str(quiz["_id"]),
+            title=quiz.get("title", ""),
+            competency_code=quiz.get("competency_code", ""),
+            question_count=quiz.get("question_count", len(questions_response)),
+            status=quiz.get("status", "PUBLISHED"),
+            questions=questions_response,
+            created_at=quiz.get("created_at", datetime.now(UTC)),
+        ))
+    return result
+
 
 
 @router.post("", response_model=QuizResponse)

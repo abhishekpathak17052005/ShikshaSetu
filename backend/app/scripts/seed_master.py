@@ -29,6 +29,7 @@ from app.core.config import get_settings
 from app.core.database import initialize_database, close_database
 from app.core.framework_indexes import ensure_framework_indexes
 from app.questions.seed import seed_questions
+from app.auth.security import hash_password
 from app.scripts.seed_learning_resources import (
     load_igot_courses,
     load_nssta_programmes,
@@ -447,15 +448,83 @@ def sync_learning_resource_mappings(
 
 def sync_users(database: Database, role_id: ObjectId) -> None:
     """
-    Step 8: Ensure all users have valid role_id pointing to STATISTICAL_OFFICER.
+    Step 8: Ensure all users have valid role_id pointing to STATISTICAL_OFFICER,
+    migrate legacy EMPLOYEE to OFFICIAL, and upsert standard demo accounts for all 3 roles.
     """
-    print("\n[8/11] Verifying & Preserving Users...")
-    res = database.users.update_many(
+    print("\n[8/11] Verifying & Preserving Users & System Roles...")
+    now = datetime.now(UTC)
+
+    # 1. Update any missing/legacy role_id to STATISTICAL_OFFICER
+    res_roles = database.users.update_many(
         {"role_id": {"$ne": role_id}},
-        {"$set": {"role_id": role_id, "updated_at": datetime.now(UTC)}},
+        {"$set": {"role_id": role_id, "updated_at": now}},
     )
+
+    # 2. Migrate legacy access_role: EMPLOYEE -> OFFICIAL
+    res_access = database.users.update_many(
+        {"$or": [{"access_role": "EMPLOYEE"}, {"access_role": {"$exists": False}}]},
+        {"$set": {"access_role": "OFFICIAL", "updated_at": now}},
+    )
+
+    # 3. Seed / Upsert the 3 standard system role demo accounts
+    demo_accounts = [
+        {
+            "email": "official@shikshasetu.gov.in",
+            "full_name": "Demo Official (Statistical Officer)",
+            "role_id": role_id,
+            "designation": "Statistical Officer",
+            "department": "National Sample Survey Office (NSSO)",
+            "employee_id": "DEMO-OFF-001",
+            "access_role": "OFFICIAL",
+            "status": "active",
+        },
+        {
+            "email": "trainer@shikshasetu.gov.in",
+            "full_name": "Demo Trainer (NSSTA Faculty)",
+            "role_id": role_id,
+            "designation": "Senior Faculty & Trainer",
+            "department": "National Statistical Systems Training Academy (NSSTA)",
+            "employee_id": "DEMO-TRN-001",
+            "access_role": "TRAINER",
+            "status": "active",
+        },
+        {
+            "email": "admin@shikshasetu.gov.in",
+            "full_name": "Demo Administrator (MoSPI HQ)",
+            "role_id": role_id,
+            "designation": "Director (Capability & Human Capital)",
+            "department": "Ministry of Statistics & Programme Implementation",
+            "employee_id": "DEMO-ADM-001",
+            "access_role": "ADMIN",
+            "status": "active",
+        },
+    ]
+
+    for acc in demo_accounts:
+        existing = database.users.find_one({"email": acc["email"]})
+        if not existing:
+            doc = {
+                **acc,
+                "password_hash": hash_password("Password123!"),
+                "created_at": now,
+                "updated_at": now,
+                "last_login_at": None,
+            }
+            database.users.insert_one(doc)
+        else:
+            database.users.update_one(
+                {"_id": existing["_id"]},
+                {"$set": {
+                    "access_role": acc["access_role"],
+                    "designation": acc["designation"],
+                    "department": acc["department"],
+                    "status": "active",
+                    "updated_at": now,
+                }}
+            )
+
     total_users = database.users.count_documents({})
-    print(f"  -> Total users: {total_users} (Updated role_id for {res.modified_count} users).")
+    print(f"  -> Total users: {total_users} (Updated role_id: {res_roles.modified_count}, migrated access_role: {res_access.modified_count}, seeded/verified 3 role demo accounts).")
 
 
 def sync_initial_assessment(

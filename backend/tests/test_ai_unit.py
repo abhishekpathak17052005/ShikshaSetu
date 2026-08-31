@@ -336,23 +336,22 @@ class TestGroundingValidation:
         # Mock repository
         mock_chunk = MagicMock()
         mock_chunk.material_id = "mat_1"
-        
-        mock_repo = AsyncMock()
-        mock_repo.get_by_ids = AsyncMock(return_value=[mock_chunk])
-        
-        is_valid, error = asyncio.run(GroundingValidator.validate_question(
+
+        mock_repo = MagicMock()
+        mock_repo.get_by_ids = MagicMock(return_value=[mock_chunk])
+
+        is_valid, error = GroundingValidator.validate_question(
             question,
             mock_repo,
-            "mat_1"
-        ))
-        
+            "mat_1",
+            database=MagicMock(),
+        )
+
         assert is_valid
         assert error is None
 
     def test_validate_question_no_source_chunks(self):
-        """Test validation fails for question without source chunks - sync wrapper."""
-        import asyncio
-        
+        """Test validation fails for question without source chunks."""
         question = GeneratedMCQ(
             question="What is SQL?",
             options=["A", "B", "C", "D"],
@@ -360,14 +359,14 @@ class TestGroundingValidation:
             explanation="SQL is a database language",
             source_chunks=[]
         )
-        
-        mock_repo = AsyncMock()
-        
-        is_valid, error = asyncio.run(GroundingValidator.validate_question(
+
+        mock_repo = MagicMock()
+
+        is_valid, error = GroundingValidator.validate_question(
             question,
             mock_repo,
             "mat_1"
-        ))
+        )
         
         assert not is_valid
         assert "no source chunk" in error.lower()

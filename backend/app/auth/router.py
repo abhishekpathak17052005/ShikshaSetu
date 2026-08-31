@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status
 from pymongo.errors import DuplicateKeyError
 
 from app.auth.dependencies import get_current_user
-from app.auth.schemas import LoginRequest, RegisterRequest, TokenResponse, UserResponse
+from app.auth.schemas import AccessRole, LoginRequest, RegisterRequest, TokenResponse, UserResponse
 from app.auth.security import create_access_token, hash_password, verify_password
 from app.core.config import get_settings
 from app.users import repository
@@ -34,6 +34,18 @@ def register(request: Request, payload: RegisterRequest) -> dict:
     if repository.get_user_by_email(database, str(payload.email)) is not None:
         raise HTTPException(status_code=409, detail="Registration could not be completed")
 
+    if payload.access_role == AccessRole.ADMIN:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin registration is restricted and must be provisioned by an administrator",
+        )
+
+    access_role_value = (
+        AccessRole.OFFICIAL.value
+        if payload.access_role in (AccessRole.OFFICIAL, AccessRole.EMPLOYEE)
+        else payload.access_role.value
+    )
+
     timestamp = datetime.now(UTC)
     document = {
         "email": str(payload.email),
@@ -44,7 +56,7 @@ def register(request: Request, payload: RegisterRequest) -> dict:
         "department": payload.department,
         "employee_id": payload.employee_id,
         "status": "active",
-        "access_role": "EMPLOYEE",
+        "access_role": access_role_value,
         "created_at": timestamp,
         "updated_at": timestamp,
         "last_login_at": None,

@@ -243,7 +243,7 @@ class QuizService:
             "weight": 1.0,  # Quiz evidence weight (can be configured)
             "created_at": now,
             "metadata": {
-                "material_id": str(quiz["material_id"]),
+                "material_id": str(quiz.get("material_id") or ""),
                 "question_count": total_questions,
                 "correct_count": correct_count,
                 "source_chunks": self._extract_all_source_chunks(quiz["questions"]),

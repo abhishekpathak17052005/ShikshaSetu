@@ -1,5 +1,5 @@
-"""Embedding Provider Factory."""
-from app.core.config import get_settings
+from typing import Optional
+from app.core.config import Settings, get_settings
 
 from .base import EmbeddingProvider
 from .mock_provider import MockEmbeddingProvider
@@ -7,7 +7,7 @@ from .openai_provider import OpenAIEmbeddingProvider
 from .gemini_provider import GeminiEmbeddingProvider
 
 
-def get_embedding_provider() -> EmbeddingProvider:
+def get_embedding_provider(settings: Optional[Settings] = None) -> EmbeddingProvider:
     """
     Get the configured embedding provider based on settings.
 
@@ -17,11 +17,11 @@ def get_embedding_provider() -> EmbeddingProvider:
     Raises:
         ValueError: If provider is not recognized or not properly configured.
     """
-    settings = get_settings()
-    provider_name = settings.embedding_provider.lower()
+    app_settings = settings or get_settings()
+    provider_name = app_settings.embedding_provider.lower()
 
     if provider_name == "mock":
-        return MockEmbeddingProvider(dimension=settings.embedding_dimension)
+        return MockEmbeddingProvider(dimension=app_settings.embedding_dimension)
     elif provider_name == "openai":
         if not settings.llm_api_key:
             raise ValueError(

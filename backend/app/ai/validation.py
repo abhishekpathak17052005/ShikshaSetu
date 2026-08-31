@@ -12,7 +12,7 @@ class GroundingValidator:
     """
 
     @staticmethod
-    async def validate_question(
+    def validate_question(
         question: GeneratedMCQ,
         chunk_repository: DocumentChunkRepository,
         material_id: str,
@@ -20,62 +20,48 @@ class GroundingValidator:
     ) -> Tuple[bool, Optional[str]]:
         """
         Validate that a question is properly grounded.
-
-        Args:
-            question: GeneratedMCQ to validate.
-            chunk_repository: Repository for chunk lookup.
-            material_id: Material ID for validation.
-            database: Optional MongoDB database instance.
-
-        Returns:
-            Tuple of:
-            - bool: True if valid, False otherwise
-            - str: Error message if invalid, None if valid
         """
         # 1. Check that question has source chunks
         if not question.source_chunks:
             return False, "Question has no source chunk references"
-        
+
         # 2. Verify that referenced chunks exist and belong to material
         try:
-            # If database is not provided, chunks are assumed to be valid (for mocking)
             if database is not None:
-                chunks = await chunk_repository.get_by_ids(database, question.source_chunks)
-                
+                chunks = chunk_repository.get_by_ids(database, question.source_chunks)
+
                 if not chunks:
                     return False, "Referenced source chunks not found"
-                
-                # Verify all chunks belong to the correct material
+
                 for chunk in chunks:
                     if chunk.material_id != material_id:
                         return False, "Source chunk does not belong to specified material"
-        
+
         except Exception as e:
             return False, f"Failed to verify source chunks: {str(e)}"
-        
+
         # 3. Validate schema
         if not question.question or len(question.question.strip()) < 10:
             return False, "Question is too short"
-        
+
         if not question.options or len(question.options) < 3:
             return False, "Question must have at least 3 options"
-        
+
         if not question.correct_answer or question.correct_answer not in "ABCDE":
             return False, "Invalid correct answer"
-        
+
         if not question.explanation or len(question.explanation.strip()) < 10:
             return False, "Explanation is too short"
-        
+
         # 4. Check correct answer is valid for number of options
         correct_idx = ord(question.correct_answer) - ord('A')
         if correct_idx >= len(question.options):
             return False, "Correct answer index exceeds number of options"
-        
-        # All checks passed
+
         return True, None
 
     @staticmethod
-    async def validate_batch(
+    def validate_batch(
         questions: List[GeneratedMCQ],
         chunk_repository: DocumentChunkRepository,
         material_id: str,
@@ -83,34 +69,23 @@ class GroundingValidator:
     ) -> Tuple[List[GeneratedMCQ], List[Tuple[GeneratedMCQ, str]]]:
         """
         Validate a batch of questions.
-
-        Args:
-            questions: List of GeneratedMCQ to validate.
-            chunk_repository: Repository for chunk lookup.
-            material_id: Material ID for validation.
-            database: Optional MongoDB database instance.
-
-        Returns:
-            Tuple of:
-            - List of valid questions
-            - List of (invalid_question, error_message) tuples
         """
         valid_questions = []
         invalid_questions = []
-        
+
         for question in questions:
-            is_valid, error_msg = await GroundingValidator.validate_question(
+            is_valid, error_msg = GroundingValidator.validate_question(
                 question,
                 chunk_repository,
                 material_id,
                 database
             )
-            
+
             if is_valid:
                 valid_questions.append(question)
             else:
                 invalid_questions.append((question, error_msg or "Unknown error"))
-        
+
         return valid_questions, invalid_questions
 
     @staticmethod

@@ -19,6 +19,7 @@ from app.learning_resources.router import router as recommendations_router
 from app.quizzes.router import router as quizzes_router
 from app.roles.router import router as roles_router
 from app.skill_gaps.router import router as skill_gaps_router
+from app.trainer.router import router as trainer_router
 from app.users.router import router as users_router
 
 logging.basicConfig(
@@ -86,6 +87,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     application.include_router(recommendations_router, prefix=app_settings.api_prefix)
     application.include_router(quizzes_router, prefix=app_settings.api_prefix)
     application.include_router(skill_gaps_router, prefix=app_settings.api_prefix)
+    application.include_router(trainer_router, prefix=app_settings.api_prefix)
     application.include_router(users_router, prefix=app_settings.api_prefix)
 
     @application.exception_handler(Exception)

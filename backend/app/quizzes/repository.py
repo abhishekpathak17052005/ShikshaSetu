@@ -33,12 +33,32 @@ def insert_quiz(database: Database, quiz_document: dict) -> str:
 
 
 def get_quiz_by_id(database: Database, quiz_id: str, user_id: str) -> dict | None:
-    """Get a quiz by ID, verifying user ownership."""
+    """Get a quiz by ID, verifying user ownership or assigned/published access."""
     quiz_oid = object_id(quiz_id)
     user_oid = object_id(user_id)
     if quiz_oid is None or user_oid is None:
         return None
-    return database.quizzes.find_one({"_id": quiz_oid, "user_id": user_oid})
+
+    # 1. Direct owner match
+    direct = database.quizzes.find_one({"_id": quiz_oid, "user_id": user_oid})
+    if direct:
+        return direct
+
+    # 2. Check trainer / assigned / published quiz
+    user_id_str = str(user_id)
+    quiz = database.quizzes.find_one({"_id": quiz_oid})
+    if not quiz:
+        return None
+
+    if str(quiz.get("user_id", "")) == user_id_str or str(quiz.get("trainer_id", "")) == user_id_str:
+        return quiz
+
+    if quiz.get("status") in ("PUBLISHED", "ASSIGNED"):
+        assigned = quiz.get("assigned_to")
+        if not assigned or user_id_str in [str(x) for x in assigned]:
+            return quiz
+
+    return None
 
 
 def get_quiz_without_auth(database: Database, quiz_id: str) -> dict | None:
