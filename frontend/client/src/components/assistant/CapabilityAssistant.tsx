@@ -23,6 +23,7 @@ import {
 } from "@/lib/api";
 import { useTranslation } from "@/i18n";
 import { toast } from "sonner";
+import { MarkdownRenderer } from "./MarkdownRenderer";
 
 interface Message {
   id: string;
@@ -256,9 +257,11 @@ export function CapabilityAssistant({
                       : "bg-white text-slate-800 border border-slate-200/80 shadow-sm rounded-bl-none"
                   }`}
                 >
-                  <div className="whitespace-pre-line prose-xs">
-                    {msg.text}
-                  </div>
+                  {msg.sender === "assistant" ? (
+                    <MarkdownRenderer content={msg.text} />
+                  ) : (
+                    <div className="whitespace-pre-wrap font-medium">{msg.text}</div>
+                  )}
 
                   {/* Sources / Citations */}
                   {msg.sources && msg.sources.length > 0 && (
