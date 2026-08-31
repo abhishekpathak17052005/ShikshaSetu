@@ -1,3 +1,4 @@
+import re
 from datetime import datetime
 
 from bson import ObjectId
@@ -9,8 +10,16 @@ def object_id(value: str) -> ObjectId | None:
 
 
 def get_user_by_email(database: Database, email: str) -> dict | None:
-    cleaned = (email or "").strip().lower()
-    return database.users.find_one({"email": {"$regex": f"^{cleaned}$", "$options": "i"}})
+    cleaned = (email or "").strip()
+    user = database.users.find_one({"email": cleaned})
+    if user is None:
+        user = database.users.find_one({"email": cleaned.lower()})
+    if user is None:
+        try:
+            user = database.users.find_one({"email": {"$regex": f"^{re.escape(cleaned)}$", "$options": "i"}})
+        except Exception:
+            pass
+    return user
 
 
 def get_user_by_id(database: Database, user_id: str) -> dict | None:

@@ -65,6 +65,31 @@ export function AdminDashboard({ onNavigate }: AdminDashboardProps) {
         </button>
       </div>
 
+      {/* iGOT Karmayogi Ecosystem Integration Boundary Card */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 rounded-2xl border border-blue-100 bg-gradient-to-r from-blue-50/90 to-purple-50/80 p-4 text-xs">
+        <div className="flex items-start gap-3">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-blue-700 font-black">
+            iGOT
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="font-bold text-[#123057]">iGOT Karmayogi National Competency Gateway</span>
+              <span className="rounded-md bg-blue-200/90 px-2 py-0.5 text-[10px] font-bold text-blue-900">
+                Curated Catalog Active
+              </span>
+            </div>
+            <p className="mt-0.5 text-slate-500">
+              63 verified iGOT learning resources & 85 NSSTA modules connected. Live API Gateway sync is pending official DoPT/CBC credentials.
+            </p>
+          </div>
+        </div>
+        <div className="shrink-0 flex items-center gap-2">
+          <span className="inline-flex items-center gap-1 rounded-lg bg-emerald-100 px-2.5 py-1 text-[11px] font-bold text-emerald-800">
+            <CheckCircle2 size={12} /> Adapter Healthy
+          </span>
+        </div>
+      </div>
+
       {/* 4-KPI Primary Metrics */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <div className="rounded-2xl border border-[#e0daef] bg-white p-5 shadow-sm hover:shadow-md transition-all">

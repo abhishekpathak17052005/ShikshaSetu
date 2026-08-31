@@ -29,6 +29,11 @@ class Settings(BaseSettings):
     chunk_overlap: int = Field(default=100, validation_alias="CHUNK_OVERLAP")
     max_questions_per_generation: int = Field(default=5, validation_alias="MAX_QUESTIONS_PER_GENERATION")
     generation_retry_count: int = Field(default=3, validation_alias="GENERATION_RETRY_COUNT")
+    # Phase 3A: iGOT Karmayogi Ecosystem Integration
+    igot_integration_mode: str = Field(default="prototype", validation_alias="IGOT_INTEGRATION_MODE")
+    igot_api_base_url: str = Field(default="", validation_alias="IGOT_API_BASE_URL")
+    igot_client_id: str = Field(default="", validation_alias="IGOT_CLIENT_ID")
+    igot_client_secret: str = Field(default="", validation_alias="IGOT_CLIENT_SECRET")
 
     model_config = SettingsConfigDict(
         env_file=".env",

@@ -22,6 +22,7 @@ from app.skill_gaps.router import router as skill_gaps_router
 from app.admin.router import router as admin_router
 from app.trainer.router import router as trainer_router
 from app.users.router import router as users_router
+from app.igot.router import router as igot_router
 
 logging.basicConfig(
     level=logging.INFO,
@@ -92,6 +93,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     application.include_router(trainer_router, prefix=app_settings.api_prefix)
     application.include_router(admin_router, prefix=app_settings.api_prefix)
     application.include_router(users_router, prefix=app_settings.api_prefix)
+    application.include_router(igot_router, prefix=app_settings.api_prefix)
 
     @application.exception_handler(Exception)
     async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:

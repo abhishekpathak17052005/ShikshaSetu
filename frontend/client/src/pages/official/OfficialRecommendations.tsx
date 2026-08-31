@@ -118,6 +118,23 @@ export function OfficialRecommendations({
         </button>
       </div>
 
+      {/* iGOT Karmayogi Ecosystem Integration Notice */}
+      <div className="flex items-start gap-3 rounded-2xl border border-blue-100 bg-blue-50/70 p-4 text-xs text-blue-900">
+        <Sparkles size={18} className="text-[#ef7e37] shrink-0 mt-0.5" />
+        <div className="space-y-0.5">
+          <div className="font-bold text-[#123057] flex items-center gap-2">
+            <span>iGOT Karmayogi — Curated Catalog Connected</span>
+            <span className="rounded-md bg-blue-200/80 px-2 py-0.5 text-[10px] font-semibold text-blue-800">
+              Prototype Mode
+            </span>
+          </div>
+          <p className="text-slate-600 leading-relaxed">
+            Course recommendations and direct portal deep-links are powered by the verified iGOT Karmayogi catalog. 
+            Live server-to-server automated enrollment and progress sync are pending official Karmayogi Bharat API gateway credentials.
+          </p>
+        </div>
+      </div>
+
       {/* Filter Toolbar */}
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#dfe7f0] bg-white p-4 shadow-sm">
         <div className="flex flex-wrap items-center gap-2">

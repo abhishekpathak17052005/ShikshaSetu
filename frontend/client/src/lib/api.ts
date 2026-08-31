@@ -613,6 +613,42 @@ export type AdminReportsResponse = {
   compliance_summary: Record<string, any>;
 };
 
+// ─── iGOT Karmayogi Ecosystem Types ──────────────────────────────────────────
+
+export type IGOTEcosystemStatus = {
+  integration_mode: string;
+  catalog_available: boolean;
+  total_courses_available: number;
+  live_gateway_available: boolean;
+  official_credentials_configured: boolean;
+  status_notice: string;
+  supported_capabilities: string[];
+  pending_live_capabilities: string[];
+};
+
+export type IGOTCourseSummary = {
+  id: string;
+  resource_id: string;
+  course_id?: string | null;
+  title: string;
+  provider: string;
+  duration_hours?: number | null;
+  difficulty?: string | null;
+  competencies: string[];
+  course_url?: string | null;
+  source_document?: string | null;
+  verification_status: string;
+};
+
+export type IGOTCourseListResponse = {
+  total: number;
+  page: number;
+  limit: number;
+  provider: string;
+  courses: IGOTCourseSummary[];
+  metadata: Record<string, any>;
+};
+
 // ─── HTTP helper ─────────────────────────────────────────────────────────────
 
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
@@ -945,6 +981,20 @@ export const api = {
     capacityPlanning: () => request<CapacityPlanningResponse>("/admin/capacity-planning"),
     users: () => request<AdminUserListResponse>("/admin/users"),
     reports: () => request<AdminReportsResponse>("/admin/reports"),
+  },
+
+  // ─── iGOT Karmayogi Ecosystem namespace ─────────────────────────────────────
+  igot: {
+    status: () => request<IGOTEcosystemStatus>("/igot/status"),
+    courses: (params?: { competency?: string; search?: string; page?: number; limit?: number }) => {
+      const q = new URLSearchParams();
+      if (params?.competency) q.set("competency", params.competency);
+      if (params?.search) q.set("search", params.search);
+      if (params?.page) q.set("page", String(params.page));
+      if (params?.limit) q.set("limit", String(params.limit));
+      const qs = q.toString();
+      return request<IGOTCourseListResponse>(`/igot/courses${qs ? `?${qs}` : ""}`);
+    },
   },
 
   // ── Legacy flat aliases kept for backwards-compat with LiveHome.tsx ──────

@@ -108,6 +108,23 @@ export function OfficialLearning({
         </div>
       </div>
 
+      {/* Evidence & Ecosystem Note */}
+      <div className="flex items-start gap-3 rounded-2xl border border-amber-100 bg-amber-50/70 p-4 text-xs text-amber-900">
+        <Award size={18} className="text-amber-600 shrink-0 mt-0.5" />
+        <div className="space-y-0.5">
+          <div className="font-bold text-[#123057] flex items-center gap-2">
+            <span>Learning ≠ Proven Competency Governance Architecture</span>
+            <span className="rounded-md bg-amber-200/80 px-2 py-0.5 text-[10px] font-semibold text-amber-800">
+              Supporting Evidence (0.30)
+            </span>
+          </div>
+          <p className="text-slate-600 leading-relaxed">
+            Completing self-paced modules records verifiable supporting evidence in your capability ledger. 
+            Formal competency ratings and skill gap recalculations require authoritative validation through AI Quizzes or Proctored Assessments.
+          </p>
+        </div>
+      </div>
+
       {/* ── ACTIVE TAB ── */}
       {activeTab === "ACTIVE" && (
         <div className="space-y-6">
