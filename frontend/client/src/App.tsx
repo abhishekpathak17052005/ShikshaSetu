@@ -208,6 +208,7 @@ import { OfficialQuizzes } from "./pages/official/OfficialQuizzes";
 import { OfficialEvidence } from "./pages/official/OfficialEvidence";
 import { OfficialProgress } from "./pages/official/OfficialProgress";
 import { OfficialProfile } from "./pages/official/OfficialProfile";
+import { CapabilityAssistant } from "./components/assistant/CapabilityAssistant";
 
 // ─── Official / Employee app ──────────────────────────────────────────────────
 
@@ -267,6 +268,7 @@ function OfficialApp() {
   return (
     <OfficialLayout activePage={activePage} onNavigate={setActivePage}>
       {renderPage()}
+      <CapabilityAssistant currentPage={activePage} onNavigate={handleNavigate} />
     </OfficialLayout>
   );
 }

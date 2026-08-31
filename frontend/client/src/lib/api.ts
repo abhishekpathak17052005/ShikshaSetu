@@ -649,6 +649,38 @@ export type IGOTCourseListResponse = {
   metadata: Record<string, any>;
 };
 
+// ─── AI Virtual Capability Assistant Types ────────────────────────────────────
+
+export type AssistantSourceCitation = {
+  source_id: string;
+  title: string;
+  source_type: string;
+  url?: string | null;
+  excerpt?: string | null;
+};
+
+export type SuggestedAction = {
+  action_type: string;
+  label: string;
+  target_page: string;
+  payload?: Record<string, any>;
+};
+
+export type AssistantChatResponse = {
+  answer: string;
+  sources: AssistantSourceCitation[];
+  context_summary: Record<string, any>;
+  suggested_actions: SuggestedAction[];
+  model_provider: string;
+};
+
+export type AssistantChatPayload = {
+  message: string;
+  context_page?: string;
+  current_competency_code?: string;
+  current_resource_id?: string;
+};
+
 // ─── HTTP helper ─────────────────────────────────────────────────────────────
 
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
@@ -995,6 +1027,15 @@ export const api = {
       const qs = q.toString();
       return request<IGOTCourseListResponse>(`/igot/courses${qs ? `?${qs}` : ""}`);
     },
+  },
+
+  // ─── AI Virtual Capability Assistant namespace ──────────────────────────────
+  assistant: {
+    chat: (payload: AssistantChatPayload) =>
+      request<AssistantChatResponse>("/assistant/chat", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }),
   },
 
   // ── Legacy flat aliases kept for backwards-compat with LiveHome.tsx ──────
