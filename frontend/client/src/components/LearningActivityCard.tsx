@@ -28,9 +28,9 @@ export function LearningActivityCard({
   const notStarted = activity.status === 'not_started';
 
   // Format dates
-  const lastAccessedDate = new Date(activity.last_accessed_at);
+  const lastAccessedDate = activity.last_accessed_at ? new Date(activity.last_accessed_at) : null;
   const completedDate = activity.completed_at ? new Date(activity.completed_at) : null;
-  const startedDate = new Date(activity.started_at);
+  const startedDate = activity.started_at ? new Date(activity.started_at) : null;
 
   const getStatusColor = () => {
     if (isCompleted) return 'bg-teal/10 border-teal/30';
@@ -112,7 +112,7 @@ export function LearningActivityCard({
             Completed {completedDate.toLocaleDateString()}
           </div>
         )}
-        {isInProgress && (
+        {isInProgress && lastAccessedDate && (
           <div className="text-xs text-slate-500">
             Last accessed {lastAccessedDate.toLocaleDateString()}
           </div>

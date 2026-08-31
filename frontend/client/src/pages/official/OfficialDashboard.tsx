@@ -273,7 +273,7 @@ export function OfficialDashboard({ onNavigate }: OfficialDashboardProps) {
                     <div className="flex items-center justify-between">
                       <div>
                         <div className="text-[10px] font-extrabold uppercase tracking-wider text-teal-700">
-                          {gap.competency_code} · {gap.domain}
+                          {gap.competency_code} · {gap.competency_domain || gap.domain || "Domain"}
                         </div>
                         <h4 className="text-sm font-bold text-[#123057] mt-0.5">
                           {gap.competency_name}
@@ -300,7 +300,7 @@ export function OfficialDashboard({ onNavigate }: OfficialDashboardProps) {
 
                     <div className="mt-3 flex items-center justify-between border-t border-slate-200/50 pt-2.5 text-xs">
                       <span className="text-[11px] text-slate-400">
-                        Priority {gap.priority} · {Math.round(gap.confidence * 100)}% confidence
+                        Priority {gap.priority} · {Math.round((gap.confidence ?? 0.8) * 100)}% confidence
                       </span>
                       <button
                         onClick={() =>
@@ -331,7 +331,7 @@ export function OfficialDashboard({ onNavigate }: OfficialDashboardProps) {
 
             <p className="mt-2 text-xs text-slate-200 leading-relaxed">
               {topRec
-                ? `Recommended curriculum: "${topRec.resource?.title || topRec.title}" from ${topRec.provider || "iGOT"}. Matched to your role responsibilities.`
+                ? `Recommended curriculum: "${topRec.resource_title || topRec.title || topRec.resource || 'Course'}" from ${topRec.provider || "iGOT"}. Matched to your role responsibilities.`
                 : "Engage in recommended learning resources from iGOT/NSSTA and complete capability assessments."}
             </p>
 

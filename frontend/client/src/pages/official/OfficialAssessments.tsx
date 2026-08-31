@@ -120,7 +120,8 @@ export function OfficialAssessments({
   const currentQuestions = attempt?.questions || capabilityAssessment?.questions || [];
   const answeredCount = currentQuestions.filter((q) => {
     if (q.question_type === "SELF_RATING") {
-      return ratings[q.competency_id || q.question_id] != null;
+      const qKey = (q as any).competency_id || q.question_id;
+      return ratings[qKey] != null;
     }
     return answers.some((a) => a.question_id === q.question_id);
   }).length;

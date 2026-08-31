@@ -7,7 +7,6 @@ import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { TrainerLayout } from "./layouts/TrainerLayout";
 import { AdminLayout } from "./layouts/AdminLayout";
 import LoginPage from "./pages/LoginPage";
-import LiveHome from "./pages/LiveHome";
 
 import { TrainerDashboard } from "./pages/trainer/TrainerDashboard";
 import { TrainerMaterials } from "./pages/trainer/TrainerMaterials";

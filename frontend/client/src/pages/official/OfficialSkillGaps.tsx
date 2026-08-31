@@ -85,7 +85,7 @@ export function OfficialSkillGaps({ onNavigate }: OfficialSkillGapsProps) {
               Role Requirements Matrix
             </div>
             <h2 className="text-xl font-bold text-[#123057] mt-1">
-              {skillGaps?.role?.name || summary?.role_name || "Statistical Officer Framework"}
+              {summary?.role_name || skillGaps?.role || "Statistical Officer Framework"}
             </h2>
           </div>
 
@@ -101,7 +101,7 @@ export function OfficialSkillGaps({ onNavigate }: OfficialSkillGapsProps) {
               Total Skill Gaps
             </div>
             <div className="mt-2 text-2xl font-black text-[#ef7e37]">
-              {summary?.total_gaps || 0}
+              {summary?.total_gaps ?? gaps.length}
             </div>
           </div>
 
@@ -128,7 +128,7 @@ export function OfficialSkillGaps({ onNavigate }: OfficialSkillGapsProps) {
               Low / On Track
             </div>
             <div className="mt-2 text-2xl font-black text-[#087f76]">
-              {summary?.low_gaps || 0}
+              {summary?.low_gaps ?? (summary?.met_count || 0)}
             </div>
           </div>
         </div>
@@ -174,7 +174,7 @@ export function OfficialSkillGaps({ onNavigate }: OfficialSkillGapsProps) {
                 <div className="flex flex-wrap items-start justify-between gap-3 border-b border-slate-100 pb-3">
                   <div>
                     <div className="text-[10px] font-extrabold uppercase tracking-wider text-teal-800">
-                      {gap.competency_code} · {gap.domain}
+                      {gap.competency_code} · {gap.competency_domain || gap.domain || "Domain"}
                     </div>
                     <h3 className="text-lg font-bold text-[#123057] mt-0.5">
                       {gap.competency_name}
@@ -217,7 +217,7 @@ export function OfficialSkillGaps({ onNavigate }: OfficialSkillGapsProps) {
                 {/* Footer Action */}
                 <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-3 text-xs">
                   <span className="text-slate-400 font-semibold">
-                    Priority {gap.priority} · {Math.round(gap.confidence * 100)}% confidence · {gap.assessment_status.replace("_", " ")}
+                    Priority {gap.priority} · {Math.round((gap.confidence ?? 0.8) * 100)}% confidence · {gap.gap_category}
                   </span>
 
                   <button

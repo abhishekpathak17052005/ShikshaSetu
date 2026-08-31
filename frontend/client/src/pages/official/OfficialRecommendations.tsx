@@ -53,8 +53,8 @@ export function OfficialRecommendations({
   }, []);
 
   const handleStartLearning = async (item: Recommendation) => {
-    const resId = item.resource?.resource_id || item.title || "res-001";
-    const compCode = item.competency_code || "TECH_PYTHON";
+    const resId = item.resource_title || item.title || item.id || "res-001";
+    const compCode = item.competency_code || item.competency_id || "TECH_PYTHON";
 
     try {
       setStartingResource(resId);
@@ -63,7 +63,7 @@ export function OfficialRecommendations({
         competency_id: compCode,
       });
 
-      toast.success(`Started learning: "${item.title || item.resource?.title}"`);
+      toast.success(`Started learning: "${item.resource_title || item.title || item.resource || 'Resource'}"`);
       onNavigate("My Learning", { activityId: activity.activity_id });
     } catch (err: any) {
       toast.error(err.message || "Failed to start learning activity");
@@ -74,9 +74,10 @@ export function OfficialRecommendations({
 
   const openResourceExternal = (item: Recommendation) => {
     const url =
-      item.resource?.provider_specific?.course_url ||
-      item.resource?.provider_specific?.programme_url ||
-      item.resource?.source?.source_url;
+      item.resource_url ||
+      (item as any).resource?.provider_specific?.course_url ||
+      (item as any).resource?.provider_specific?.programme_url ||
+      (item as any).resource?.source?.source_url;
 
     if (url) {
       window.open(url, "_blank", "noopener,noreferrer");
@@ -88,10 +89,10 @@ export function OfficialRecommendations({
   const recommendations = data?.recommendations || [];
 
   const filtered = recommendations.filter((item) => {
-    const provider = item.provider || item.resource?.provider;
+    const provider = item.provider || (item as any).resource?.provider;
     const matchProvider = selectedProvider === "ALL" || provider === selectedProvider;
     const matchComp = !competencyCode || item.competency_code === competencyCode;
-    const gapSize = item.explanation?.gap_size ?? 0;
+    const gapSize = (item as any).explanation?.gap_size ?? 1.0;
     const matchPriority = selectedPriority === "ALL" || (selectedPriority === "HIGH" && gapSize > 1.0);
 
     return matchProvider && matchComp && matchPriority;
@@ -192,9 +193,9 @@ export function OfficialRecommendations({
       ) : (
         <div className="grid gap-5 sm:grid-cols-2">
           {filtered.map((item, idx) => {
-            const cardId = item.resource?.resource_id || `${item.competency_code}-${idx}`;
+            const cardId = item.id || item.resource_title || `${item.competency_code}-${idx}`;
             const isExpanded = expandedId === cardId;
-            const scoreBreakdown = item.explanation?.score_breakdown || [];
+            const scoreBreakdown = (item as any).explanation?.score_breakdown || [];
 
             return (
               <div
@@ -206,7 +207,7 @@ export function OfficialRecommendations({
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <span className="rounded-md bg-teal-50 px-2.5 py-0.5 text-[11px] font-extrabold uppercase text-teal-800">
-                        {item.provider || item.resource?.provider || "iGOT"}
+                        {item.provider || (item as any).resource?.provider || "iGOT"}
                       </span>
                       <span className="text-xs font-bold text-slate-400">
                         {item.competency_code}
@@ -215,22 +216,26 @@ export function OfficialRecommendations({
 
                     <div className="flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-extrabold text-emerald-800">
                       <TrendingUp size={12} />
-                      {item.score != null ? `${Math.round(item.score * 100)}% Match` : "94% Match"}
+                      {item.relevance_score != null
+                        ? `${Math.round(item.relevance_score * 100)}% Match`
+                        : item.score != null
+                        ? `${Math.round(item.score * 100)}% Match`
+                        : "94% Match"}
                     </div>
                   </div>
 
                   {/* Title & Metadata */}
                   <h3 className="text-lg font-bold text-[#123057] mt-3 group-hover:text-teal-800 transition-colors line-clamp-2">
-                    {item.title || item.resource?.title}
+                    {item.resource_title || item.title || "Targeted Capability Course"}
                   </h3>
 
                   <p className="text-xs text-slate-500 mt-1">
-                    {item.competency_name || "Mapped capability resource"} · {item.resource?.duration_hours ? `${item.resource.duration_hours} hrs` : "Self-paced"}
+                    {item.competency_name || "Mapped capability resource"} · {item.duration_hours ? `${item.duration_hours} hrs` : "Self-paced"}
                   </p>
 
                   {/* Grounded Summary */}
                   <div className="mt-4 rounded-xl border-l-2 border-[#ef7e37] bg-slate-50 p-3 text-xs leading-relaxed text-slate-600">
-                    {item.explanation?.summary || "Directly addresses your primary role capability deficit."}
+                    {item.reason || (item as any).explanation?.summary || "Directly addresses your primary role capability deficit."}
                   </div>
 
                   {/* Scoring Details Expandable */}
@@ -291,7 +296,7 @@ export function OfficialRecommendations({
 
                   <button
                     onClick={() => handleStartLearning(item)}
-                    disabled={startingResource === (item.resource?.resource_id || item.title)}
+                    disabled={startingResource === (item.resource_title || item.title || item.id)}
                     className="inline-flex items-center gap-1.5 rounded-xl bg-[#ef7e37] px-4 py-2 text-xs font-bold text-white shadow hover:bg-[#d96a27] disabled:opacity-50 transition-all active:scale-95"
                   >
                     <Play size={13} /> Start Learning

@@ -89,6 +89,7 @@ export type SkillGap = {
   competency_code: string;
   competency_name: string;
   competency_domain: string;
+  domain?: string;
   required_level: number;
   current_level: number | null;
   gap: number;
@@ -96,18 +97,22 @@ export type SkillGap = {
   priority: "CRITICAL" | "HIGH" | "MEDIUM" | "LOW";
   confidence: number | null;
   last_assessed: string | null;
+  assessment_status?: string;
 };
 
 export type SkillGapResponse = {
   gaps: SkillGap[];
   summary: {
     role: string;
+    role_name?: string;
     required_competencies: number;
     assessed_count: number;
     not_assessed_count: number;
     critical_gaps: number;
     high_gaps: number;
     medium_gaps: number;
+    low_gaps?: number;
+    total_gaps?: number;
     met_count: number;
   };
   role: string;
@@ -123,11 +128,15 @@ export type Recommendation = {
   competency_name: string;
   resource_type: string;
   resource_title: string;
+  title?: string;
+  resource?: string;
   resource_url: string;
   provider: string;
   duration_hours: number | null;
   relevance_score: number;
+  score?: number;
   reason: string;
+  explanation?: string;
   priority: "CRITICAL" | "HIGH" | "MEDIUM" | "LOW";
   status: string;
   created_at: string;
@@ -177,6 +186,8 @@ export type AssessmentSubmitResponse = {
 
 export type CapabilityAssessmentQuestion = {
   question_id: string;
+  competency_id?: string;
+  competency_code?: string;
   question_type: string;
   question_text: string;
   options: string[];
@@ -304,6 +315,8 @@ export type LearningMaterial = {
   extraction_status: string;
   created_at: string;
 };
+
+export type TrainerMaterial = LearningMaterial;
 
 // ─── Trainer Types ───────────────────────────────────────────────────────────
 

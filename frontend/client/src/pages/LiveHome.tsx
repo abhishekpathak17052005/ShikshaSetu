@@ -116,8 +116,8 @@ function Auth({ onLogin }: { onLogin: (user: User) => void }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   useEffect(() => {
-    api
-      .roles()
+    api.roles
+      .list()
       .then(setRoles)
       .catch(() => undefined);
   }, []);
@@ -487,19 +487,19 @@ function LearningFlow({ recommendations, gaps, competencies, loading, error, go 
   const upload = async () => {
     if (!file) { setErrorMessage("Select a PDF, DOCX, or PPTX file first."); return; }
     setBusy("uploading"); setErrorMessage("");
-    try { const uploaded = await api.uploadMaterial(file); setMaterial(await api.material(uploaded.material_id)); }
+    try { const uploaded = await api.learningMaterials.upload(file); setMaterial(await api.learningMaterials.get(uploaded.id)); }
     catch (e: any) { setErrorMessage(e.message); } finally { setBusy(""); }
   };
   const generate = async () => {
     if (!material?.id || !competencyCode) { setErrorMessage("A learning material and competency are required."); return; }
     setBusy("generating"); setErrorMessage("");
-    try { setGenerated(await api.generateQuestions(material.id, { competency_code: competencyCode, question_count: 5 })); }
+    try { setGenerated(await api.trainer.materials.generateQuestions(material.id, { competency_code: competencyCode, question_count: 5 })); }
     catch (e: any) { setErrorMessage(e.message); } finally { setBusy(""); }
   };
   const createQuiz = async () => {
     if (!generated?.questions?.length) return;
     setBusy("creating"); setErrorMessage("");
-    try { setQuiz(await api.createQuiz({ material_id: material.id, competency_code: generated.competency_code, questions: generated.questions.map((question: any, index: number) => ({ ...question, question_id: `${material.id}-${index + 1}` })) })); }
+    try { setQuiz(await api.trainer.quizzes.create({ title: generated.title || "Generated Quiz", material_id: material.id, competency_code: generated.competency_code, question_ids: generated.questions.map((question: any) => question.id) })); }
     catch (e: any) { setErrorMessage(e.message); } finally { setBusy(""); }
   };
   const submitQuiz = async () => {
@@ -911,7 +911,7 @@ export default function LiveHome() {
       setGapError(null);
       setCompetencyError(null);
       setRecommendationError(null);
-      Promise.allSettled([api.competencies(), api.skillGaps(), api.recommendations()])
+      Promise.allSettled([api.competencies.list(), api.skillGaps.me(), api.recommendations.me()])
         .then(([competencyResult, gapResult, recommendationResult]) => {
           if (competencyResult.status === "fulfilled") setCompetencies(competencyResult.value);
           else {
@@ -934,7 +934,7 @@ export default function LiveHome() {
         })
         .finally(() => setDataLoading(false));
       const attemptId = localStorage.getItem("shikshasetu_attempt_id");
-      if (attemptId) api.getAttempt(attemptId).then(setAttempt).catch(() => localStorage.removeItem("shikshasetu_attempt_id"));
+      if (attemptId) api.assessments.get(attemptId).then(setAttempt).catch(() => localStorage.removeItem("shikshasetu_attempt_id"));
     }
   }, [user]);
   if (loading) return <div className="flex min-h-screen items-center justify-center bg-[#eef4f8] text-sm font-bold text-navy">Loading workspace...</div>;
@@ -949,7 +949,7 @@ export default function LiveHome() {
   };
   const assessmentComplete = async (assessmentResult: any) => {
     setResult(assessmentResult);
-    try { setGaps(await api.skillGaps()); } catch (e: any) { if (e.status !== 404) setLoadError(e.message); }
+    try { setGaps(await api.skillGaps.me()); } catch (e: any) { if (e.status !== 404) setLoadError(e.message); }
   };
   const content =
     page === "Dashboard" ? (
