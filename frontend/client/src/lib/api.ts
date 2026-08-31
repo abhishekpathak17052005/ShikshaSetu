@@ -2,7 +2,36 @@
 // Token key: "shikshasetu_token"
 // Base URL: import.meta.env.VITE_API_URL || "/api/v1"
 
-const API_BASE = import.meta.env.VITE_API_URL || "/api/v1";
+function getApiBaseUrl(): string {
+  const envUrl =
+    import.meta.env.VITE_API_BASE_URL ||
+    import.meta.env.VITE_API_URL ||
+    "";
+
+  const raw = envUrl.trim().replace(/\/+$/, "");
+
+  if (!raw) {
+    return "/api/v1";
+  }
+
+  // Strip accidental /docs suffix if present in configuration
+  if (raw.endsWith("/docs")) {
+    const withoutDocs = raw.slice(0, -5).replace(/\/+$/, "");
+    return `${withoutDocs}/api/v1`;
+  }
+
+  if (raw.endsWith("/api/v1")) {
+    return raw;
+  }
+
+  if (raw.startsWith("http://") || raw.startsWith("https://")) {
+    return `${raw}/api/v1`;
+  }
+
+  return raw;
+}
+
+const API_BASE = getApiBaseUrl();
 
 export class ApiError extends Error {
   constructor(public status: number, message: string) {
