@@ -1,0 +1,56 @@
+services:
+  # ─── FastAPI Backend Service ───────────────────────────────────────────────
+  - type: web
+    name: shikshasetu-backend
+    runtime: python
+    region: singapore
+    plan: free
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: APP_NAME
+        value: ShikshaSetu
+      - key: APP_ENV
+        value: production
+      - key: DEBUG
+        value: "false"
+      - key: API_PREFIX
+        value: /api/v1
+      - key: SECRET_KEY
+        generateValue: true
+      - key: JWT_ALGORITHM
+        value: HS256
+      - key: ACCESS_TOKEN_EXPIRE_MINUTES
+        value: "1440"
+      - key: MONGODB_URI
+        sync: false
+      - key: MONGODB_DATABASE
+        value: shikshasetu
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GEMINI_MODEL
+        value: gemini-1.5-flash
+
+  # ─── React Frontend Static Site ────────────────────────────────────────────
+  - type: web
+    name: shikshasetu-frontend
+    runtime: static
+    region: singapore
+    plan: free
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist/public
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: NODE_VERSION
+        value: 20.18.0
+      - key: VITE_API_BASE_URL
+        value: https://shikshasetu-backend.onrender.com/api/v1
+      - key: VITE_API_URL
+        value: https://shikshasetu-backend.onrender.com/api/v1
