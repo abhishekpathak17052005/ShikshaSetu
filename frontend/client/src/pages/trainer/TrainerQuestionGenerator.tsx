@@ -19,20 +19,19 @@ interface TrainerQuestionGeneratorProps {
   onNavigate: (page: string, context?: { materialId?: string }) => void;
 }
 
-const COMPETENCIES = [
-  { code: "STAT_SAMPLING", name: "Statistical Sampling & Survey Design" },
-  { code: "TECH_PYTHON", name: "Python Programming for Public Service" },
-  { code: "DATA_ANALYSIS", name: "Data Analysis & Visual Analytics" },
-  { code: "CYBER_SEC", name: "Cybersecurity & Information Security" },
-  { code: "CIVIL_GOV", name: "Civil Governance & Regulatory Frameworks" },
-  { code: "PUBLIC_PROCUREMENT", name: "Government e-Marketplace (GeM) & Procurement" },
-];
-
 export function TrainerQuestionGenerator({
   initialMaterialId,
   onNavigate,
 }: TrainerQuestionGeneratorProps) {
   const [materials, setMaterials] = useState<LearningMaterial[]>([]);
+  const [competencies, setCompetencies] = useState<{ code: string; name: string }[]>([
+    { code: "STAT_SAMPLING", name: "Statistical Sampling & Survey Design" },
+    { code: "STAT_DATA_QUALITY_FRAMEWORKS", name: "Data Quality Frameworks" },
+    { code: "STAT_SURVEY_DESIGN", name: "Survey Design & Methodology" },
+    { code: "STAT_NATIONAL_ACCOUNTS", name: "National Accounts Statistics" },
+    { code: "TECH_PYTHON", name: "Python Programming for Public Service" },
+    { code: "DATA_ANALYSIS", name: "Data Analysis & Visual Analytics" },
+  ]);
   const [loadingMaterials, setLoadingMaterials] = useState(true);
 
   // Form state
@@ -47,12 +46,25 @@ export function TrainerQuestionGenerator({
   const [generatedQuestions, setGeneratedQuestions] = useState<TrainerQuestion[]>([]);
 
   useEffect(() => {
-    async function loadMaterials() {
+    async function loadData() {
       try {
         setLoadingMaterials(true);
-        const list = await api.trainer.materials.list();
-        const readyMaterials = list.filter((m) => m.status === "READY");
+        const [mats, comps] = await Promise.all([
+          api.trainer.materials.list().catch(() => []),
+          api.competencies.list().catch(() => []),
+        ]);
+
+        const readyMaterials = mats.filter((m) => m.status === "READY");
         setMaterials(readyMaterials);
+
+        if (comps.length > 0) {
+          setCompetencies(
+            comps.map((c) => ({
+              code: c.code,
+              name: c.name || c.code.replace(/_/g, " "),
+            }))
+          );
+        }
 
         if (!selectedMaterialId && readyMaterials.length > 0) {
           setSelectedMaterialId(readyMaterials[0].id || (readyMaterials[0] as any)._id);
@@ -63,7 +75,7 @@ export function TrainerQuestionGenerator({
         setLoadingMaterials(false);
       }
     }
-    loadMaterials();
+    loadData();
   }, []);
 
   const handleGenerate = async (e: React.FormEvent) => {
@@ -178,7 +190,7 @@ export function TrainerQuestionGenerator({
                 onChange={(e) => setCompetencyCode(e.target.value)}
                 className="w-full rounded-xl border border-[#f0ddd0] bg-white px-4 py-3 text-sm font-semibold text-slate-800 focus:border-[#ef7e37] focus:outline-none shadow-sm"
               >
-                {COMPETENCIES.map((c) => (
+                {competencies.map((c) => (
                   <option key={c.code} value={c.code}>
                     {c.code} — {c.name}
                   </option>

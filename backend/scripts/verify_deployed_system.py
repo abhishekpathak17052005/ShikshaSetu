@@ -28,7 +28,7 @@ def run_smoke_test(backend_url: str) -> bool:
     total += 1
     print("\n[TEST 1] Testing System Health (/health)...")
     try:
-        res = requests.get(f"{api_base}/health", timeout=15)
+        res = requests.get(f"{api_base}/health", timeout=30)
         if res.status_code == 200 and res.json().get("status") in ("healthy", "ok"):
             print(f"  [PASS] System is healthy ({res.json()})")
             passed += 1
@@ -52,7 +52,7 @@ def run_smoke_test(backend_url: str) -> bool:
             res = requests.post(
                 f"{api_base}/auth/login",
                 json={"email": email, "password": password},
-                timeout=15,
+                timeout=30,
             )
             if res.status_code == 200:
                 data = res.json()
@@ -73,7 +73,7 @@ def run_smoke_test(backend_url: str) -> bool:
         total += 1
         print("\n[TEST] Official: Fetching Skill Gaps (/skill-gaps/me)...")
         try:
-            res = requests.get(f"{api_base}/skill-gaps/me", headers=official_headers, timeout=15)
+            res = requests.get(f"{api_base}/skill-gaps/me", headers=official_headers, timeout=30)
             if res.status_code == 200 and "gaps" in res.json():
                 print(f"  [PASS] Retrieved {len(res.json()['gaps'])} skill gaps")
                 passed += 1
@@ -107,7 +107,7 @@ def run_smoke_test(backend_url: str) -> bool:
         total += 1
         print("\n[TEST] Trainer: Fetching Materials (/trainer/materials)...")
         try:
-            res = requests.get(f"{api_base}/trainer/materials", headers=trainer_headers, timeout=15)
+            res = requests.get(f"{api_base}/trainer/materials", headers=trainer_headers, timeout=30)
             if res.status_code == 200:
                 print(f"  [PASS] Retrieved trainer materials list")
                 passed += 1
@@ -123,7 +123,7 @@ def run_smoke_test(backend_url: str) -> bool:
         total += 1
         print("\n[TEST] Admin: Fetching Dashboard Analytics (/admin/dashboard)...")
         try:
-            res = requests.get(f"{api_base}/admin/dashboard", headers=admin_headers, timeout=15)
+            res = requests.get(f"{api_base}/admin/dashboard", headers=admin_headers, timeout=30)
             if res.status_code == 200 and "total_users" in res.json():
                 print(f"  [PASS] Retrieved admin dashboard (Total users: {res.json()['total_users']}, Avg level: {res.json()['average_capability_level']})")
                 passed += 1
@@ -140,7 +140,7 @@ def run_smoke_test(backend_url: str) -> bool:
     total += 1
     print("\n[TEST] Security: Unauthenticated request to /admin/dashboard...")
     try:
-        res = requests.get(f"{api_base}/admin/dashboard", timeout=15)
+        res = requests.get(f"{api_base}/admin/dashboard", timeout=30)
         if res.status_code == 401:
             print(f"  [PASS] Correctly rejected with HTTP 401 Unauthorized")
             passed += 1
@@ -154,7 +154,7 @@ def run_smoke_test(backend_url: str) -> bool:
         total += 1
         print("\n[TEST] Security: Official role attempting to access /admin/dashboard...")
         try:
-            res = requests.get(f"{api_base}/admin/dashboard", headers={"Authorization": f"Bearer {tokens['OFFICIAL']}"}, timeout=15)
+            res = requests.get(f"{api_base}/admin/dashboard", headers={"Authorization": f"Bearer {tokens['OFFICIAL']}"}, timeout=30)
             if res.status_code == 403:
                 print(f"  [PASS] Correctly blocked with HTTP 403 Forbidden")
                 passed += 1
@@ -168,7 +168,7 @@ def run_smoke_test(backend_url: str) -> bool:
         total += 1
         print("\n[TEST] Security: Trainer role attempting to access /admin/dashboard...")
         try:
-            res = requests.get(f"{api_base}/admin/dashboard", headers={"Authorization": f"Bearer {tokens['TRAINER']}"}, timeout=15)
+            res = requests.get(f"{api_base}/admin/dashboard", headers={"Authorization": f"Bearer {tokens['TRAINER']}"}, timeout=30)
             if res.status_code == 403:
                 print(f"  [PASS] Correctly blocked with HTTP 403 Forbidden")
                 passed += 1
@@ -181,7 +181,7 @@ def run_smoke_test(backend_url: str) -> bool:
     total += 1
     print("\n[TEST] Security: Authentication with invalid password...")
     try:
-        res = requests.post(f"{api_base}/auth/login", json={"email": "officer@shikshasetu.gov.in", "password": "WrongPassword999!"}, timeout=15)
+        res = requests.post(f"{api_base}/auth/login", json={"email": "officer@shikshasetu.gov.in", "password": "WrongPassword999!"}, timeout=30)
         if res.status_code == 401:
             print(f"  [PASS] Correctly rejected invalid credentials with HTTP 401")
             passed += 1

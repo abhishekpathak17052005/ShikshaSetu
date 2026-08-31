@@ -32,20 +32,19 @@ interface TrainerQuizStudioProps {
   onNavigate: (page: string, context?: { quizId?: string }) => void;
 }
 
-const COMPETENCIES = [
-  { code: "STAT_SAMPLING", name: "Statistical Sampling & Survey Design" },
-  { code: "TECH_PYTHON", name: "Python Programming for Public Service" },
-  { code: "DATA_ANALYSIS", name: "Data Analysis & Visual Analytics" },
-  { code: "CYBER_SEC", name: "Cybersecurity & Information Security" },
-  { code: "CIVIL_GOV", name: "Civil Governance & Regulatory Frameworks" },
-  { code: "PUBLIC_PROCUREMENT", name: "Government e-Marketplace (GeM) & Procurement" },
-];
-
 export function TrainerQuizStudio({ onNavigate }: TrainerQuizStudioProps) {
   const [quizzes, setQuizzes] = useState<TrainerQuiz[]>([]);
   const [approvedQuestions, setApprovedQuestions] = useState<TrainerQuestion[]>([]);
   const [materials, setMaterials] = useState<LearningMaterial[]>([]);
   const [learners, setLearners] = useState<User[]>([]);
+  const [competencies, setCompetencies] = useState<{ code: string; name: string }[]>([
+    { code: "STAT_SAMPLING", name: "Statistical Sampling & Survey Design" },
+    { code: "STAT_DATA_QUALITY_FRAMEWORKS", name: "Data Quality Frameworks" },
+    { code: "STAT_SURVEY_DESIGN", name: "Survey Design & Methodology" },
+    { code: "STAT_NATIONAL_ACCOUNTS", name: "National Accounts Statistics" },
+    { code: "TECH_PYTHON", name: "Python Programming for Public Service" },
+    { code: "DATA_ANALYSIS", name: "Data Analysis & Visual Analytics" },
+  ]);
   const [loading, setLoading] = useState(true);
 
   // Tab State
@@ -72,15 +71,24 @@ export function TrainerQuizStudio({ onNavigate }: TrainerQuizStudioProps) {
   const fetchStudioData = async () => {
     try {
       setLoading(true);
-      const [quizList, mats, learnerList] = await Promise.all([
+      const [quizList, mats, learnerList, compList] = await Promise.all([
         api.trainer.quizzes.list(),
         api.trainer.materials.list(),
         api.trainer.learners.list().catch(() => []),
+        api.competencies.list().catch(() => []),
       ]);
 
       setQuizzes(quizList);
       setMaterials(mats);
       setLearners(learnerList);
+      if (compList.length > 0) {
+        setCompetencies(
+          compList.map((c) => ({
+            code: c.code,
+            name: c.name || c.code.replace(/_/g, " "),
+          }))
+        );
+      }
 
       // Fetch approved questions across all materials
       const allApproved: TrainerQuestion[] = [];
@@ -438,7 +446,7 @@ export function TrainerQuizStudio({ onNavigate }: TrainerQuizStudioProps) {
                   }}
                   className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-800 focus:border-[#ef7e37] focus:outline-none shadow-sm"
                 >
-                  {COMPETENCIES.map((c) => (
+                  {competencies.map((c) => (
                     <option key={c.code} value={c.code}>
                       {c.code} — {c.name}
                     </option>
