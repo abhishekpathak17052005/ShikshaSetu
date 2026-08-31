@@ -58,7 +58,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     application = FastAPI(
         title=app_settings.app_name,
         description="Competency framework foundation for ShikshaSetu",
-        version="0.3.0",
+        version="0.3.1",
         debug=app_settings.debug,
         lifespan=lifespan,
     )
