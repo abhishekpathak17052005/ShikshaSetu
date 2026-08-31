@@ -55,7 +55,11 @@ class LearningActivityCompleteResponse(BaseModel):
     """Response after completing a learning activity."""
 
     activity: LearningActivityResponse
-    evidence_created: bool = Field(..., description="Whether evidence was created")
+    evidence_created: bool = Field(..., description="Whether supporting evidence was created")
     evidence_id: Optional[str] = Field(None, description="ID of created evidence record")
-    competency_updated: dict = Field(..., description="Competency update details (before, after, change)")
-    gap_recalculated: dict = Field(..., description="Skill gap update details (before, after, change)")
+    evidence_type: str = Field(default="LEARNING_ACTIVITY", description="Type of evidence (supporting, not authoritative)")
+    evidence_confidence: float = Field(default=0.3, description="Confidence level of learning evidence (0.3 - supporting)")
+    note: str = Field(..., description="Explanation that learning evidence is supporting only")
+    current_competency_level: float = Field(..., description="Current competency level (unchanged by learning completion)")
+    current_skill_gap: float = Field(..., description="Current skill gap (unchanged until assessment evidence updates competency)")
+    next_step: str = Field(..., description="Recommended next action: take an assessment to demonstrate learned skill")

@@ -97,7 +97,13 @@ def complete_learning_activity(
     final_score: Optional[float] = None,
     notes: Optional[str] = None,
 ) -> Dict[str, Any]:
-    """Complete a learning activity and generate evidence."""
+    """
+    Complete a learning activity and generate evidence.
+    
+    IMPORTANT: Learning completion creates supporting EVIDENCE, not authoritative competency updates.
+    Competency levels are updated only by assessment/quiz evidence, not by course completion.
+    This preserves the integrity of the skill gap calculation.
+    """
     # Get current activity
     activity = repository.get_learning_activity(database, activity_id, user_id)
     if not activity:
@@ -108,7 +114,7 @@ def complete_learning_activity(
         database, activity_id, user_id
     )
     
-    # Generate evidence
+    # Generate evidence (supporting, not authoritative)
     evidence_collection = database["competency_evidence"]
     
     # Calculate evidence score from final_score or progress
@@ -121,7 +127,7 @@ def complete_learning_activity(
     evidence_document = {
         "user_id": _object_id(user_id),
         "competency_id": activity["competency_id"],
-        "type": "LEARNING_ACTIVITY",
+        "type": "LEARNING_ACTIVITY",  # Supporting evidence only
         "score": evidence_score,
         "recorded_at": datetime.utcnow(),
         "source": {
@@ -129,12 +135,13 @@ def complete_learning_activity(
             "resource_id": activity["resource_id"],
         },
         "notes": notes or f"Completed learning activity for {activity['resource_id']}",
+        "confidence": 0.3,  # Lower than assessment evidence (0.8) - supporting only
     }
     
     result = evidence_collection.insert_one(evidence_document)
     evidence_id = str(result.inserted_id)
     
-    # Get current competency level before update
+    # Get current competency level (NOT MODIFIED by learning completion)
     profiles_collection = database["competency_profiles"]
     user_oid = _object_id(user_id)
     
@@ -143,64 +150,28 @@ def complete_learning_activity(
         "competency_id": activity["competency_id"],
     })
     
-    before_level = current_profile["current_level"] if current_profile else 0
+    current_level = current_profile["current_level"] if current_profile else 0
     
-    # Calculate new level (simplified: learning evidence contributes 0.5 levels per completion)
-    # This is deterministic: full completion (100% progress) = +0.5 toward level
-    progress_ratio = activity.get("progress_percent", 100) / 100.0
-    level_increase = progress_ratio * 0.5  # Max +0.5 per learning activity
-    after_level = min(5, before_level + level_increase)
+    # NOTE: We DO NOT update the competency level here.
+    # Competency updates only come from ASSESSMENT/QUIZ evidence (type: CAPABILITY_ASSESSMENT)
+    # Learning completion is supporting evidence, not proof of demonstrated capability.
+    # This is recorded only in the evidence collection for context/audit trail.
     
-    # Update competency profile
-    if current_profile:
-        profiles_collection.update_one(
-            {
-                "user_id": user_oid,
-                "competency_id": activity["competency_id"],
-            },
-            {
-                "$set": {
-                    "current_level": after_level,
-                    "last_updated": datetime.utcnow(),
-                    "last_evidence_type": "LEARNING_ACTIVITY",
-                },
-                "$inc": {
-                    "evidence_count": 1,
-                },
-            }
-        )
-    else:
-        profiles_collection.insert_one({
-            "user_id": user_oid,
-            "competency_id": activity["competency_id"],
-            "current_level": after_level,
-            "confidence": 0.4,  # Learning evidence has lower confidence
-            "evidence_count": 1,
-            "last_updated": datetime.utcnow(),
-            "last_evidence_type": "LEARNING_ACTIVITY",
-        })
-    
-    # Calculate gap before and after (simplified: use hardcoded role requirement for now)
-    # In production, would fetch from role_requirements
+    # Skill gap remains unchanged until assessment evidence updates competency
+    # In production, gap calculation would fetch from role_requirements
     required_level = 4.0  # Statistical Officer standard
-    
-    gap_before = max(0, required_level - before_level)
-    gap_after = max(0, required_level - after_level)
+    gap_current = max(0, required_level - current_level)
     
     return {
         "activity": _format_activity_for_response(completed_activity),
         "evidence_created": True,
         "evidence_id": evidence_id,
-        "competency_updated": {
-            "before": round(before_level, 2),
-            "after": round(after_level, 2),
-            "change": round(after_level - before_level, 2),
-        },
-        "gap_recalculated": {
-            "before": round(gap_before, 2),
-            "after": round(gap_after, 2),
-            "change": round(gap_after - gap_before, 2),
-        }
+        "evidence_type": "LEARNING_ACTIVITY",
+        "evidence_confidence": 0.3,
+        "note": "Learning completion recorded as supporting evidence. Competency level updated only by assessment/capability evidence.",
+        "current_competency_level": round(current_level, 2),
+        "current_skill_gap": round(gap_current, 2),
+        "next_step": "Complete an assessment or capability quiz to demonstrate the learned skill and update your competency level.",
     }
 
 
