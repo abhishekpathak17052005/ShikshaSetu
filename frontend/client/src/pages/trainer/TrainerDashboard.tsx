@@ -59,8 +59,8 @@ export function TrainerDashboard({ onNavigate }: TrainerDashboardProps) {
     <div className="space-y-8 animate-fadeIn">
       {/* ── Top Header Banner ── */}
       <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#1a2744] via-[#24355a] to-[#c2510e] p-8 text-white shadow-lg">
-        <div className="relative z-10 flex flex-col justify-between gap-6 md:flex-row md:items-center">
-          <div>
+        <div className="relative z-10 flex flex-col justify-between gap-6 lg:flex-row lg:items-center">
+          <div className="max-w-2xl">
             <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-bold uppercase tracking-wider backdrop-blur-md">
               <Sparkles size={14} className="text-[#ef7e37]" />
               AI Assessment Studio
@@ -68,21 +68,21 @@ export function TrainerDashboard({ onNavigate }: TrainerDashboardProps) {
             <h1 className="mt-3 text-3xl font-extrabold tracking-tight sm:text-4xl">
               Trainer Capability Studio
             </h1>
-            <p className="mt-2 max-w-xl text-sm text-slate-200">
+            <p className="mt-2 text-sm leading-relaxed text-slate-200">
               Upload public-service curriculum, generate AI-grounded MCQs, audit & approve valid questions, assemble authoritative quizzes, and provide qualitative feedback to civil servants.
             </p>
           </div>
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-col sm:flex-row lg:flex-col gap-3 shrink-0 lg:items-end lg:ml-auto">
             <button
               onClick={() => onNavigate("Upload Material")}
-              className="inline-flex items-center gap-2 rounded-xl bg-[#ef7e37] px-5 py-3 text-sm font-bold text-white shadow-md hover:bg-[#d96a27] transition-all transform active:scale-95"
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#ef7e37] px-6 py-3 text-sm font-bold text-white shadow-md hover:bg-[#d96a27] transition-all transform active:scale-95 w-full sm:w-48"
             >
               <FilePlus size={16} />
               Upload Material
             </button>
             <button
               onClick={() => onNavigate("AI Question Generator")}
-              className="inline-flex items-center gap-2 rounded-xl bg-white/10 backdrop-blur-md border border-white/20 px-5 py-3 text-sm font-bold text-white hover:bg-white/20 transition-all"
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-white/10 backdrop-blur-md border border-white/20 px-6 py-3 text-sm font-bold text-white hover:bg-white/20 transition-all w-full sm:w-48"
             >
               <FileQuestion size={16} />
               Generate Questions
