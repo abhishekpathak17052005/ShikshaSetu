@@ -147,34 +147,52 @@ function TrainerApp() {
 
 // ─── Admin stub ───────────────────────────────────────────────────────────────
 
+import { AdminDashboard } from "./pages/admin/AdminDashboard";
+import { WorkforceOverview } from "./pages/admin/WorkforceOverview";
+import { CompetencyAnalytics } from "./pages/admin/CompetencyAnalytics";
+import { SkillGapAnalytics } from "./pages/admin/SkillGapAnalytics";
+import { TrainingEffectiveness } from "./pages/admin/TrainingEffectiveness";
+import { EmergingSkills } from "./pages/admin/EmergingSkills";
+import { CapacityPlanning } from "./pages/admin/CapacityPlanning";
+import { AdminUsers } from "./pages/admin/AdminUsers";
+import { AdminReports } from "./pages/admin/AdminReports";
+import { AdminProfile } from "./pages/admin/AdminProfile";
+
+// ─── Admin Portal App ─────────────────────────────────────────────────────────
+
 function AdminApp() {
   const [activePage, setActivePage] = useState("Dashboard");
 
+  const renderPage = () => {
+    switch (activePage) {
+      case "Dashboard":
+        return <AdminDashboard onNavigate={setActivePage} />;
+      case "Workforce Overview":
+        return <WorkforceOverview onNavigate={setActivePage} />;
+      case "Competency Analytics":
+        return <CompetencyAnalytics onNavigate={setActivePage} />;
+      case "Skill Gap Analytics":
+        return <SkillGapAnalytics onNavigate={setActivePage} />;
+      case "Training Effectiveness":
+        return <TrainingEffectiveness onNavigate={setActivePage} />;
+      case "Emerging Skills":
+        return <EmergingSkills onNavigate={setActivePage} />;
+      case "Capacity Planning":
+        return <CapacityPlanning onNavigate={setActivePage} />;
+      case "Users":
+        return <AdminUsers onNavigate={setActivePage} />;
+      case "Reports":
+        return <AdminReports onNavigate={setActivePage} />;
+      case "Profile":
+        return <AdminProfile />;
+      default:
+        return <AdminDashboard onNavigate={setActivePage} />;
+    }
+  };
+
   return (
     <AdminLayout activePage={activePage} onNavigate={setActivePage}>
-      <div className="rounded-2xl border border-[#e0daef] bg-white p-8 shadow-sm">
-        <div className="mb-2 text-[10px] font-bold uppercase tracking-[.14em] text-slate-400">
-          Admin workspace
-        </div>
-        <h2 className="text-2xl font-extrabold text-[#4b36a8] mb-3">
-          {activePage}
-        </h2>
-        <p className="text-sm text-slate-500 leading-6">
-          The <strong>{activePage}</strong> page is coming in Phase C. The admin workspace
-          scaffold is ready — analytics layouts, navigation, and API client are all wired up.
-        </p>
-        <div className="mt-6 grid gap-3 sm:grid-cols-3">
-          {["Workforce Overview", "Skill Gap Analytics", "Reports"].map(page => (
-            <button
-              key={page}
-              onClick={() => setActivePage(page)}
-              className="rounded-xl border border-[#e0daef] bg-[#f8f6fd] px-4 py-3 text-sm font-bold text-[#6d5bc3] hover:bg-[#f0edfc] transition-colors text-left"
-            >
-              {page} →
-            </button>
-          ))}
-        </div>
-      </div>
+      {renderPage()}
     </AdminLayout>
   );
 }

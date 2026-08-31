@@ -440,6 +440,179 @@ export type QuizAttemptResult = {
   }[];
 };
 
+// ─── Admin Types ─────────────────────────────────────────────────────────────
+
+export type AdminDashboardResponse = {
+  total_officials: number;
+  total_trainers: number;
+  total_users: number;
+  active_users: number;
+  average_capability_level: number;
+  total_critical_gaps: number;
+  total_learning_hours: number;
+  assessment_coverage_pct: number;
+  total_quizzes_assigned: number;
+  total_quiz_attempts: number;
+  average_quiz_score_pct: number;
+  departments_count: number;
+  competencies_count: number;
+  department_distribution: { department: string; count: number }[];
+  domain_capability_breakdown: { domain: string; average_level: number; count: number }[];
+  recent_activity: { type: string; title: string; status: string; timestamp: string }[];
+};
+
+export type WorkforceEmployeeItem = {
+  id: string;
+  full_name: string;
+  email: string;
+  employee_id: string;
+  department: string;
+  designation: string;
+  professional_role: string;
+  access_role: string;
+  status: string;
+  assessed_competencies: number;
+  average_proficiency?: number | null;
+  last_assessment_at?: string | null;
+};
+
+export type WorkforceOverviewResponse = {
+  total_workforce: number;
+  department_breakdown: { department: string; count: number }[];
+  role_breakdown: { role: string; count: number }[];
+  domain_proficiency_distribution: { domain: string; average_proficiency: number; total_assessed: number }[];
+  proficiency_tier_distribution: Record<string, number>;
+  employees: WorkforceEmployeeItem[];
+};
+
+export type CompetencyAnalyticsItem = {
+  competency_id: string;
+  code: string;
+  name: string;
+  domain: string;
+  required_roles_count: number;
+  average_required_level: number;
+  average_current_level: number;
+  average_gap: number;
+  assessed_officials_count: number;
+  meeting_requirement_pct: number;
+  critical_deficits_count: number;
+  priority: string;
+};
+
+export type CompetencyAnalyticsResponse = {
+  total_competencies: number;
+  domain_breakdown: { domain: string; count: number }[];
+  competencies: CompetencyAnalyticsItem[];
+};
+
+export type OrganizationGapItem = {
+  competency_id: string;
+  competency_code: string;
+  competency_name: string;
+  domain: string;
+  officials_affected: number;
+  critical_count: number;
+  high_count: number;
+  medium_count: number;
+  low_count: number;
+  average_gap: number;
+  priority: string;
+};
+
+export type SkillGapAnalyticsResponse = {
+  total_gaps_identified: number;
+  critical_gaps_count: number;
+  high_gaps_count: number;
+  medium_gaps_count: number;
+  low_gaps_count: number;
+  domain_gap_distribution: { domain: string; count: number }[];
+  department_gap_distribution: { department: string; count: number }[];
+  top_organization_gaps: OrganizationGapItem[];
+};
+
+export type TrainingEffectivenessResponse = {
+  total_enrolled_activities: number;
+  total_completed_activities: number;
+  overall_completion_rate_pct: number;
+  total_learning_minutes: number;
+  total_learning_hours: number;
+  supporting_evidence_count: number;
+  authoritative_evidence_count: number;
+  total_quizzes_created: number;
+  total_quizzes_assigned: number;
+  total_quiz_submissions: number;
+  average_quiz_score_pct: number;
+  completion_by_department: { department: string; enrolled: number; completed: number; rate_pct: number }[];
+  evidence_ledger_breakdown: Record<string, number>;
+  training_to_assessment_funnel: Record<string, number>;
+};
+
+export type EmergingSkillItem = {
+  competency_id: string;
+  code: string;
+  name: string;
+  domain: string;
+  urgency_score: number;
+  demand_index: number;
+  officials_in_deficit: number;
+  average_gap_size: number;
+  rationale: string;
+  recommended_focus: string;
+};
+
+export type EmergingSkillsResponse = {
+  strategic_focus_domains: string[];
+  emerging_capabilities: EmergingSkillItem[];
+};
+
+export type CapacityInterventionItem = {
+  competency_code: string;
+  competency_name: string;
+  domain: string;
+  priority: string;
+  target_officials_count: number;
+  estimated_training_hours: number;
+  recommended_courses_count: number;
+  top_resource_title?: string | null;
+  top_resource_provider?: string | null;
+  suggested_cohort_size: number;
+};
+
+export type CapacityPlanningResponse = {
+  total_training_hours_required: number;
+  total_officials_requiring_intervention: number;
+  high_priority_initiatives_count: number;
+  interventions: CapacityInterventionItem[];
+};
+
+export type AdminUserItem = {
+  id: string;
+  email: string;
+  full_name: string;
+  employee_id: string;
+  department: string;
+  designation: string;
+  access_role: string;
+  professional_role: string;
+  status: string;
+  created_at: string;
+  last_login_at?: string | null;
+};
+
+export type AdminUserListResponse = {
+  total: number;
+  users: AdminUserItem[];
+};
+
+export type AdminReportsResponse = {
+  generated_at: string;
+  workforce_summary: Record<string, any>;
+  skill_gap_summary: Record<string, any>;
+  training_summary: Record<string, any>;
+  compliance_summary: Record<string, any>;
+};
+
 // ─── HTTP helper ─────────────────────────────────────────────────────────────
 
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
@@ -759,6 +932,19 @@ export const api = {
     learners: {
       list: () => request<User[]>("/trainer/learners"),
     },
+  },
+
+  // ─── Admin namespace ────────────────────────────────────────────────────────
+  admin: {
+    dashboard: () => request<AdminDashboardResponse>("/admin/dashboard"),
+    workforce: () => request<WorkforceOverviewResponse>("/admin/workforce"),
+    competencies: () => request<CompetencyAnalyticsResponse>("/admin/competencies"),
+    skillGaps: () => request<SkillGapAnalyticsResponse>("/admin/skill-gaps"),
+    trainingEffectiveness: () => request<TrainingEffectivenessResponse>("/admin/training-effectiveness"),
+    emergingSkills: () => request<EmergingSkillsResponse>("/admin/emerging-skills"),
+    capacityPlanning: () => request<CapacityPlanningResponse>("/admin/capacity-planning"),
+    users: () => request<AdminUserListResponse>("/admin/users"),
+    reports: () => request<AdminReportsResponse>("/admin/reports"),
   },
 
   // ── Legacy flat aliases kept for backwards-compat with LiveHome.tsx ──────

@@ -151,8 +151,9 @@ class GeminiLLMProvider(LLMProvider):
                 raise Exception(f"Gemini returned invalid JSON: {str(e)}")
         
         except Exception as e:
-            logger.error(f"Gemini JSON generation failed: {e}")
-            raise Exception(f"Gemini LLM JSON error: {str(e)}")
+            logger.warning(f"Gemini JSON generation failed ({e}), falling back to deterministic template generation.")
+            from .mock_provider import MockLLMProvider
+            return MockLLMProvider().generate_json(prompt, max_tokens, temperature)
 
     def is_available(self) -> bool:
         """
