@@ -30,12 +30,12 @@ def run_smoke_test(backend_url: str) -> bool:
     try:
         res = requests.get(f"{api_base}/health", timeout=15)
         if res.status_code == 200 and res.json().get("status") in ("healthy", "ok"):
-            print(f"  ✓ PASS: System is healthy ({res.json()})")
+            print(f"  [PASS] System is healthy ({res.json()})")
             passed += 1
         else:
-            print(f"  ✗ FAIL: Status code {res.status_code}, response: {res.text}")
+            print(f"  [FAIL] Status code {res.status_code}, response: {res.text}")
     except Exception as e:
-        print(f"  ✗ ERROR: {e}")
+        print(f"  [ERROR] {e}")
 
     # 2. Authentication for 3 Demo Accounts
     tokens = {}
@@ -51,19 +51,19 @@ def run_smoke_test(backend_url: str) -> bool:
         try:
             res = requests.post(
                 f"{api_base}/auth/login",
-                data={"username": email, "password": password},
+                json={"email": email, "password": password},
                 timeout=15,
             )
             if res.status_code == 200:
                 data = res.json()
                 token = data.get("access_token")
                 tokens[role] = token
-                print(f"  ✓ PASS: Authenticated {role} successfully (token acquired)")
+                print(f"  [PASS] Authenticated {role} successfully (token acquired)")
                 passed += 1
             else:
-                print(f"  ✗ FAIL: Status code {res.status_code}, response: {res.text}")
+                print(f"  [FAIL] Status code {res.status_code}, response: {res.text}")
         except Exception as e:
-            print(f"  ✗ ERROR: {e}")
+            print(f"  [ERROR] {e}")
 
     # 3. Official Role Operations
     if "OFFICIAL" in tokens:
@@ -75,12 +75,12 @@ def run_smoke_test(backend_url: str) -> bool:
         try:
             res = requests.get(f"{api_base}/skill-gaps/me", headers=official_headers, timeout=15)
             if res.status_code == 200 and "gaps" in res.json():
-                print(f"  ✓ PASS: Retrieved {len(res.json()['gaps'])} skill gaps")
+                print(f"  [PASS] Retrieved {len(res.json()['gaps'])} skill gaps")
                 passed += 1
             else:
-                print(f"  ✗ FAIL: Status code {res.status_code}, response: {res.text}")
+                print(f"  [FAIL] Status code {res.status_code}, response: {res.text}")
         except Exception as e:
-            print(f"  ✗ ERROR: {e}")
+            print(f"  [ERROR] {e}")
 
         # Assistant Chat
         total += 1
@@ -93,12 +93,12 @@ def run_smoke_test(backend_url: str) -> bool:
                 timeout=25,
             )
             if res.status_code == 200 and "answer" in res.json():
-                print(f"  ✓ PASS: Co-Pilot responded with {len(res.json()['sources'])} sources")
+                print(f"  [PASS] Co-Pilot responded with {len(res.json()['sources'])} sources")
                 passed += 1
             else:
-                print(f"  ✗ FAIL: Status code {res.status_code}, response: {res.text}")
+                print(f"  [FAIL] Status code {res.status_code}, response: {res.text}")
         except Exception as e:
-            print(f"  ✗ ERROR: {e}")
+            print(f"  [ERROR] {e}")
 
     # 4. Trainer Role Operations
     if "TRAINER" in tokens:
@@ -109,12 +109,12 @@ def run_smoke_test(backend_url: str) -> bool:
         try:
             res = requests.get(f"{api_base}/trainer/materials", headers=trainer_headers, timeout=15)
             if res.status_code == 200:
-                print(f"  ✓ PASS: Retrieved trainer materials list")
+                print(f"  [PASS] Retrieved trainer materials list")
                 passed += 1
             else:
-                print(f"  ✗ FAIL: Status code {res.status_code}, response: {res.text}")
+                print(f"  [FAIL] Status code {res.status_code}, response: {res.text}")
         except Exception as e:
-            print(f"  ✗ ERROR: {e}")
+            print(f"  [ERROR] {e}")
 
     # 5. Admin Role Operations
     if "ADMIN" in tokens:
@@ -125,12 +125,12 @@ def run_smoke_test(backend_url: str) -> bool:
         try:
             res = requests.get(f"{api_base}/admin/dashboard", headers=admin_headers, timeout=15)
             if res.status_code == 200 and "total_users" in res.json():
-                print(f"  ✓ PASS: Retrieved admin dashboard (Total users: {res.json()['total_users']}, Avg level: {res.json()['average_capability_level']})")
+                print(f"  [PASS] Retrieved admin dashboard (Total users: {res.json()['total_users']}, Avg level: {res.json()['average_capability_level']})")
                 passed += 1
             else:
-                print(f"  ✗ FAIL: Status code {res.status_code}, response: {res.text}")
+                print(f"  [FAIL] Status code {res.status_code}, response: {res.text}")
         except Exception as e:
-            print(f"  ✗ ERROR: {e}")
+            print(f"  [ERROR] {e}")
 
     # 6. Security, RBAC Role Guards & Isolation Verification
     print("\n[SECURITY & RBAC ISOLATION CHECKS]")
@@ -142,12 +142,12 @@ def run_smoke_test(backend_url: str) -> bool:
     try:
         res = requests.get(f"{api_base}/admin/dashboard", timeout=15)
         if res.status_code == 401:
-            print(f"  ✓ PASS: Correctly rejected with HTTP 401 Unauthorized")
+            print(f"  [PASS] Correctly rejected with HTTP 401 Unauthorized")
             passed += 1
         else:
-            print(f"  ✗ FAIL: Expected 401, got {res.status_code}")
+            print(f"  [FAIL] Expected 401, got {res.status_code}")
     except Exception as e:
-        print(f"  ✗ ERROR: {e}")
+        print(f"  [ERROR] {e}")
 
     # 6b. Official accessing Admin API -> 403
     if "OFFICIAL" in tokens:
@@ -156,12 +156,12 @@ def run_smoke_test(backend_url: str) -> bool:
         try:
             res = requests.get(f"{api_base}/admin/dashboard", headers={"Authorization": f"Bearer {tokens['OFFICIAL']}"}, timeout=15)
             if res.status_code == 403:
-                print(f"  ✓ PASS: Correctly blocked with HTTP 403 Forbidden")
+                print(f"  [PASS] Correctly blocked with HTTP 403 Forbidden")
                 passed += 1
             else:
-                print(f"  ✗ FAIL: Expected 403, got {res.status_code}")
+                print(f"  [FAIL] Expected 403, got {res.status_code}")
         except Exception as e:
-            print(f"  ✗ ERROR: {e}")
+            print(f"  [ERROR] {e}")
 
     # 6c. Trainer accessing Admin API -> 403
     if "TRAINER" in tokens:
@@ -170,25 +170,25 @@ def run_smoke_test(backend_url: str) -> bool:
         try:
             res = requests.get(f"{api_base}/admin/dashboard", headers={"Authorization": f"Bearer {tokens['TRAINER']}"}, timeout=15)
             if res.status_code == 403:
-                print(f"  ✓ PASS: Correctly blocked with HTTP 403 Forbidden")
+                print(f"  [PASS] Correctly blocked with HTTP 403 Forbidden")
                 passed += 1
             else:
-                print(f"  ✗ FAIL: Expected 403, got {res.status_code}")
+                print(f"  [FAIL] Expected 403, got {res.status_code}")
         except Exception as e:
-            print(f"  ✗ ERROR: {e}")
+            print(f"  [ERROR] {e}")
 
     # 6d. Invalid credentials -> 401
     total += 1
     print("\n[TEST] Security: Authentication with invalid password...")
     try:
-        res = requests.post(f"{api_base}/auth/login", data={"username": "officer@shikshasetu.gov.in", "password": "WrongPassword999!"}, timeout=15)
+        res = requests.post(f"{api_base}/auth/login", json={"email": "officer@shikshasetu.gov.in", "password": "WrongPassword999!"}, timeout=15)
         if res.status_code == 401:
-            print(f"  ✓ PASS: Correctly rejected invalid credentials with HTTP 401")
+            print(f"  [PASS] Correctly rejected invalid credentials with HTTP 401")
             passed += 1
         else:
-            print(f"  ✗ FAIL: Expected 401, got {res.status_code}")
+            print(f"  [FAIL] Expected 401, got {res.status_code}")
     except Exception as e:
-        print(f"  ✗ ERROR: {e}")
+        print(f"  [ERROR] {e}")
 
     print("\n" + "=" * 70)
     print(f"SMOKE TEST SUMMARY: {passed}/{total} Passed")
