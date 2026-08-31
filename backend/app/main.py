@@ -71,6 +71,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             "http://127.0.0.1:3001",
             "http://127.0.0.1:3002",
         ],
+        allow_origin_regex="https://.*\\.vercel\\.app|https://.*\\.onrender\\.com",
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
