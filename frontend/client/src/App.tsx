@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import { LanguageProvider } from "./i18n";
 import { TrainerLayout } from "./layouts/TrainerLayout";
 import { AdminLayout } from "./layouts/AdminLayout";
 import LoginPage from "./pages/LoginPage";
@@ -296,9 +297,11 @@ function App() {
       <ThemeProvider defaultTheme="light">
         <TooltipProvider>
           <Toaster />
-          <AuthProvider>
-            <RoleRouter />
-          </AuthProvider>
+          <LanguageProvider>
+            <AuthProvider>
+              <RoleRouter />
+            </AuthProvider>
+          </LanguageProvider>
         </TooltipProvider>
       </ThemeProvider>
     </ErrorBoundary>

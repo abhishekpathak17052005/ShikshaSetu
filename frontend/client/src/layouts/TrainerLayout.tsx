@@ -15,20 +15,8 @@ import {
   X,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-
-// ─── Navigation items ─────────────────────────────────────────────────────────
-
-const NAV_ITEMS = [
-  { id: "Dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { id: "Learning Materials", label: "Learning Materials", icon: BookOpen },
-  { id: "Upload Material", label: "Upload Material", icon: FilePlus },
-  { id: "AI Question Generator", label: "AI Question Generator", icon: FileQuestion },
-  { id: "Question Review", label: "Question Review", icon: CheckSquare },
-  { id: "Quiz Studio", label: "Quiz Studio", icon: PenTool },
-  { id: "Published Quizzes", label: "Published Quizzes", icon: Layers },
-  { id: "Learner Results", label: "Learner Results", icon: BarChart2 },
-  { id: "Profile", label: "Profile", icon: UserRound },
-] as const;
+import { useTranslation } from "@/i18n";
+import { LanguageToggle } from "@/components/LanguageToggle";
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 
@@ -42,7 +30,20 @@ interface TrainerLayoutProps {
 
 export function TrainerLayout({ children, activePage, onNavigate }: TrainerLayoutProps) {
   const { user, logout } = useAuth();
+  const { t, isHindi } = useTranslation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const navItems = [
+    { id: "Dashboard", label: isHindi ? "डैशबोर्ड" : "Dashboard", icon: LayoutDashboard },
+    { id: "Learning Materials", label: isHindi ? "प्रशिक्षण सामग्री" : "Learning Materials", icon: BookOpen },
+    { id: "Upload Material", label: isHindi ? "सामग्री अपलोड" : "Upload Material", icon: FilePlus },
+    { id: "AI Question Generator", label: isHindi ? "एआई प्रश्न निर्माता" : "AI Question Generator", icon: FileQuestion },
+    { id: "Question Review", label: isHindi ? "समीक्षा स्टूडियो" : "Question Review", icon: CheckSquare },
+    { id: "Quiz Studio", label: isHindi ? "प्रश्नोत्तरी स्टूडियो" : "Quiz Studio", icon: PenTool },
+    { id: "Published Quizzes", label: isHindi ? "प्रकाशित प्रश्नोत्तरी" : "Published Quizzes", icon: Layers },
+    { id: "Learner Results", label: isHindi ? "प्रशिक्षु परिणाम" : "Learner Results", icon: BarChart2 },
+    { id: "Profile", label: isHindi ? "प्रोफ़ाइल" : "Profile", icon: UserRound },
+  ];
 
   const handleNav = (page: string) => {
     onNavigate(page);
@@ -77,7 +78,7 @@ export function TrainerLayout({ children, activePage, onNavigate }: TrainerLayou
 
         {/* Nav items */}
         <nav className="flex-1 px-4 overflow-y-auto">
-          {NAV_ITEMS.map(({ id, label, icon: Icon }) => (
+          {navItems.map(({ id, label, icon: Icon }) => (
             <button
               key={id}
               onClick={() => handleNav(id)}
@@ -99,14 +100,14 @@ export function TrainerLayout({ children, activePage, onNavigate }: TrainerLayou
             {user?.full_name ?? "—"}
           </div>
           <div className="text-xs text-slate-400 truncate mb-3">
-            {user?.designation ?? user?.department ?? "Trainer"}
+            {user?.designation ?? user?.department ?? (isHindi ? "प्रशिक्षक" : "Trainer")}
           </div>
           <button
             onClick={logout}
             className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-slate-500 hover:bg-orange-50 transition-colors"
           >
             <LogOut size={16} />
-            Log out
+            {t("common.logout")}
           </button>
         </div>
       </aside>
@@ -133,11 +134,14 @@ export function TrainerLayout({ children, activePage, onNavigate }: TrainerLayou
         <header className="flex h-[68px] items-center justify-between border-b border-[#f0ddd0] bg-white px-6 lg:px-9">
           <div>
             <div className="text-[10px] font-bold uppercase tracking-[.14em] text-slate-400">
-              Trainer workspace
+              {isHindi ? "प्रशिक्षक कार्यक्षेत्र" : "Trainer workspace"}
             </div>
-            <h1 className="text-lg font-bold text-[#c2510e]">{activePage}</h1>
+            <h1 className="text-lg font-bold text-[#c2510e]">
+              {navItems.find((n) => n.id === activePage)?.label || activePage}
+            </h1>
           </div>
           <div className="flex items-center gap-3">
+            <LanguageToggle />
             <span className="hidden text-xs font-semibold text-slate-500 sm:block truncate max-w-[160px]">
               {user?.full_name}
             </span>
@@ -145,7 +149,7 @@ export function TrainerLayout({ children, activePage, onNavigate }: TrainerLayou
               onClick={logout}
               className="rounded-lg border border-[#f0ddd0] px-3 py-1.5 text-xs font-bold text-[#c2510e] hover:bg-orange-50 transition-colors"
             >
-              Logout
+              {t("common.logout")}
             </button>
           </div>
         </header>

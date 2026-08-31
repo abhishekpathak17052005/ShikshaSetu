@@ -16,30 +16,17 @@ import {
   X,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-
-// ─── Navigation items ─────────────────────────────────────────────────────────
-
-const NAV_ITEMS = [
-  { id: "Dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { id: "My Competencies", label: "My Competencies", icon: Gauge },
-  { id: "Assessments", label: "Assessments", icon: ClipboardCheck },
-  { id: "Skill Gaps", label: "Skill Gaps", icon: Target },
-  { id: "Recommendations", label: "Recommendations", icon: BookOpen },
-  { id: "My Learning", label: "My Learning", icon: Star },
-  { id: "Quizzes", label: "Quizzes", icon: Award },
-  { id: "Evidence", label: "Evidence", icon: FileText },
-  { id: "Progress", label: "Progress", icon: TrendingUp },
-  { id: "Profile", label: "Profile", icon: UserRound },
-] as const;
+import { useTranslation } from "@/i18n";
+import { LanguageToggle } from "@/components/LanguageToggle";
 
 // Capability pathway steps shown at the bottom of the sidebar
 const PATHWAY_STEPS = [
-  { id: "role", label: "Role" },
-  { id: "assess", label: "Assess" },
-  { id: "gap", label: "Gap" },
-  { id: "learn", label: "Learn" },
-  { id: "practice", label: "Practice" },
-  { id: "validate", label: "Validate" },
+  { id: "role", labelEn: "Role", labelHi: "पद" },
+  { id: "assess", labelEn: "Assess", labelHi: "आकलन" },
+  { id: "gap", labelEn: "Gap", labelHi: "अंतराल" },
+  { id: "learn", labelEn: "Learn", labelHi: "अध्ययन" },
+  { id: "practice", labelEn: "Practice", labelHi: "अभ्यास" },
+  { id: "validate", labelEn: "Validate", labelHi: "सत्यापन" },
 ];
 
 // Map active page → current pathway step
@@ -64,7 +51,21 @@ interface OfficialLayoutProps {
 
 export function OfficialLayout({ children, activePage, onNavigate }: OfficialLayoutProps) {
   const { user, logout } = useAuth();
+  const { t, isHindi } = useTranslation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const navItems = [
+    { id: "Dashboard", label: t("nav.dashboard"), icon: LayoutDashboard },
+    { id: "My Competencies", label: t("nav.competencies"), icon: Gauge },
+    { id: "Assessments", label: t("nav.assessments"), icon: ClipboardCheck },
+    { id: "Skill Gaps", label: t("nav.skillGaps"), icon: Target },
+    { id: "Recommendations", label: t("nav.recommendations"), icon: BookOpen },
+    { id: "My Learning", label: t("nav.learning"), icon: Star },
+    { id: "Quizzes", label: t("nav.quizzes"), icon: Award },
+    { id: "Evidence", label: t("nav.evidence"), icon: FileText },
+    { id: "Progress", label: t("nav.progress"), icon: TrendingUp },
+    { id: "Profile", label: t("nav.profile"), icon: UserRound },
+  ];
 
   const currentStep = getPathwayStep(activePage);
 
@@ -101,7 +102,7 @@ export function OfficialLayout({ children, activePage, onNavigate }: OfficialLay
 
         {/* Nav items */}
         <nav className="flex-1 px-4 overflow-y-auto">
-          {NAV_ITEMS.map(({ id, label, icon: Icon }) => (
+          {navItems.map(({ id, label, icon: Icon }) => (
             <button
               key={id}
               onClick={() => handleNav(id)}
@@ -130,14 +131,14 @@ export function OfficialLayout({ children, activePage, onNavigate }: OfficialLay
             className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-slate-500 hover:bg-slate-50 transition-colors"
           >
             <LogOut size={16} />
-            Log out
+            {t("common.logout")}
           </button>
         </div>
 
         {/* Capability pathway strip */}
         <div className="border-t border-[#dfe7f0] px-4 py-3 bg-[#f8fafc]">
           <div className="text-[9px] font-bold uppercase tracking-wider text-slate-400 mb-2">
-            Capability pathway
+            {isHindi ? "क्षमता विकास पथ" : "Capability pathway"}
           </div>
           <div className="flex flex-wrap gap-1">
             {PATHWAY_STEPS.map((step, idx) => (
@@ -149,7 +150,7 @@ export function OfficialLayout({ children, activePage, onNavigate }: OfficialLay
                       : "bg-[#e8f5f3] text-[#0f9f92]"
                   }`}
                 >
-                  {step.label}
+                  {isHindi ? step.labelHi : step.labelEn}
                 </span>
                 {idx < PATHWAY_STEPS.length - 1 && (
                   <span className="text-[9px] text-slate-300 self-center">→</span>
@@ -182,11 +183,14 @@ export function OfficialLayout({ children, activePage, onNavigate }: OfficialLay
         <header className="flex h-[68px] items-center justify-between border-b border-[#dfe7f0] bg-white px-6 lg:px-9">
           <div>
             <div className="text-[10px] font-bold uppercase tracking-[.14em] text-slate-400">
-              ShikshaSetu workspace
+              {isHindi ? "शिक्षासेतु कार्यक्षेत्र" : "ShikshaSetu workspace"}
             </div>
-            <h1 className="text-lg font-bold text-[#123057]">{activePage}</h1>
+            <h1 className="text-lg font-bold text-[#123057]">
+              {navItems.find((n) => n.id === activePage)?.label || activePage}
+            </h1>
           </div>
           <div className="flex items-center gap-3">
+            <LanguageToggle />
             <span className="hidden text-xs font-semibold text-slate-500 sm:block truncate max-w-[160px]">
               {user?.full_name}
             </span>
@@ -194,7 +198,7 @@ export function OfficialLayout({ children, activePage, onNavigate }: OfficialLay
               onClick={logout}
               className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-bold text-[#123057] hover:bg-slate-50 transition-colors"
             >
-              Logout
+              {t("common.logout")}
             </button>
           </div>
         </header>

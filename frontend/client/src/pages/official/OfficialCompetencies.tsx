@@ -13,6 +13,7 @@ import {
   X,
 } from "lucide-react";
 import { api, Competency, SkillGapResponse } from "@/lib/api";
+import { useTranslation } from "@/i18n";
 import { toast } from "sonner";
 
 interface OfficialCompetenciesProps {
@@ -20,6 +21,7 @@ interface OfficialCompetenciesProps {
 }
 
 export function OfficialCompetencies({ onNavigate }: OfficialCompetenciesProps) {
+  const { t, isHindi } = useTranslation();
   const [competencies, setCompetencies] = useState<Competency[]>([]);
   const [skillGaps, setSkillGaps] = useState<SkillGapResponse | null>(null);
   const [loading, setLoading] = useState(true);

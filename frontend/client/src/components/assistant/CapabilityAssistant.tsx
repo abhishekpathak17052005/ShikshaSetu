@@ -21,6 +21,7 @@ import {
   AssistantSourceCitation,
   SuggestedAction,
 } from "@/lib/api";
+import { useTranslation } from "@/i18n";
 import { toast } from "sonner";
 
 interface Message {
@@ -38,34 +39,45 @@ interface CapabilityAssistantProps {
   onNavigate: (page: string) => void;
 }
 
-const STARTER_PROMPTS = [
-  "What are my highest priority skill gaps?",
-  "Recommend iGOT courses for my current role",
-  "Explain Sampling Techniques for MoSPI surveys",
-  "How does learning evidence differ from assessments?",
-];
-
 export function CapabilityAssistant({
   currentPage = "Dashboard",
   onNavigate,
 }: CapabilityAssistantProps) {
+  const { t, isHindi } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
+
+  const starterPrompts = isHindi
+    ? [
+        t("assistant.prompt1"),
+        t("assistant.prompt2"),
+        t("assistant.prompt3"),
+        t("assistant.prompt4"),
+      ]
+    : [
+        "What are my highest priority skill gaps?",
+        "Recommend iGOT courses for my current role",
+        "Explain Sampling Techniques for MoSPI surveys",
+        "How does learning evidence differ from assessments?",
+      ];
+
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "welcome-1",
       sender: "assistant",
-      text: `**Namaste Officer.** I am your **Karmayogi AI Co-Pilot**.\n\nI am grounded in the National Civil Services Competency Framework, verified iGOT Karmayogi catalog, and your personalized capability profile.\n\nHow can I support your capability development today?`,
+      text: isHindi
+        ? `**नमस्ते अधिकारी।** मैं आपका **कर्मयोगी एआई सह-पायलट (Co-Pilot)** हूँ।\n\nमैं राष्ट्रीय सिविल सेवा क्षमता ढांचे, सत्यापित आईगॉट कर्मयोगी कैटलॉग और आपके व्यक्तिगत क्षमता प्रोफ़ाइल पर आधारित हूँ।\n\nआज मैं आपके क्षमता विकास में किस प्रकार सहायता कर सकता हूँ?`
+        : `**Namaste Officer.** I am your **Karmayogi AI Co-Pilot**.\n\nI am grounded in the National Civil Services Competency Framework, verified iGOT Karmayogi catalog, and your personalized capability profile.\n\nHow can I support your capability development today?`,
       timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
       suggested_actions: [
         {
           action_type: "VIEW_GAP",
-          label: "View My Skill Gaps",
+          label: isHindi ? "कौशल अंतराल देखें" : "View My Skill Gaps",
           target_page: "Skill Gaps",
         },
         {
           action_type: "START_LEARNING",
-          label: "Browse Recommendations",
+          label: isHindi ? "प्रशिक्षण अनुशंसाएं देखें" : "Browse Recommendations",
           target_page: "Recommendations",
         },
       ],
@@ -182,13 +194,13 @@ export function CapabilityAssistant({
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h3 className="text-sm font-black text-white">Karmayogi AI Co-Pilot</h3>
+                  <h3 className="text-sm font-black text-white">{t("assistant.title")}</h3>
                   <span className="rounded-md bg-teal-500/20 px-2 py-0.5 text-[10px] font-bold text-teal-300 border border-teal-400/30">
                     Grounded RAG
                   </span>
                 </div>
                 <p className="text-[11px] text-slate-300">
-                  National Competency & iGOT Capability Advisor
+                  {t("assistant.subtitle")}
                 </p>
               </div>
             </div>
@@ -214,7 +226,7 @@ export function CapabilityAssistant({
           {/* Context Ribbon */}
           <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50 px-4 py-2 text-[11px] text-slate-500">
             <span className="flex items-center gap-1 font-semibold">
-              <ShieldCheck size={13} className="text-[#087f76]" /> Active View:{" "}
+              <ShieldCheck size={13} className="text-[#087f76]" /> {t("assistant.activeView")}:{" "}
               <strong className="text-[#123057]">{currentPage}</strong>
             </span>
             <span className="text-[10px] text-slate-400 font-medium">
@@ -316,7 +328,7 @@ export function CapabilityAssistant({
             {loading && (
               <div className="flex items-center gap-3 text-xs text-slate-500 bg-white p-3.5 rounded-2xl border border-slate-200 w-fit">
                 <RefreshCw size={14} className="animate-spin text-[#087f76]" />
-                <span>Consulting National Competency Framework & RAG Context...</span>
+                <span>{t("assistant.thinking")}</span>
               </div>
             )}
 
@@ -327,10 +339,10 @@ export function CapabilityAssistant({
           {messages.length <= 2 && (
             <div className="p-3 border-t border-slate-100 bg-white space-y-1.5">
               <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-                Suggested Prompts:
+                {t("assistant.suggestedPrompts")}
               </span>
               <div className="flex flex-wrap gap-1.5">
-                {STARTER_PROMPTS.map((prompt, pIdx) => (
+                {starterPrompts.map((prompt, pIdx) => (
                   <button
                     key={pIdx}
                     onClick={() => handleSendMessage(prompt)}
@@ -357,7 +369,7 @@ export function CapabilityAssistant({
                 type="text"
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
-                placeholder="Ask about your gaps, recommendations, or study materials..."
+                placeholder={t("assistant.placeholder")}
                 disabled={loading}
                 className="flex-1 rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-800 focus:bg-white focus:border-[#087f76] focus:outline-none transition-all placeholder:text-slate-400"
               />

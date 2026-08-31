@@ -23,6 +23,7 @@ import {
   LearningActivityListResponse,
 } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTranslation } from "@/i18n";
 import { toast } from "sonner";
 
 interface OfficialDashboardProps {
@@ -31,6 +32,7 @@ interface OfficialDashboardProps {
 
 export function OfficialDashboard({ onNavigate }: OfficialDashboardProps) {
   const { user } = useAuth();
+  const { t, isHindi } = useTranslation();
   const [skillGaps, setSkillGaps] = useState<SkillGapResponse | null>(null);
   const [competencies, setCompetencies] = useState<Competency[]>([]);
   const [recommendations, setRecommendations] = useState<RecommendationResponse | null>(null);

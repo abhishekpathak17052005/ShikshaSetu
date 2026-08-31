@@ -16,21 +16,8 @@ import {
   X,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-
-// ─── Navigation items ─────────────────────────────────────────────────────────
-
-const NAV_ITEMS = [
-  { id: "Dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { id: "Workforce Overview", label: "Workforce Overview", icon: Building2 },
-  { id: "Competency Analytics", label: "Competency Analytics", icon: BarChart2 },
-  { id: "Skill Gap Analytics", label: "Skill Gap Analytics", icon: Brain },
-  { id: "Training Effectiveness", label: "Training Effectiveness", icon: TrendingUp },
-  { id: "Emerging Skills", label: "Emerging Skills", icon: Zap },
-  { id: "Capacity Planning", label: "Capacity Planning", icon: CalendarRange },
-  { id: "Users", label: "Users", icon: Users },
-  { id: "Reports", label: "Reports", icon: FileBarChart },
-  { id: "Profile", label: "Profile", icon: UserRound },
-] as const;
+import { useTranslation } from "@/i18n";
+import { LanguageToggle } from "@/components/LanguageToggle";
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 
@@ -44,7 +31,21 @@ interface AdminLayoutProps {
 
 export function AdminLayout({ children, activePage, onNavigate }: AdminLayoutProps) {
   const { user, logout } = useAuth();
+  const { t, isHindi } = useTranslation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const navItems = [
+    { id: "Dashboard", label: isHindi ? "डैशबोर्ड" : "Dashboard", icon: LayoutDashboard },
+    { id: "Workforce Overview", label: isHindi ? "कार्यबल अवलोकन" : "Workforce Overview", icon: Building2 },
+    { id: "Competency Analytics", label: isHindi ? "क्षमता विश्लेषण" : "Competency Analytics", icon: BarChart2 },
+    { id: "Skill Gap Analytics", label: isHindi ? "कौशल अंतराल विश्लेषण" : "Skill Gap Analytics", icon: Brain },
+    { id: "Training Effectiveness", label: isHindi ? "प्रशिक्षण प्रभावशीलता" : "Training Effectiveness", icon: TrendingUp },
+    { id: "Emerging Skills", label: isHindi ? "उभरते कौशल" : "Emerging Skills", icon: Zap },
+    { id: "Capacity Planning", label: isHindi ? "क्षमता योजना" : "Capacity Planning", icon: CalendarRange },
+    { id: "Users", label: isHindi ? "उपयोगकर्ता पंजी" : "Users", icon: Users },
+    { id: "Reports", label: isHindi ? "प्रशासकीय रिपोर्ट" : "Reports", icon: FileBarChart },
+    { id: "Profile", label: isHindi ? "प्रोफ़ाइल" : "Profile", icon: UserRound },
+  ];
 
   const handleNav = (page: string) => {
     onNavigate(page);
@@ -79,13 +80,13 @@ export function AdminLayout({ children, activePage, onNavigate }: AdminLayoutPro
 
         {/* Nav items */}
         <nav className="flex-1 px-4 overflow-y-auto">
-          {NAV_ITEMS.map(({ id, label, icon: Icon }) => (
+          {navItems.map(({ id, label, icon: Icon }) => (
             <button
               key={id}
               onClick={() => handleNav(id)}
               className={`mb-1 flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-semibold transition-colors ${
                 activePage === id
-                  ? "bg-[#f0edfc] text-[#6d5bc3]"
+                  ? "bg-[#ede8f8] text-[#5b3eb5]"
                   : "text-slate-500 hover:bg-purple-50 hover:text-[#4b36a8]"
               }`}
             >
@@ -101,14 +102,14 @@ export function AdminLayout({ children, activePage, onNavigate }: AdminLayoutPro
             {user?.full_name ?? "—"}
           </div>
           <div className="text-xs text-slate-400 truncate mb-3">
-            {user?.designation ?? user?.department ?? "Administrator"}
+            {user?.designation ?? user?.department ?? (isHindi ? "प्रशासक" : "Administrator")}
           </div>
           <button
             onClick={logout}
             className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-slate-500 hover:bg-purple-50 transition-colors"
           >
             <LogOut size={16} />
-            Log out
+            {t("common.logout")}
           </button>
         </div>
       </aside>
@@ -135,11 +136,14 @@ export function AdminLayout({ children, activePage, onNavigate }: AdminLayoutPro
         <header className="flex h-[68px] items-center justify-between border-b border-[#e0daef] bg-white px-6 lg:px-9">
           <div>
             <div className="text-[10px] font-bold uppercase tracking-[.14em] text-slate-400">
-              Admin workspace
+              {isHindi ? "प्रशासक कार्यक्षेत्र" : "Admin workspace"}
             </div>
-            <h1 className="text-lg font-bold text-[#4b36a8]">{activePage}</h1>
+            <h1 className="text-lg font-bold text-[#4b36a8]">
+              {navItems.find((n) => n.id === activePage)?.label || activePage}
+            </h1>
           </div>
           <div className="flex items-center gap-3">
+            <LanguageToggle />
             <span className="hidden text-xs font-semibold text-slate-500 sm:block truncate max-w-[160px]">
               {user?.full_name}
             </span>
@@ -147,7 +151,7 @@ export function AdminLayout({ children, activePage, onNavigate }: AdminLayoutPro
               onClick={logout}
               className="rounded-lg border border-[#e0daef] px-3 py-1.5 text-xs font-bold text-[#4b36a8] hover:bg-purple-50 transition-colors"
             >
-              Logout
+              {t("common.logout")}
             </button>
           </div>
         </header>
