@@ -132,6 +132,64 @@ def run_smoke_test(backend_url: str) -> bool:
         except Exception as e:
             print(f"  ✗ ERROR: {e}")
 
+    # 6. Security, RBAC Role Guards & Isolation Verification
+    print("\n[SECURITY & RBAC ISOLATION CHECKS]")
+    print("-" * 60)
+
+    # 6a. Unauthenticated Access -> 401
+    total += 1
+    print("\n[TEST] Security: Unauthenticated request to /admin/dashboard...")
+    try:
+        res = requests.get(f"{api_base}/admin/dashboard", timeout=15)
+        if res.status_code == 401:
+            print(f"  ✓ PASS: Correctly rejected with HTTP 401 Unauthorized")
+            passed += 1
+        else:
+            print(f"  ✗ FAIL: Expected 401, got {res.status_code}")
+    except Exception as e:
+        print(f"  ✗ ERROR: {e}")
+
+    # 6b. Official accessing Admin API -> 403
+    if "OFFICIAL" in tokens:
+        total += 1
+        print("\n[TEST] Security: Official role attempting to access /admin/dashboard...")
+        try:
+            res = requests.get(f"{api_base}/admin/dashboard", headers={"Authorization": f"Bearer {tokens['OFFICIAL']}"}, timeout=15)
+            if res.status_code == 403:
+                print(f"  ✓ PASS: Correctly blocked with HTTP 403 Forbidden")
+                passed += 1
+            else:
+                print(f"  ✗ FAIL: Expected 403, got {res.status_code}")
+        except Exception as e:
+            print(f"  ✗ ERROR: {e}")
+
+    # 6c. Trainer accessing Admin API -> 403
+    if "TRAINER" in tokens:
+        total += 1
+        print("\n[TEST] Security: Trainer role attempting to access /admin/dashboard...")
+        try:
+            res = requests.get(f"{api_base}/admin/dashboard", headers={"Authorization": f"Bearer {tokens['TRAINER']}"}, timeout=15)
+            if res.status_code == 403:
+                print(f"  ✓ PASS: Correctly blocked with HTTP 403 Forbidden")
+                passed += 1
+            else:
+                print(f"  ✗ FAIL: Expected 403, got {res.status_code}")
+        except Exception as e:
+            print(f"  ✗ ERROR: {e}")
+
+    # 6d. Invalid credentials -> 401
+    total += 1
+    print("\n[TEST] Security: Authentication with invalid password...")
+    try:
+        res = requests.post(f"{api_base}/auth/login", data={"username": "officer@shikshasetu.gov.in", "password": "WrongPassword999!"}, timeout=15)
+        if res.status_code == 401:
+            print(f"  ✓ PASS: Correctly rejected invalid credentials with HTTP 401")
+            passed += 1
+        else:
+            print(f"  ✗ FAIL: Expected 401, got {res.status_code}")
+    except Exception as e:
+        print(f"  ✗ ERROR: {e}")
+
     print("\n" + "=" * 70)
     print(f"SMOKE TEST SUMMARY: {passed}/{total} Passed")
     print("=" * 70)

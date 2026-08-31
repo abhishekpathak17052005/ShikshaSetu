@@ -1,5 +1,5 @@
-# 🏛️ ShikshaSetu: SIH 2024 Live Demo Pitch Script
-### Smart India Hackathon | Problem Statement 26101 (MoSPI / DIID)
+# 🏛️ ShikshaSetu: SIH 2026 Live Demo Pitch Script
+### Smart India Hackathon 2026 | Problem Statement 26101 (MoSPI / DIID)
 **Title**: AI-Powered Personalized Capability & Competency Development Platform for Indian Official Statistical System  
 **Team**: Kinetics  
 **Demo Duration**: 7 Minutes  
