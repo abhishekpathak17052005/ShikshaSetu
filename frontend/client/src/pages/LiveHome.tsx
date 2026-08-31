@@ -4,6 +4,8 @@ import {
   BookOpen,
   Check,
   ClipboardCheck,
+  Eye,
+  EyeOff,
   Gauge,
   LayoutDashboard,
   LogOut,
@@ -111,6 +113,7 @@ function Shell({ user, page, setPage, children, logout }: any) {
 
 function Auth({ onLogin }: { onLogin: (user: User) => void }) {
   const [register, setRegister] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [form, setForm] = useState<any>({});
   const [roles, setRoles] = useState<any[]>([]);
   const [busy, setBusy] = useState(false);
@@ -203,12 +206,22 @@ function Auth({ onLogin }: { onLogin: (user: User) => void }) {
             placeholder="Email address"
             onChange={e => update("email", e.target.value)}
           />
-          <input
-            className="form-input"
-            type="password"
-            placeholder="Password"
-            onChange={e => update("password", e.target.value)}
-          />
+          <div className="relative">
+            <input
+              className="form-input pr-10"
+              type={showPassword ? "text" : "password"}
+              placeholder="Password"
+              onChange={e => update("password", e.target.value)}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none transition-colors p-1"
+              aria-label={showPassword ? "Hide password" : "Show password"}
+            >
+              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
+          </div>
           <button
             disabled={busy}
             onClick={submit}
