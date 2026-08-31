@@ -48,6 +48,20 @@ def get_user_role(database: Database, user_id: str) -> dict | None:
     return role_doc
 
 
+def _normalize_priority(val) -> int:
+    if isinstance(val, int):
+        return val
+    mapping = {"CRITICAL": 1, "HIGH": 2, "MEDIUM": 3, "LOW": 4}
+    return mapping.get(str(val).upper(), 2)
+
+
+def _normalize_importance(val) -> float:
+    if isinstance(val, (int, float)):
+        return float(val)
+    mapping = {"CRITICAL": 1.0, "HIGH": 0.8, "MEDIUM": 0.5, "LOW": 0.3}
+    return mapping.get(str(val).upper(), 0.75)
+
+
 def get_role_requirements_with_competencies(
     database: Database,
     role_id: str,
@@ -87,6 +101,7 @@ def get_role_requirements_with_competencies(
                 "_id": 1,
                 "code": 1,
                 "name": 1,
+                "title": 1,
                 "domain": 1,
             },
         )
@@ -95,11 +110,11 @@ def get_role_requirements_with_competencies(
                 {
                     "competency_id": competency["_id"],
                     "competency_code": competency["code"],
-                    "competency_name": competency["name"],
-                    "domain": competency["domain"],
-                    "required_level": req["required_level"],
-                    "priority": req["priority"],
-                    "importance": req["importance"],
+                    "competency_name": competency.get("name") or competency.get("title", ""),
+                    "domain": competency.get("domain", "STATISTICAL"),
+                    "required_level": float(req.get("required_level", 4.0)),
+                    "priority": _normalize_priority(req.get("priority", 2)),
+                    "importance": _normalize_importance(req.get("importance", req.get("priority", 0.75))),
                 }
             )
     
