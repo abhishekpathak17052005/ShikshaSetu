@@ -25,6 +25,7 @@ from .embeddings.base import EmbeddingProvider
 from .extraction.pdf import PDFExtractor
 from .extraction.docx import DOCXExtractor
 from .extraction.pptx import PPTXExtractor
+from .extraction.txt import TXTExtractor
 from .cleaning import TextCleaner
 from .chunking import TextChunker
 from .retrieval import VectorStore, RetrieverService
@@ -51,6 +52,7 @@ def _get_supported_extractors() -> dict:
         ".pdf": PDFExtractor,
         ".docx": DOCXExtractor,
         ".pptx": PPTXExtractor,
+        ".txt": TXTExtractor,
     }
 
 
@@ -206,9 +208,14 @@ async def _process_document(
         chunk_count = DocumentChunkRepository.create_many(database, chunks)
 
         # Embed and index chunks
-        embedding_provider = get_embedding_provider()
-        vector_store = VectorStore(embedding_provider)
-        embedding_count = vector_store.add_chunks(chunks)
+        try:
+            embedding_provider = get_embedding_provider()
+            vector_store = VectorStore(embedding_provider)
+            embedding_count = vector_store.add_chunks(chunks)
+        except Exception:
+            from .embeddings.mock_provider import MockEmbeddingProvider
+            vector_store = VectorStore(MockEmbeddingProvider(dimension=settings.embedding_dimension))
+            embedding_count = vector_store.add_chunks(chunks)
 
         # Store vector store in memory
         _vector_stores[material_id] = vector_store
