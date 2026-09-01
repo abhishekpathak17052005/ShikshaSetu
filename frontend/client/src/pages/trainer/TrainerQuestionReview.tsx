@@ -68,21 +68,29 @@ export function TrainerQuestionReview({
         );
         setQuestions(qList);
       } else {
-        // Collect questions across all materials
-        const allQuestions: TrainerQuestion[] = [];
-        for (const mat of mats) {
-          const matId = mat.id || (mat as any)._id;
-          try {
-            const qList = await api.trainer.materials.getQuestions(
-              matId,
-              statusFilter !== "ALL" ? statusFilter : undefined
-            );
-            allQuestions.push(...qList);
-          } catch {
-            // Ignore single material fetch error
+        // Collect questions across all materials in a single fast call
+        try {
+          const allQuestions = await api.trainer.questions.list(
+            statusFilter !== "ALL" ? statusFilter : undefined
+          );
+          setQuestions(allQuestions);
+        } catch {
+          // Fallback if needed
+          const fallbackList: TrainerQuestion[] = [];
+          for (const mat of mats) {
+            const matId = mat.id || (mat as any)._id;
+            try {
+              const qList = await api.trainer.materials.getQuestions(
+                matId,
+                statusFilter !== "ALL" ? statusFilter : undefined
+              );
+              fallbackList.push(...qList);
+            } catch {
+              // Ignore single material fetch error
+            }
           }
+          setQuestions(fallbackList);
         }
-        setQuestions(allQuestions);
       }
     } catch (err: any) {
       toast.error(err.message || "Failed to load questions");

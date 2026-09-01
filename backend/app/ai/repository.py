@@ -35,29 +35,31 @@ class LearningMaterialRepository:
         Args:
             database: MongoDB database instance.
             material_id: Material ID.
-            user_id: User ID for authorization check (stored as string in DB).
+            user_id: User ID for authorization check (stored as string or ObjectId in DB).
 
         Returns:
             LearningMaterial or None if not found or not owned by user.
         """
         collection = database["learning_materials"]
         
-        try:
-            obj_id = ObjectId(material_id)
-            # user_id is stored as string in database, so keep it as string for query
-            user_id_str = str(user_id) if not isinstance(user_id, str) else user_id
-        except Exception:
-            return None
+        m_oid = ObjectId(material_id) if ObjectId.is_valid(material_id) else None
+        u_oid = ObjectId(user_id) if ObjectId.is_valid(user_id) else None
+        user_id_str = str(user_id)
         
-        doc = collection.find_one({
-            "_id": obj_id,
-            "user_id": user_id_str
-        })
+        id_query = {"$in": [m_oid, str(material_id)]} if m_oid else str(material_id)
+        user_query = {"$in": [user_id_str, u_oid]} if u_oid else user_id_str
+
+        query = {
+            "_id": id_query,
+            "user_id": user_query,
+        }
+        doc = collection.find_one(query)
         
         if not doc:
             return None
         
         doc["_id"] = str(doc["_id"])
+        doc["id"] = str(doc["_id"])
         return LearningMaterial(**doc)
 
     @staticmethod
@@ -67,20 +69,23 @@ class LearningMaterialRepository:
 
         Args:
             database: MongoDB database instance.
-            user_id: User ID (stored as string in DB).
+            user_id: User ID (stored as string or ObjectId in DB).
             limit: Maximum number of results.
 
         Returns:
             List of LearningMaterial documents.
         """
         collection = database["learning_materials"]
-        user_id_str = str(user_id) if not isinstance(user_id, str) else user_id
+        u_oid = ObjectId(user_id) if ObjectId.is_valid(user_id) else None
+        user_id_str = str(user_id)
+        query = {"$or": [{"user_id": user_id_str}, {"user_id": u_oid}]} if u_oid else {"user_id": user_id_str}
         
-        cursor = collection.find({"user_id": user_id_str}).sort("created_at", -1).limit(limit)
+        cursor = collection.find(query).sort("created_at", -1).limit(limit)
         materials = []
         
         for doc in cursor:
             doc["id"] = str(doc["_id"])
+            doc["_id"] = str(doc["_id"])
             materials.append(LearningMaterial(**doc))
         
         return materials
@@ -284,17 +289,20 @@ class DocumentChunkRepository:
         """
         collection = database["document_chunks"]
         
-        obj_ids = []
-        for chunk_id in chunk_ids:
-            try:
-                obj_ids.append(ObjectId(chunk_id))
-            except Exception:
-                continue
+        obj_ids = [ObjectId(cid) for cid in chunk_ids if ObjectId.is_valid(cid)]
+        str_ids = [str(cid) for cid in chunk_ids]
         
-        if not obj_ids:
+        id_clauses = []
+        if obj_ids:
+            id_clauses.append({"_id": {"$in": obj_ids}})
+        if str_ids:
+            id_clauses.append({"_id": {"$in": str_ids}})
+            id_clauses.append({"chunk_id": {"$in": str_ids}})
+        
+        if not id_clauses:
             return []
         
-        cursor = collection.find({"_id": {"$in": obj_ids}})
+        cursor = collection.find({"$or": id_clauses})
         chunks = []
         
         for doc in cursor:

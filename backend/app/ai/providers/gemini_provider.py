@@ -112,7 +112,7 @@ class GeminiLLMProvider(LLMProvider):
             
             config = types.GenerateContentConfig(
                 temperature=temperature,
-                max_output_tokens=max_tokens or 2000,
+                max_output_tokens=max_tokens or 4096,
                 response_mime_type="application/json",
             )
             
@@ -143,6 +143,8 @@ class GeminiLLMProvider(LLMProvider):
             # Parse JSON
             try:
                 result = json.loads(text)
+                if isinstance(result, list):
+                    return {"questions": result}
                 if not isinstance(result, dict):
                     raise Exception(f"Expected JSON object, got {type(result).__name__}")
                 return result

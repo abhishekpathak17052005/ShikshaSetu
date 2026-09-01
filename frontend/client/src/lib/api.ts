@@ -979,6 +979,10 @@ export const api = {
     },
 
     questions: {
+      list: (status?: string) =>
+        request<TrainerQuestion[]>(
+          `/trainer/questions${status ? `?status=${status}` : ""}`
+        ),
       get: (questionId: string) =>
         request<TrainerQuestion>(`/trainer/questions/${questionId}`),
       update: (

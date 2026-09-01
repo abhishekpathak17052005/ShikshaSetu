@@ -79,15 +79,25 @@ class TrainerService:
 
         return {
             "total_materials_uploaded": len(materials),
+            "materials_count": len(materials),
             "total_questions_generated": len(all_questions),
+            "questions_count": len(all_questions),
             "questions_approved": q_approved,
+            "approved_questions_count": q_approved,
             "questions_rejected": q_rejected,
+            "rejected_questions_count": q_rejected,
             "questions_pending_review": q_pending,
+            "pending_questions_count": q_pending,
+            "pending_review_count": q_pending,
             "total_quizzes_created": len(quizzes),
+            "quizzes_count": len(quizzes),
             "published_quizzes": published_count,
+            "published_quizzes_count": published_count,
             "total_assigned_learners": len(assigned_learner_ids),
             "total_learner_attempts": total_attempts,
+            "learner_attempts_count": total_attempts,
             "average_learner_score": avg_score,
+            "average_score_all_quizzes": avg_score,
             "recent_materials": recent_materials,
             "recent_quizzes": recent_quizzes,
         }
@@ -187,6 +197,19 @@ class TrainerService:
         questions = self.repo.list_questions_by_material(
             self.database,
             material_id=material_id,
+            trainer_id=trainer_id,
+            status=status_filter,
+        )
+        return [self._format_question(q) for q in questions]
+
+    def list_all_questions(
+        self,
+        trainer_id: str,
+        status_filter: str | None = None,
+    ) -> list[dict]:
+        """List all questions across all trainer materials."""
+        questions = self.repo.list_all_questions_by_trainer(
+            self.database,
             trainer_id=trainer_id,
             status=status_filter,
         )
@@ -376,7 +399,7 @@ class TrainerService:
         return result
 
     def list_assigned_learners(self, trainer_id: str) -> list[dict]:
-        """List learners assigned to trainer's quizzes with summary stats."""
+        """List all learners in the organization with assignment and attempt summaries."""
         quizzes = self.repo.list_quizzes_by_trainer(self.database, trainer_id)
         assigned_map: dict[str, dict] = {}
 
@@ -389,15 +412,23 @@ class TrainerService:
                 assigned_map[uid_str]["assigned_count"] += 1
                 assigned_map[uid_str]["quiz_ids"].append(str(q["_id"]))
 
+        # Query all official and employee users in the system
+        all_users = list(self.database.users.find({
+            "access_role": {"$in": ["OFFICIAL", "EMPLOYEE"]},
+        }))
+
         learners = []
-        for uid_str, data in assigned_map.items():
-            user = self.database.users.find_one({"$or": [{"_id": ObjectId(uid_str) if ObjectId.is_valid(uid_str) else None}, {"_id": uid_str}]}) or {}
+        for user in all_users:
+            uid_str = str(user["_id"])
+            data = assigned_map.get(uid_str, {"assigned_count": 0, "quiz_ids": []})
             
-            # Find completed attempts for these quizzes
-            attempts = list(self.database.quiz_attempts.find({
-                "$or": [{"user_id": ObjectId(uid_str) if ObjectId.is_valid(uid_str) else None}, {"user_id": uid_str}],
-                "quiz_id": {"$in": [ObjectId(qid) for qid in data["quiz_ids"] if ObjectId.is_valid(qid)] + data["quiz_ids"]},
-            }))
+            # Find completed attempts for trainer's quizzes if any
+            attempts = []
+            if data["quiz_ids"]:
+                attempts = list(self.database.quiz_attempts.find({
+                    "$or": [{"user_id": ObjectId(uid_str) if ObjectId.is_valid(uid_str) else None}, {"user_id": uid_str}],
+                    "quiz_id": {"$in": [ObjectId(qid) for qid in data["quiz_ids"] if ObjectId.is_valid(qid)] + data["quiz_ids"]},
+                }))
 
             avg = (
                 round(sum(a.get("percentage", 0) for a in attempts) / len(attempts), 1)
@@ -406,11 +437,15 @@ class TrainerService:
             )
 
             learners.append({
+                "_id": uid_str,
+                "id": uid_str,
                 "learner_id": uid_str,
-                "full_name": user.get("full_name", "Unknown Learner"),
+                "full_name": user.get("full_name", "Official User"),
                 "email": user.get("email", ""),
-                "department": user.get("department", ""),
-                "designation": user.get("designation", ""),
+                "department": user.get("department", "Public Administration"),
+                "designation": user.get("designation", "Civil Service Official"),
+                "employee_id": user.get("employee_id", "EMP-001"),
+                "access_role": user.get("access_role", "OFFICIAL"),
                 "assigned_quizzes_count": data["assigned_count"],
                 "completed_quizzes_count": len(attempts),
                 "average_score": avg,

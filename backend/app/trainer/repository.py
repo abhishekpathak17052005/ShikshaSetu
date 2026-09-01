@@ -67,6 +67,20 @@ class TrainerRepository:
         return list(cursor)
 
     @staticmethod
+    def list_all_questions_by_trainer(
+        database: Database,
+        trainer_id: str,
+        status: str | None = None,
+    ) -> list[dict]:
+        query: dict[str, Any] = {"trainer_id": str(trainer_id)}
+        if status and status != "ALL":
+            query["status"] = status
+        cursor = database.trainer_questions.find(query)
+        if hasattr(cursor, "sort"):
+            cursor = cursor.sort("created_at", -1)
+        return list(cursor)
+
+    @staticmethod
     def get_questions_by_ids(
         database: Database,
         question_ids: list[str],
@@ -191,7 +205,9 @@ class TrainerRepository:
 
     @staticmethod
     def list_materials_by_trainer(database: Database, trainer_id: str) -> list[dict]:
-        cursor = database.learning_materials.find({"user_id": str(trainer_id)})
+        t_oid = object_id(trainer_id)
+        query = {"$or": [{"user_id": str(trainer_id)}, {"user_id": t_oid}]} if t_oid else {"user_id": str(trainer_id)}
+        cursor = database.learning_materials.find(query)
         if hasattr(cursor, "sort"):
             cursor = cursor.sort("created_at", -1)
         return list(cursor)
@@ -203,9 +219,11 @@ class TrainerRepository:
         trainer_id: str | None = None,
     ) -> dict | None:
         m_oid = object_id(material_id)
-        query: dict[str, Any] = {"$or": [{"_id": m_oid}, {"_id": str(material_id)}]} if m_oid else {"_id": str(material_id)}
+        id_query = {"$in": [m_oid, str(material_id)]} if m_oid else str(material_id)
+        query: dict[str, Any] = {"_id": id_query}
         if trainer_id:
-            query["user_id"] = str(trainer_id)
+            t_oid = object_id(trainer_id)
+            query["user_id"] = {"$in": [str(trainer_id), t_oid]} if t_oid else str(trainer_id)
         return database.learning_materials.find_one(query)
 
     @staticmethod

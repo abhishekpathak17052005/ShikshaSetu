@@ -91,17 +91,22 @@ export function TrainerQuizStudio({ onNavigate }: TrainerQuizStudioProps) {
       }
 
       // Fetch approved questions across all materials
-      const allApproved: TrainerQuestion[] = [];
-      for (const mat of mats) {
-        const matId = mat.id || (mat as any)._id;
-        try {
-          const qs = await api.trainer.materials.getQuestions(matId, "APPROVED");
-          allApproved.push(...qs);
-        } catch {
-          // Ignore
+      try {
+        const approvedList = await api.trainer.questions.list("APPROVED");
+        setApprovedQuestions(approvedList);
+      } catch {
+        const allApproved: TrainerQuestion[] = [];
+        for (const mat of mats) {
+          const matId = mat.id || (mat as any)._id;
+          try {
+            const qs = await api.trainer.materials.getQuestions(matId, "APPROVED");
+            allApproved.push(...qs);
+          } catch {
+            // Ignore
+          }
         }
+        setApprovedQuestions(allApproved);
       }
-      setApprovedQuestions(allApproved);
     } catch (err: any) {
       toast.error(err.message || "Failed to load Quiz Studio data");
     } finally {

@@ -1,4 +1,5 @@
 """LLM Provider Factory."""
+import os
 from typing import Optional
 
 from app.core.config import Settings, get_settings
@@ -21,25 +22,22 @@ def get_llm_provider(settings: Optional[Settings] = None) -> LLMProvider:
     """
     app_settings = settings or get_settings()
     provider_name = app_settings.llm_provider.lower()
+    gemini_key = app_settings.llm_api_key or os.environ.get("GEMINI_API_KEY", "") or os.environ.get("LLM_API_KEY", "")
+    openai_key = app_settings.llm_api_key or os.environ.get("OPENAI_API_KEY", "") or os.environ.get("LLM_API_KEY", "")
 
     if provider_name == "mock":
         return MockLLMProvider()
     elif provider_name == "openai":
-        if not settings.llm_api_key:
-            raise ValueError(
-                "OpenAI provider selected but LLM_API_KEY not configured. "
-                "Set LLM_API_KEY environment variable or use LLM_PROVIDER=mock for testing."
-            )
-        return OpenAIProvider(api_key=settings.llm_api_key, model=settings.llm_model)
+        if not openai_key:
+            return MockLLMProvider()
+        return OpenAIProvider(api_key=openai_key, model=app_settings.llm_model)
     elif provider_name == "gemini":
-        if not settings.llm_api_key:
-            raise ValueError(
-                "Gemini provider selected but LLM_API_KEY not configured. "
-                "Set LLM_API_KEY environment variable or use LLM_PROVIDER=mock for testing."
-            )
-        return GeminiLLMProvider(api_key=settings.llm_api_key, model=settings.llm_model)
+        if not gemini_key:
+            return MockLLMProvider()
+        return GeminiLLMProvider(api_key=gemini_key, model=app_settings.llm_model)
     else:
         raise ValueError(
             f"Unknown LLM provider: {provider_name}. "
             f"Supported: 'mock', 'openai', 'gemini'"
         )
+

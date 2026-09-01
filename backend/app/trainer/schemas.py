@@ -8,16 +8,26 @@ class TrainerDashboardResponse(BaseModel):
     """Aggregated metrics for trainer dashboard."""
     model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
-    total_materials_uploaded: int
-    total_questions_generated: int
-    questions_approved: int
-    questions_rejected: int
-    questions_pending_review: int
-    total_quizzes_created: int
-    published_quizzes: int
-    total_assigned_learners: int
-    total_learner_attempts: int
-    average_learner_score: float
+    total_materials_uploaded: int = 0
+    materials_count: int = 0
+    total_questions_generated: int = 0
+    questions_count: int = 0
+    questions_approved: int = 0
+    approved_questions_count: int = 0
+    questions_rejected: int = 0
+    rejected_questions_count: int = 0
+    questions_pending_review: int = 0
+    pending_questions_count: int = 0
+    pending_review_count: int = 0
+    total_quizzes_created: int = 0
+    quizzes_count: int = 0
+    published_quizzes: int = 0
+    published_quizzes_count: int = 0
+    total_assigned_learners: int = 0
+    total_learner_attempts: int = 0
+    learner_attempts_count: int = 0
+    average_learner_score: float = 0.0
+    average_score_all_quizzes: Optional[float] = None
     recent_materials: list[dict] = Field(default_factory=list)
     recent_quizzes: list[dict] = Field(default_factory=list)
 

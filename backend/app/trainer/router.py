@@ -169,6 +169,20 @@ def generate_questions_for_review(
         raise HTTPException(status_code=500, detail=f"Question generation failed: {str(e)}")
 
 
+@router.get("/questions", response_model=list[TrainerQuestionResponse])
+def list_all_trainer_questions(
+    request: Request,
+    status_filter: Optional[str] = Query(default=None, alias="status"),
+    current_user: CurrentTrainer = None,
+) -> list[dict]:
+    """List all questions generated/reviewed across all trainer materials."""
+    service = _get_service(request)
+    return service.list_all_questions(
+        trainer_id=str(current_user["_id"]),
+        status_filter=status_filter,
+    )
+
+
 @router.get("/materials/{material_id}/questions", response_model=list[TrainerQuestionResponse])
 def list_questions_for_material(
     request: Request,

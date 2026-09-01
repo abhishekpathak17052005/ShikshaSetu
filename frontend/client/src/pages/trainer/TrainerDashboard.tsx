@@ -41,15 +41,18 @@ export function TrainerDashboard({ onNavigate }: TrainerDashboardProps) {
     fetchDashboard();
   }, []);
 
-  const totalQuestions = metrics?.questions_count ?? (
-    (metrics?.approved_questions_count ?? 0) +
-    (metrics?.pending_questions_count ?? 0) +
-    (metrics?.rejected_questions_count ?? 0)
-  );
+  const totalMaterials = metrics?.materials_count ?? metrics?.total_materials_uploaded ?? 0;
+  const totalQuizzes = metrics?.quizzes_count ?? metrics?.total_quizzes_created ?? 0;
+  const publishedQuizzes = metrics?.published_quizzes_count ?? metrics?.published_quizzes ?? 0;
+  const totalAssignedLearners = metrics?.total_assigned_learners ?? 0;
 
-  const approvedCount = metrics?.approved_questions_count ?? 0;
-  const pendingCount = metrics?.pending_questions_count ?? metrics?.pending_review_count ?? 0;
-  const rejectedCount = metrics?.rejected_questions_count ?? 0;
+  const approvedCount = metrics?.approved_questions_count ?? metrics?.questions_approved ?? 0;
+  const pendingCount = metrics?.pending_questions_count ?? metrics?.pending_review_count ?? metrics?.questions_pending_review ?? 0;
+  const rejectedCount = metrics?.rejected_questions_count ?? metrics?.questions_rejected ?? 0;
+
+  const totalQuestions = metrics?.questions_count ?? metrics?.total_questions_generated ?? (
+    approvedCount + pendingCount + rejectedCount
+  );
 
   const approvedPct = totalQuestions > 0 ? Math.round((approvedCount / totalQuestions) * 100) : 0;
   const pendingPct = totalQuestions > 0 ? Math.round((pendingCount / totalQuestions) * 100) : 0;
@@ -105,7 +108,7 @@ export function TrainerDashboard({ onNavigate }: TrainerDashboardProps) {
           </div>
           <div className="mt-4 flex items-baseline gap-2">
             <span className="text-3xl font-black text-slate-800">
-              {loading ? "..." : (metrics?.materials_count ?? 0)}
+              {loading ? "..." : totalMaterials}
             </span>
             <span className="text-xs font-semibold text-slate-400">curriculum docs</span>
           </div>
@@ -153,10 +156,10 @@ export function TrainerDashboard({ onNavigate }: TrainerDashboardProps) {
           </div>
           <div className="mt-4 flex items-baseline gap-2">
             <span className="text-3xl font-black text-slate-800">
-              {loading ? "..." : (metrics?.published_quizzes_count ?? 0)}
+              {loading ? "..." : publishedQuizzes}
             </span>
             <span className="text-xs font-semibold text-slate-400">
-              of {metrics?.quizzes_count ?? 0} created
+              of {totalQuizzes} created
             </span>
           </div>
           <button
@@ -179,7 +182,7 @@ export function TrainerDashboard({ onNavigate }: TrainerDashboardProps) {
           </div>
           <div className="mt-4 flex items-baseline gap-2">
             <span className="text-3xl font-black text-slate-800">
-              {loading ? "..." : (metrics?.total_assigned_learners ?? 0)}
+              {loading ? "..." : totalAssignedLearners}
             </span>
             <span className="text-xs font-semibold text-slate-400">civil servants</span>
           </div>
