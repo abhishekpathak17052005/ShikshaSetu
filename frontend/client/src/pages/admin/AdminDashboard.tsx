@@ -15,6 +15,7 @@ import {
   Award,
 } from "lucide-react";
 import { api, AdminDashboardResponse } from "@/lib/api";
+import { DEPARTMENT_TAXONOMY } from "@/lib/departments";
 import { toast } from "sonner";
 
 interface AdminDashboardProps {
@@ -24,11 +25,13 @@ interface AdminDashboardProps {
 export function AdminDashboard({ onNavigate }: AdminDashboardProps) {
   const [data, setData] = useState<AdminDashboardResponse | null>(null);
   const [loading, setLoading] = useState(true);
+  const [selectedDepartment, setSelectedDepartment] = useState<string>("ALL");
 
-  const fetchDashboard = async () => {
+  const fetchDashboard = async (dept?: string) => {
     try {
       setLoading(true);
-      const res = await api.admin.dashboard();
+      const targetDept = dept !== undefined ? dept : selectedDepartment;
+      const res = await api.admin.dashboard(targetDept === "ALL" ? undefined : targetDept);
       setData(res);
     } catch (err: any) {
       toast.error(err.message || "Failed to load admin dashboard");
@@ -38,8 +41,8 @@ export function AdminDashboard({ onNavigate }: AdminDashboardProps) {
   };
 
   useEffect(() => {
-    fetchDashboard();
-  }, []);
+    fetchDashboard(selectedDepartment);
+  }, [selectedDepartment]);
 
   return (
     <div className="space-y-8 animate-fadeIn max-w-6xl mx-auto">
@@ -57,13 +60,32 @@ export function AdminDashboard({ onNavigate }: AdminDashboardProps) {
           </p>
         </div>
 
-        <button
-          onClick={fetchDashboard}
-          className="flex items-center gap-1.5 rounded-xl border border-[#e0daef] bg-white px-4 py-2.5 text-xs font-bold text-[#4b36a8] shadow-sm hover:bg-purple-50 transition-all"
-        >
-          <RefreshCw size={14} className={loading ? "animate-spin" : ""} /> Refresh Analytics
-        </button>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <label className="text-xs font-bold text-slate-500 whitespace-nowrap">Department:</label>
+            <select
+              value={selectedDepartment}
+              onChange={(e) => setSelectedDepartment(e.target.value)}
+              className="rounded-xl border border-purple-200 bg-white px-3 py-2 text-xs font-bold text-[#4b36a8] focus:border-[#4b36a8] focus:outline-none shadow-sm"
+            >
+              <option value="ALL">All Ministries & Departments</option>
+              {DEPARTMENT_TAXONOMY.map((d) => (
+                <option key={d.department_code} value={d.department_name}>
+                  {d.department_name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <button
+            onClick={() => fetchDashboard()}
+            className="flex items-center gap-1.5 rounded-xl border border-[#e0daef] bg-white px-4 py-2.5 text-xs font-bold text-[#4b36a8] shadow-sm hover:bg-purple-50 transition-all"
+          >
+            <RefreshCw size={14} className={loading ? "animate-spin" : ""} /> Refresh
+          </button>
+        </div>
       </div>
+
 
       {/* iGOT Karmayogi Ecosystem Integration Boundary Card */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 rounded-2xl border border-blue-100 bg-gradient-to-r from-blue-50/90 to-purple-50/80 p-4 text-xs">

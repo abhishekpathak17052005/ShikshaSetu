@@ -18,6 +18,18 @@ def update_profile(request: Request, current_user: dict, payload: UserProfileUpd
     updates = payload.model_dump(exclude_unset=True)
     if not updates:
         return public_user(current_user)
+
+    from app.roles.resolver import resolve_role_for_user, reconcile_user_competencies
+
+    new_dept = updates.get("department", current_user.get("department"))
+    new_desig = updates.get("designation", current_user.get("designation"))
+
+    if "department" in updates or "designation" in updates:
+        resolved_role_oid = resolve_role_for_user(database, new_dept, new_desig)
+        if resolved_role_oid:
+            updates["role_id"] = resolved_role_oid
+            reconcile_user_competencies(database, current_user["_id"], resolved_role_oid)
+
     updates["updated_at"] = datetime.now(UTC)
     try:
         updated_user = repository.update_user(database, str(current_user["_id"]), updates)
@@ -26,6 +38,7 @@ def update_profile(request: Request, current_user: dict, payload: UserProfileUpd
     if updated_user is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
     return public_user(updated_user)
+
 
 
 @router.get("/me", response_model=UserResponse)

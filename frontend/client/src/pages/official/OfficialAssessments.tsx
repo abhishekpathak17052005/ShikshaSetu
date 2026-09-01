@@ -42,6 +42,7 @@ export function OfficialAssessments({
   const [submittedResult, setSubmittedResult] = useState<any | null>(null);
 
   // ─── Phase 3C: Dynamic Adaptive Assessment State ───────────────────────────
+  const [userCompetencies, setUserCompetencies] = useState<any[]>([]);
   const [adaptiveSession, setAdaptiveSession] = useState<AdaptiveStartResponse | null>(null);
   const [adaptiveCurrentQuestion, setAdaptiveCurrentQuestion] = useState<AdaptiveQuestionItem | null>(null);
   const [adaptiveCurrentNumber, setAdaptiveCurrentNumber] = useState(1);
@@ -51,6 +52,18 @@ export function OfficialAssessments({
   const [adaptiveFeedback, setAdaptiveFeedback] = useState<{ isCorrect: boolean; explanation?: string | null } | null>(null);
   const [adaptiveFinalResult, setAdaptiveFinalResult] = useState<AdaptiveFinalizeResponse | null>(null);
   const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    async function loadApplicableCompetencies() {
+      try {
+        const comps = await api.competencies.me();
+        setUserCompetencies(comps || []);
+      } catch {
+        setUserCompetencies([]);
+      }
+    }
+    loadApplicableCompetencies();
+  }, []);
 
   // Start Adaptive Assessment
   const startAdaptiveAssessment = async (code: string) => {
@@ -82,6 +95,7 @@ export function OfficialAssessments({
       startAdaptiveAssessment(initialCompetencyCode);
     }
   }, [initialCompetencyCode]);
+
 
   // Submit single adaptive answer
   const handleAdaptiveAnswerSubmit = async () => {
@@ -210,47 +224,32 @@ export function OfficialAssessments({
                 </p>
               </div>
 
-              <button
-                onClick={() => startAdaptiveAssessment("STAT_SAMPLING")}
-                disabled={busy}
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#ef7e37] px-6 py-3.5 text-xs font-black text-white shadow-md hover:bg-[#d96a27] hover:scale-105 transition-all whitespace-nowrap"
-              >
-                <Zap size={15} /> Launch Sampling Assessment
-              </button>
+              {userCompetencies[0] && (
+                <button
+                  onClick={() => startAdaptiveAssessment(userCompetencies[0].code)}
+                  disabled={busy}
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#ef7e37] px-6 py-3.5 text-xs font-black text-white shadow-md hover:bg-[#d96a27] hover:scale-105 transition-all whitespace-nowrap"
+                >
+                  <Zap size={15} /> Launch {userCompetencies[0].name.split(" ")[0]} Assessment
+                </button>
+              )}
             </div>
 
             {/* Targeted Competency Cards */}
             <div>
               <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">
-                Select Competency for Adaptive Calibration:
+                Select Competency for Adaptive Calibration (Mapped to Your Department):
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
-                {[
-                  {
-                    code: "STAT_SAMPLING",
-                    name: "Sampling Methods & Survey Design",
-                    domain: "Statistical",
-                    desc: "Simple random, stratified, cluster sampling and survey estimation.",
-                  },
+                {(userCompetencies.length > 0 ? userCompetencies : [
                   {
                     code: "TECH_PYTHON",
                     name: "Python for Official Data Analytics",
-                    domain: "Technical",
-                    desc: "Pandas, NumPy, statistical modeling and automation.",
+                    domain: "TECHNICAL",
+                    description: "Pandas, NumPy, statistical modeling and automation.",
+                    required_level: 4.0,
                   },
-                  {
-                    code: "STAT_NATIONAL_ACCOUNTS",
-                    name: "National Accounts & Macro Statistics",
-                    domain: "Statistical",
-                    desc: "GDP estimation, GVA, supply-use tables and deflators.",
-                  },
-                  {
-                    code: "DIGITAL_DATA_QUALITY",
-                    name: "Data Quality & Metadata Standards",
-                    domain: "Governance",
-                    desc: "NQAF standards, validation rules, and statistical audit.",
-                  },
-                ].map((item) => (
+                ]).map((item: any) => (
                   <div
                     key={item.code}
                     className="rounded-2xl border border-slate-200 bg-white p-5 flex flex-col justify-between hover:border-teal-400 hover:shadow-md transition-all group"
@@ -267,9 +266,15 @@ export function OfficialAssessments({
                       <h4 className="text-sm font-black text-[#123057] mt-2 group-hover:text-teal-800 transition-colors">
                         {item.name}
                       </h4>
-                      <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                        {item.desc}
+                      <p className="text-xs text-slate-500 mt-1 leading-relaxed line-clamp-2">
+                        {item.description || item.desc}
                       </p>
+                      <div className="mt-2 text-[11px] font-semibold text-slate-400">
+                        Required Level: <strong className="text-slate-700">Level {item.required_level || 4.0}</strong>
+                        {item.current_level != null && (
+                          <span> · Current: <strong className="text-teal-700">Level {item.current_level.toFixed(1)}</strong></span>
+                        )}
+                      </div>
                     </div>
 
                     <button
@@ -283,6 +288,7 @@ export function OfficialAssessments({
                 ))}
               </div>
             </div>
+
 
             {/* Baseline Full Assessment Prompt */}
             <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">

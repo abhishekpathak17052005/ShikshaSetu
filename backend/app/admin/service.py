@@ -17,8 +17,10 @@ def _safe_float(val: Any, default: float = 0.0) -> float:
         return default
 
 
-def get_admin_dashboard(db: Database) -> schemas.AdminDashboardResponse:
+def get_admin_dashboard(db: Database, department: Optional[str] = None) -> schemas.AdminDashboardResponse:
     users = repository.get_all_users(db)
+    if department:
+        users = [u for u in users if department.strip().lower() in (u.get("department") or "").strip().lower()]
     roles = repository.get_all_roles(db)
     competencies = repository.get_all_competencies(db)
     profiles = repository.get_all_competency_profiles(db)
@@ -27,6 +29,7 @@ def get_admin_dashboard(db: Database) -> schemas.AdminDashboardResponse:
     quiz_attempts = repository.get_all_quiz_attempts(db)
     assessments = repository.get_all_capability_assessments(db)
     requirements = repository.get_all_role_requirements(db)
+
 
     officials_count = sum(1 for u in users if u.get("access_role") in ("OFFICIAL", "EMPLOYEE"))
     trainers_count = sum(1 for u in users if u.get("access_role") == "TRAINER")
@@ -123,11 +126,14 @@ def get_admin_dashboard(db: Database) -> schemas.AdminDashboardResponse:
     )
 
 
-def get_workforce_overview(db: Database) -> schemas.WorkforceOverviewResponse:
+def get_workforce_overview(db: Database, department: Optional[str] = None) -> schemas.WorkforceOverviewResponse:
     users = repository.get_all_users(db)
+    if department:
+        users = [u for u in users if department.strip().lower() in (u.get("department") or "").strip().lower()]
     roles = repository.get_all_roles(db)
     competencies = repository.get_all_competencies(db)
     profiles = repository.get_all_competency_profiles(db)
+
 
     role_map = {str(r["_id"]): r.get("role_name", "Official") for r in roles}
     comp_map = {str(c["_id"]): c for c in competencies}
@@ -204,10 +210,21 @@ def get_workforce_overview(db: Database) -> schemas.WorkforceOverviewResponse:
     )
 
 
-def get_competency_analytics(db: Database) -> schemas.CompetencyAnalyticsResponse:
+def get_competency_analytics(db: Database, department: Optional[str] = None) -> schemas.CompetencyAnalyticsResponse:
+    users = repository.get_all_users(db)
+    if department:
+        users = [u for u in users if department.strip().lower() in (u.get("department") or "").strip().lower()]
     competencies = repository.get_all_competencies(db)
     requirements = repository.get_all_role_requirements(db)
     profiles = repository.get_all_competency_profiles(db)
+
+    # If department filter is active, filter profiles to only matching users
+    if department:
+        target_uids = {str(u["_id"]) for u in users}
+        profiles = [p for p in profiles if str(p.get("user_id")) in target_uids]
+        target_role_ids = {str(u.get("role_id")) for u in users if u.get("role_id")}
+        requirements = [r for r in requirements if str(r.get("role_id")) in target_role_ids]
+
 
     # Group profiles by competency
     comp_profiles = defaultdict(list)
@@ -266,11 +283,14 @@ def get_competency_analytics(db: Database) -> schemas.CompetencyAnalyticsRespons
     )
 
 
-def get_skill_gap_analytics(db: Database) -> schemas.SkillGapAnalyticsResponse:
+def get_skill_gap_analytics(db: Database, department: Optional[str] = None) -> schemas.SkillGapAnalyticsResponse:
     users = repository.get_all_users(db)
+    if department:
+        users = [u for u in users if department.strip().lower() in (u.get("department") or "").strip().lower()]
     competencies = repository.get_all_competencies(db)
     requirements = repository.get_all_role_requirements(db)
     profiles = repository.get_all_competency_profiles(db)
+
 
     comp_map = {str(c["_id"]): c for c in competencies}
     user_profiles = defaultdict(dict)
@@ -532,10 +552,13 @@ def get_capacity_planning(db: Database) -> schemas.CapacityPlanningResponse:
     )
 
 
-def get_admin_users(db: Database) -> schemas.AdminUserListResponse:
+def get_admin_users(db: Database, department: Optional[str] = None) -> schemas.AdminUserListResponse:
     users = repository.get_all_users(db)
+    if department:
+        users = [u for u in users if department.strip().lower() in (u.get("department") or "").strip().lower()]
     roles = repository.get_all_roles(db)
     role_map = {str(r["_id"]): r.get("role_name", "Official") for r in roles}
+
 
     items = []
     for u in users:

@@ -446,32 +446,26 @@ def sync_learning_resource_mappings(
     print(f"  -> Inserted {len(mappings)} learning resource mappings.")
 
 
-def sync_users(database: Database, role_id: ObjectId) -> None:
+def sync_users(database: Database, default_role_id: ObjectId) -> None:
     """
-    Step 8: Ensure all users have valid role_id pointing to STATISTICAL_OFFICER,
-    migrate legacy EMPLOYEE to OFFICIAL, and upsert standard demo accounts for all 3 roles.
+    Step 8: Resolve department-specific role_id for each user, migrate legacy access roles,
+    seed multi-department demo accounts, and safely reconcile user competency profiles.
     """
-    print("\n[8/11] Verifying & Preserving Users & System Roles...")
+    print("\n[8/11] Verifying & Preserving Users & Department Roles...")
     now = datetime.now(UTC)
+    from app.roles.resolver import resolve_role_for_user, reconcile_user_competencies
 
-    # 1. Update any missing/legacy role_id to STATISTICAL_OFFICER
-    res_roles = database.users.update_many(
-        {"role_id": {"$ne": role_id}},
-        {"$set": {"role_id": role_id, "updated_at": now}},
-    )
-
-    # 2. Migrate legacy access_role: EMPLOYEE -> OFFICIAL
+    # 1. Migrate legacy access_role: EMPLOYEE -> OFFICIAL
     res_access = database.users.update_many(
         {"$or": [{"access_role": "EMPLOYEE"}, {"access_role": {"$exists": False}}]},
         {"$set": {"access_role": "OFFICIAL", "updated_at": now}},
     )
 
-    # 3. Seed / Upsert the 3 standard system role demo accounts
+    # 2. Seed / Upsert the standard multi-department system role demo accounts
     demo_accounts = [
         {
             "email": "official@shikshasetu.gov.in",
             "full_name": "Demo Official (Statistical Officer)",
-            "role_id": role_id,
             "designation": "Statistical Officer",
             "department": "National Sample Survey Office (NSSO)",
             "employee_id": "DEMO-OFF-001",
@@ -481,7 +475,6 @@ def sync_users(database: Database, role_id: ObjectId) -> None:
         {
             "email": "trainer@shikshasetu.gov.in",
             "full_name": "Demo Trainer (NSSTA Faculty)",
-            "role_id": role_id,
             "designation": "Senior Faculty & Trainer",
             "department": "National Statistical Systems Training Academy (NSSTA)",
             "employee_id": "DEMO-TRN-001",
@@ -491,20 +484,48 @@ def sync_users(database: Database, role_id: ObjectId) -> None:
         {
             "email": "admin@shikshasetu.gov.in",
             "full_name": "Demo Administrator (MoSPI HQ)",
-            "role_id": role_id,
             "designation": "Director (Capability & Human Capital)",
             "department": "Ministry of Statistics & Programme Implementation",
             "employee_id": "DEMO-ADM-001",
             "access_role": "ADMIN",
             "status": "active",
         },
+        {
+            "email": "edu.officer@shikshasetu.gov.in",
+            "full_name": "Dr. Ramesh Verma (Education Officer)",
+            "designation": "Teacher",
+            "department": "Ministry of Education",
+            "employee_id": "DEMO-EDU-001",
+            "access_role": "OFFICIAL",
+            "status": "active",
+        },
+        {
+            "email": "meity.officer@shikshasetu.gov.in",
+            "full_name": "Priya Sundaram (Informatics Officer)",
+            "designation": "Informatics Officer / Scientist 'B'",
+            "department": "Ministry of Electronics and Information Technology (MeitY)",
+            "employee_id": "DEMO-MEITY-001",
+            "access_role": "OFFICIAL",
+            "status": "active",
+        },
+        {
+            "email": "finance.officer@shikshasetu.gov.in",
+            "full_name": "Amitabh Sen (Accounts Officer)",
+            "designation": "Accounts Officer (AAO / AO)",
+            "department": "Ministry of Finance",
+            "employee_id": "DEMO-FIN-001",
+            "access_role": "OFFICIAL",
+            "status": "active",
+        },
     ]
 
     for acc in demo_accounts:
+        resolved_r_oid = resolve_role_for_user(database, acc["department"], acc["designation"]) or default_role_id
         existing = database.users.find_one({"email": acc["email"]})
         if not existing:
             doc = {
                 **acc,
+                "role_id": resolved_r_oid,
                 "password_hash": hash_password("Password123!"),
                 "created_at": now,
                 "updated_at": now,
@@ -515,6 +536,7 @@ def sync_users(database: Database, role_id: ObjectId) -> None:
             database.users.update_one(
                 {"_id": existing["_id"]},
                 {"$set": {
+                    "role_id": resolved_r_oid,
                     "access_role": acc["access_role"],
                     "designation": acc["designation"],
                     "department": acc["department"],
@@ -523,8 +545,19 @@ def sync_users(database: Database, role_id: ObjectId) -> None:
                 }}
             )
 
+    # 3. Resolve role and reconcile competency profiles for all active users
+    all_users = list(database.users.find({}))
+    reconciled_count = 0
+    for u in all_users:
+        dept = u.get("department")
+        desig = u.get("designation")
+        user_role_id = resolve_role_for_user(database, dept, desig) or default_role_id
+        reconcile_user_competencies(database, u["_id"], user_role_id)
+        reconciled_count += 1
+
     total_users = database.users.count_documents({})
-    print(f"  -> Total users: {total_users} (Updated role_id: {res_roles.modified_count}, migrated access_role: {res_access.modified_count}, seeded/verified 3 role demo accounts).")
+    print(f"  -> Total users: {total_users} (Reconciled department roles for {reconciled_count} users, migrated access_role: {res_access.modified_count}).")
+
 
 
 def sync_initial_assessment(

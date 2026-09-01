@@ -23,8 +23,16 @@ class FakeCollection:
                 return document
         return None
 
+    def find(self, query: dict | None = None, projection: dict | None = None):
+        if not query:
+            return list(self.documents)
+        return [
+            d for d in self.documents
+            if all(d.get(k) == v for k, v in query.items())
+        ]
+
     def insert_one(self, document: dict) -> None:
-        if self.find_one({"email": document["email"]}) or self.find_one({"employee_id": document["employee_id"]}):
+        if self.find_one({"email": document.get("email")}) or self.find_one({"employee_id": document.get("employee_id")}):
             raise DuplicateKeyError("duplicate user")
         document.setdefault("_id", ObjectId())
         self.documents.append(document)
@@ -34,12 +42,18 @@ class FakeCollection:
         if document is not None:
             document.update(update.get("$set", {}))
 
+    def count_documents(self, query: dict) -> int:
+        return len(self.find(query))
+
 
 class FakeDatabase:
     def __init__(self) -> None:
         self.role_id = ObjectId()
-        self.roles = FakeCollection([{"_id": self.role_id, "role_code": "STATISTICAL_OFFICER", "status": "active"}])
+        self.roles = FakeCollection([{"_id": self.role_id, "role_code": "STATISTICAL_OFFICER", "role_name": "Statistical Officer", "status": "active"}])
         self.users = FakeCollection()
+        self.role_requirements = FakeCollection()
+        self.competency_profiles = FakeCollection()
+
 
 
 def make_client() -> tuple[TestClient, FakeDatabase]:

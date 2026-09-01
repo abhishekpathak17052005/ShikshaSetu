@@ -45,15 +45,16 @@ export function OfficialDashboard({ onNavigate }: OfficialDashboardProps) {
         setLoading(true);
         const [gapsRes, compsRes, recsRes, actsRes] = await Promise.allSettled([
           api.skillGaps.me(),
-          api.competencies.list(),
+          api.competencies.me(),
           api.recommendations.me(),
           api.learningActivities.list(),
         ]);
 
         if (gapsRes.status === "fulfilled") setSkillGaps(gapsRes.value);
-        if (compsRes.status === "fulfilled") setCompetencies(compsRes.value);
+        if (compsRes.status === "fulfilled") setCompetencies(compsRes.value as any);
         if (recsRes.status === "fulfilled") setRecommendations(recsRes.value);
         if (actsRes.status === "fulfilled") setActivities(actsRes.value);
+
       } catch (err: any) {
         toast.error(err.message || "Failed to load dashboard data");
       } finally {

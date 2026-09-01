@@ -82,6 +82,25 @@ export type Competency = {
   level_definitions: Record<string, string> | string[];
 };
 
+export type UserApplicableCompetency = {
+  id: string;
+  code: string;
+  name: string;
+  domain: string;
+  description: string;
+  required_level: number;
+  priority: number;
+  importance: number;
+  current_level: number | null;
+  confidence: number;
+  gap: number;
+  gap_category: string;
+  last_assessed_at: string | null;
+  indicator: "Strong" | "Developing" | "Needs Attention" | "Not Assessed" | string;
+  level_definitions: Record<string, string>;
+};
+
+
 // ─── Skill Gaps ─────────────────────────────────────────────────────────────
 
 export type SkillGap = {
@@ -362,15 +381,22 @@ export type TrainerQuiz = {
 };
 
 export type TrainerDashboard = {
-  materials_count: number;
+  materials_count?: number;
+  total_materials_uploaded?: number;
   questions_count?: number;
   generated_questions_count?: number;
+  total_questions_generated?: number;
   pending_review_count?: number;
   pending_questions_count?: number;
-  approved_questions_count: number;
+  questions_pending_review?: number;
+  approved_questions_count?: number;
+  questions_approved?: number;
   rejected_questions_count?: number;
+  questions_rejected?: number;
   quizzes_count?: number;
-  published_quizzes_count: number;
+  total_quizzes_created?: number;
+  published_quizzes_count?: number;
+  published_quizzes?: number;
   assigned_quizzes_count?: number;
   total_assigned_learners?: number;
   total_attempts_evaluated?: number;
@@ -390,13 +416,17 @@ export type QuizAssignment = {
 
 export type AssignedQuiz = {
   quiz_id: string;
+  id?: string;
+  _id?: string;
   title: string;
   description: string;
+  competency_code?: string;
   question_count: number;
-  status: "NOT_STARTED" | "IN_PROGRESS" | "COMPLETED";
+  status: "NOT_STARTED" | "IN_PROGRESS" | "COMPLETED" | string;
   assigned_at: string;
   trainer_name: string;
 };
+
 
 export type TrainerLearnerAttempt = {
   attempt_id: string;
@@ -792,8 +822,10 @@ export const api = {
   // Competencies
   competencies: {
     list: () => request<Competency[]>("/competencies"),
+    me: () => request<UserApplicableCompetency[]>("/competencies/me"),
     get: (id: string) => request<Competency>(`/competencies/${id}`),
   },
+
 
   // Roles
   roles: {
@@ -1062,16 +1094,22 @@ export const api = {
 
   // ─── Admin namespace ────────────────────────────────────────────────────────
   admin: {
-    dashboard: () => request<AdminDashboardResponse>("/admin/dashboard"),
-    workforce: () => request<WorkforceOverviewResponse>("/admin/workforce"),
-    competencies: () => request<CompetencyAnalyticsResponse>("/admin/competencies"),
-    skillGaps: () => request<SkillGapAnalyticsResponse>("/admin/skill-gaps"),
+    dashboard: (department?: string) =>
+      request<AdminDashboardResponse>(`/admin/dashboard${department ? `?department=${encodeURIComponent(department)}` : ""}`),
+    workforce: (department?: string) =>
+      request<WorkforceOverviewResponse>(`/admin/workforce${department ? `?department=${encodeURIComponent(department)}` : ""}`),
+    competencies: (department?: string) =>
+      request<CompetencyAnalyticsResponse>(`/admin/competencies${department ? `?department=${encodeURIComponent(department)}` : ""}`),
+    skillGaps: (department?: string) =>
+      request<SkillGapAnalyticsResponse>(`/admin/skill-gaps${department ? `?department=${encodeURIComponent(department)}` : ""}`),
     trainingEffectiveness: () => request<TrainingEffectivenessResponse>("/admin/training-effectiveness"),
     emergingSkills: () => request<EmergingSkillsResponse>("/admin/emerging-skills"),
     capacityPlanning: () => request<CapacityPlanningResponse>("/admin/capacity-planning"),
-    users: () => request<AdminUserListResponse>("/admin/users"),
+    users: (department?: string) =>
+      request<AdminUserListResponse>(`/admin/users${department ? `?department=${encodeURIComponent(department)}` : ""}`),
     reports: () => request<AdminReportsResponse>("/admin/reports"),
   },
+
 
   // ─── iGOT Karmayogi Ecosystem namespace ─────────────────────────────────────
   igot: {

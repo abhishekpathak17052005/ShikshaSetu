@@ -26,13 +26,19 @@ def build_user_capability_context(
         return {}
 
     # 1. User Metadata
+    role_doc = database.roles.find_one({"_id": user.get("role_id")}) if user.get("role_id") else None
+    role_name = role_doc.get("role_name") if role_doc else (user.get("designation") or "Civil Services Official")
+    role_code = role_doc.get("role_code") if role_doc else "OFFICIAL"
+
     profile_summary = {
         "full_name": user.get("full_name", "Officer"),
         "designation": user.get("designation", "Civil Services Official"),
         "department": user.get("department", "Government of India"),
-        "role_code": user.get("role", "Statistical Officer"),
+        "role_name": role_name,
+        "role_code": role_code,
         "access_role": user.get("access_role", "OFFICIAL"),
     }
+
 
     # 2. Skill Gaps Calculation
     gaps_list = []

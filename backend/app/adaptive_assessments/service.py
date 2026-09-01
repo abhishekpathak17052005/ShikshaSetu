@@ -117,8 +117,22 @@ class AdaptiveAssessmentService:
                 detail=f"Competency code '{request.competency_code}' not found in framework",
             )
 
+        # Validate that competency is applicable to the user's assigned role
+        user = self.db.users.find_one({"_id": user_oid})
+        if user and user.get("access_role") in ("OFFICIAL", "EMPLOYEE"):
+            role_id = user.get("role_id")
+            if role_id:
+                reqs = list(self.db.role_requirements.find({"role_id": role_id}))
+                req_comp_ids = {str(r.get("competency_id")) for r in reqs if "competency_id" in r}
+                if req_comp_ids and str(competency_oid) not in req_comp_ids:
+                    raise HTTPException(
+                        status_code=status.HTTP_403_FORBIDDEN,
+                        detail=f"Competency '{request.competency_code}' is not applicable to your department/role.",
+                    )
+
         initial_theta = DEFAULT_INITIAL_THETA
         initial_diff = "MEDIUM"
+
 
         # Select initial item
         first_q = self._select_next_question(
@@ -342,7 +356,8 @@ class AdaptiveAssessmentService:
             "user_id": user_oid,
             "competency_id": competency_oid,
         })
-        prev_level = float(prev_profile.get("current_level", 0.0)) if prev_profile else 0.0
+        prev_level = float(prev_profile.get("current_level") or 0.0) if prev_profile else 0.0
+
 
         # 2. Fetch Previous Skill Gap
         prev_gap = 0.0

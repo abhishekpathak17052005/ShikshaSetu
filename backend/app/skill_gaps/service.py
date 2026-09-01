@@ -48,12 +48,24 @@ def calculate_skill_gaps(database: Database | None, user_id: str) -> SkillGapRes
     # 1. Get user's professional role
     role_doc = repository.get_user_role(db, user_id)
     if role_doc is None:
+        from bson import ObjectId
+        from app.roles.resolver import resolve_role_for_user, reconcile_user_competencies
+        u_oid = ObjectId(user_id) if ObjectId.is_valid(user_id) else None
+        user = db.users.find_one({"_id": u_oid}) if u_oid else None
+        if user:
+            resolved_role_id = resolve_role_for_user(db, user.get("department"), user.get("designation"))
+            if resolved_role_id:
+                reconcile_user_competencies(db, u_oid, resolved_role_id)
+                role_doc = db.roles.find_one({"_id": resolved_role_id})
+
+    if role_doc is None:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail="User does not have a professional role assigned",
         )
     
     role_id = str(role_doc["_id"])
+
     
     # 2. Get role's competency requirements
     requirements = repository.get_role_requirements_with_competencies(db, role_id)

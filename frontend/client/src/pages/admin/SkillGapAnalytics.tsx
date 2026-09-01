@@ -10,6 +10,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { api, SkillGapAnalyticsResponse, OrganizationGapItem } from "@/lib/api";
+import { DEPARTMENT_TAXONOMY } from "@/lib/departments";
 import { toast } from "sonner";
 
 interface SkillGapAnalyticsProps {
@@ -20,11 +21,13 @@ export function SkillGapAnalytics({ onNavigate }: SkillGapAnalyticsProps) {
   const [data, setData] = useState<SkillGapAnalyticsResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedPriority, setSelectedPriority] = useState("ALL");
+  const [selectedDepartment, setSelectedDepartment] = useState("ALL");
 
-  const fetchGaps = async () => {
+  const fetchGaps = async (dept?: string) => {
     try {
       setLoading(true);
-      const res = await api.admin.skillGaps();
+      const targetDept = dept !== undefined ? dept : selectedDepartment;
+      const res = await api.admin.skillGaps(targetDept === "ALL" ? undefined : targetDept);
       setData(res);
     } catch (err: any) {
       toast.error(err.message || "Failed to load skill gap analytics");
@@ -34,8 +37,8 @@ export function SkillGapAnalytics({ onNavigate }: SkillGapAnalyticsProps) {
   };
 
   useEffect(() => {
-    fetchGaps();
-  }, []);
+    fetchGaps(selectedDepartment);
+  }, [selectedDepartment]);
 
   const filteredGaps = (data?.top_organization_gaps || []).filter((g) => {
     if (selectedPriority === "ALL") return true;
@@ -55,13 +58,32 @@ export function SkillGapAnalytics({ onNavigate }: SkillGapAnalyticsProps) {
           </p>
         </div>
 
-        <button
-          onClick={fetchGaps}
-          className="flex items-center gap-1.5 rounded-xl border border-[#e0daef] bg-white px-4 py-2 text-xs font-bold text-[#4b36a8] shadow-sm hover:bg-purple-50 transition-all"
-        >
-          <RefreshCw size={14} className={loading ? "animate-spin" : ""} /> Refresh Analytics
-        </button>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <label className="text-xs font-bold text-slate-500 whitespace-nowrap">Department:</label>
+            <select
+              value={selectedDepartment}
+              onChange={(e) => setSelectedDepartment(e.target.value)}
+              className="rounded-xl border border-purple-200 bg-white px-3 py-2 text-xs font-bold text-[#4b36a8] focus:border-[#4b36a8] focus:outline-none shadow-sm"
+            >
+              <option value="ALL">All Ministries & Departments</option>
+              {DEPARTMENT_TAXONOMY.map((d) => (
+                <option key={d.department_code} value={d.department_name}>
+                  {d.department_name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <button
+            onClick={() => fetchGaps()}
+            className="flex items-center gap-1.5 rounded-xl border border-[#e0daef] bg-white px-4 py-2 text-xs font-bold text-[#4b36a8] shadow-sm hover:bg-purple-50 transition-all"
+          >
+            <RefreshCw size={14} className={loading ? "animate-spin" : ""} /> Refresh
+          </button>
+        </div>
       </div>
+
 
       {/* 4 Priority Counters */}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">

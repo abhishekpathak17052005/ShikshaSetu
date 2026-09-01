@@ -12,7 +12,8 @@ import {
   RefreshCw,
   X,
 } from "lucide-react";
-import { api, Competency, SkillGapResponse } from "@/lib/api";
+import { api, UserApplicableCompetency, SkillGapResponse } from "@/lib/api";
+import { useAuth } from "@/contexts/AuthContext";
 import { useTranslation } from "@/i18n";
 import { toast } from "sonner";
 
@@ -21,8 +22,9 @@ interface OfficialCompetenciesProps {
 }
 
 export function OfficialCompetencies({ onNavigate }: OfficialCompetenciesProps) {
+  const { user } = useAuth();
   const { t, isHindi } = useTranslation();
-  const [competencies, setCompetencies] = useState<Competency[]>([]);
+  const [competencies, setCompetencies] = useState<UserApplicableCompetency[]>([]);
   const [skillGaps, setSkillGaps] = useState<SkillGapResponse | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -35,10 +37,13 @@ export function OfficialCompetencies({ onNavigate }: OfficialCompetenciesProps) 
     try {
       setLoading(true);
       const [comps, gaps] = await Promise.all([
-        api.competencies.list(),
+        api.competencies.me().catch(async () => {
+          // Fallback if me endpoint errors
+          return api.competencies.list() as any;
+        }),
         api.skillGaps.me().catch(() => null),
       ]);
-      setCompetencies(comps);
+      setCompetencies(comps || []);
       setSkillGaps(gaps);
     } catch (err: any) {
       toast.error(err.message || "Failed to load competency framework");
@@ -51,18 +56,18 @@ export function OfficialCompetencies({ onNavigate }: OfficialCompetenciesProps) 
     fetchData();
   }, []);
 
-  const gapMap = new Map((skillGaps?.gaps || []).map((g) => [g.competency_id, g]));
-
   const rows = competencies.map((comp) => {
-    const profile = gapMap.get(comp.id) || gapMap.get((comp as any)._id);
-    let indicator = "Not Assessed";
-    if (profile && profile.current_level != null) {
-      if (profile.gap <= 0) indicator = "Strong";
-      else if (profile.gap <= 1.0) indicator = "Developing";
-      else indicator = "Needs Attention";
+    let indicator = comp.indicator || "Not Assessed";
+    if (!comp.indicator) {
+      if (comp.current_level != null) {
+        if (comp.gap <= 0) indicator = "Strong";
+        else if (comp.gap <= 1.0) indicator = "Developing";
+        else indicator = "Needs Attention";
+      }
     }
-    return { ...comp, profile, indicator };
+    return { ...comp, indicator };
   });
+
 
   const domains = ["ALL", ...Array.from(new Set(competencies.map((c) => c.domain)))];
 
@@ -88,6 +93,15 @@ export function OfficialCompetencies({ onNavigate }: OfficialCompetenciesProps) 
           <p className="text-sm text-slate-500 mt-1">
             Civil service capability framework benchmarks and your assessed proficiency levels.
           </p>
+          {user && (
+            <div className="mt-2 flex flex-wrap items-center gap-2 text-xs font-semibold text-slate-600">
+              <span className="rounded-md bg-teal-50 px-2 py-0.5 text-teal-800 font-bold">{user.department}</span>
+              <span>·</span>
+              <span className="text-slate-700">{user.designation}</span>
+              <span>·</span>
+              <span className="text-teal-700 font-bold">{competencies.length} Applicable Competencies</span>
+            </div>
+          )}
         </div>
 
         <div className="flex items-center gap-3">
@@ -183,11 +197,12 @@ export function OfficialCompetencies({ onNavigate }: OfficialCompetenciesProps) 
       ) : (
         <div className="space-y-4">
           {filteredRows.map((item) => {
-            const hasScore = item.profile?.current_level != null;
-            const current = item.profile?.current_level || 0;
-            const required = item.profile?.required_level || 4.0;
-            const gap = item.profile?.gap != null ? item.profile.gap : null;
-            const confidencePct = item.profile?.confidence != null ? Math.round(item.profile.confidence * 100) : null;
+            const hasScore = item.current_level != null;
+            const current = item.current_level || 0;
+            const required = item.required_level || 4.0;
+            const gap = item.gap != null ? item.gap : null;
+            const confidencePct = item.confidence != null ? Math.round(item.confidence * 100) : null;
+
 
             return (
               <div

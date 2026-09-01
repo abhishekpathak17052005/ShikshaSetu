@@ -29,8 +29,19 @@ def database_or_error(request: Request):
 @router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 def register(request: Request, payload: RegisterRequest) -> dict:
     database = database_or_error(request)
-    if not repository.role_exists(database, payload.role_id):
-        raise HTTPException(status_code=422, detail="role_id must reference an active role")
+    from app.roles.resolver import resolve_role_for_user, reconcile_user_competencies
+
+    # If role_id explicitly provided, validate it exists; otherwise resolve from department + designation
+    if payload.role_id:
+        role_oid = repository.object_id(payload.role_id)
+        if not role_oid or not repository.role_exists(database, payload.role_id):
+            raise HTTPException(status_code=422, detail="role_id must reference an active role")
+    else:
+        role_oid = resolve_role_for_user(database, payload.department, payload.designation)
+        if not role_oid:
+            raise HTTPException(status_code=422, detail="Unable to resolve an active role for the specified department and designation")
+
+
     if repository.get_user_by_email(database, str(payload.email)) is not None:
         raise HTTPException(status_code=409, detail="Registration could not be completed")
 
@@ -51,7 +62,7 @@ def register(request: Request, payload: RegisterRequest) -> dict:
         "email": str(payload.email),
         "password_hash": hash_password(payload.password),
         "full_name": payload.full_name,
-        "role_id": repository.object_id(payload.role_id),
+        "role_id": role_oid,
         "designation": payload.designation,
         "department": payload.department,
         "employee_id": payload.employee_id,
@@ -62,10 +73,12 @@ def register(request: Request, payload: RegisterRequest) -> dict:
         "last_login_at": None,
     }
     try:
-        repository.insert_user(database, document)
+        inserted_id = repository.insert_user(database, document)
+        reconcile_user_competencies(database, inserted_id, role_oid)
     except DuplicateKeyError:
         raise HTTPException(status_code=409, detail="Registration could not be completed") from None
     return public_user(document)
+
 
 
 @router.post("/login", response_model=TokenResponse)

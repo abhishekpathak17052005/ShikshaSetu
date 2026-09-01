@@ -1,7 +1,5 @@
-"""Router for Admin organizational intelligence endpoints."""
-
-from typing import Annotated
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from typing import Optional
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from pymongo.database import Database
 
 from app.admin import schemas, service
@@ -29,9 +27,12 @@ def _get_db(request: Request) -> Database:
     response_model=schemas.AdminDashboardResponse,
     summary="Get executive admin dashboard metrics",
 )
-def get_dashboard(request: Request) -> schemas.AdminDashboardResponse:
+def get_dashboard(
+    request: Request,
+    department: Optional[str] = Query(None, description="Filter metrics by department"),
+) -> schemas.AdminDashboardResponse:
     db = _get_db(request)
-    return service.get_admin_dashboard(db)
+    return service.get_admin_dashboard(db, department=department)
 
 
 @router.get(
@@ -39,9 +40,12 @@ def get_dashboard(request: Request) -> schemas.AdminDashboardResponse:
     response_model=schemas.WorkforceOverviewResponse,
     summary="Get workforce breakdown and capability distribution",
 )
-def get_workforce(request: Request) -> schemas.WorkforceOverviewResponse:
+def get_workforce(
+    request: Request,
+    department: Optional[str] = Query(None, description="Filter workforce by department"),
+) -> schemas.WorkforceOverviewResponse:
     db = _get_db(request)
-    return service.get_workforce_overview(db)
+    return service.get_workforce_overview(db, department=department)
 
 
 @router.get(
@@ -49,9 +53,12 @@ def get_workforce(request: Request) -> schemas.WorkforceOverviewResponse:
     response_model=schemas.CompetencyAnalyticsResponse,
     summary="Get organization-wide competency analytics",
 )
-def get_competencies(request: Request) -> schemas.CompetencyAnalyticsResponse:
+def get_competencies(
+    request: Request,
+    department: Optional[str] = Query(None, description="Filter competency analytics by department"),
+) -> schemas.CompetencyAnalyticsResponse:
     db = _get_db(request)
-    return service.get_competency_analytics(db)
+    return service.get_competency_analytics(db, department=department)
 
 
 @router.get(
@@ -59,9 +66,12 @@ def get_competencies(request: Request) -> schemas.CompetencyAnalyticsResponse:
     response_model=schemas.SkillGapAnalyticsResponse,
     summary="Get organization-wide skill gap analytics",
 )
-def get_skill_gaps(request: Request) -> schemas.SkillGapAnalyticsResponse:
+def get_skill_gaps(
+    request: Request,
+    department: Optional[str] = Query(None, description="Filter skill gap analytics by department"),
+) -> schemas.SkillGapAnalyticsResponse:
     db = _get_db(request)
-    return service.get_skill_gap_analytics(db)
+    return service.get_skill_gap_analytics(db, department=department)
 
 
 @router.get(
@@ -99,9 +109,12 @@ def get_capacity_planning(request: Request) -> schemas.CapacityPlanningResponse:
     response_model=schemas.AdminUserListResponse,
     summary="Get organizational user directory",
 )
-def get_users(request: Request) -> schemas.AdminUserListResponse:
+def get_users(
+    request: Request,
+    department: Optional[str] = Query(None, description="Filter users by department"),
+) -> schemas.AdminUserListResponse:
     db = _get_db(request)
-    return service.get_admin_users(db)
+    return service.get_admin_users(db, department=department)
 
 
 @router.get(
@@ -112,3 +125,4 @@ def get_users(request: Request) -> schemas.AdminUserListResponse:
 def get_reports(request: Request) -> schemas.AdminReportsResponse:
     db = _get_db(request)
     return service.get_admin_reports(db)
+

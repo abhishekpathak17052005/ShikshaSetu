@@ -3,9 +3,36 @@ from typing import Annotated
 
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints, field_validator
 
-from app.competencies.models import Domain, EvidenceType, FrameworkStatus, SourceType
+from app.competencies.models import (
+    Domain,
+    EvidenceType,
+    FrameworkStatus,
+    SourceType,
+)
 
 Code = Annotated[str, StringConstraints(pattern=r"^[A-Z][A-Z0-9_]{2,63}$")]
+
+
+class CompetencyProfile(BaseModel):
+    user_id: str
+    competency_id: str
+    current_level: float = Field(ge=1.0, le=5.0)
+    confidence: float = Field(ge=0.0, le=1.0)
+    status: str = "active"
+    created_at: datetime
+    updated_at: datetime
+
+
+class CompetencyEvidence(BaseModel):
+    user_id: str
+    competency_id: str
+    evidence_type: EvidenceType
+    score: float = Field(ge=0.0, le=5.0)
+    weight: float = Field(ge=0.0, le=1.0)
+    source: str
+    created_at: datetime
+
+
 
 
 class CompetencyResponse(BaseModel):
@@ -72,14 +99,20 @@ class CompetencyProfile(BaseModel):
     updated_at: datetime
 
 
-class CompetencyEvidence(BaseModel):
-    user_id: str
-    competency_id: str
-    evidence_type: EvidenceType
-    score: float = Field(ge=0, le=5)
-    weight: float = Field(ge=0, le=1)
-    source: str
-    assessment_id: str | None = None
-    quiz_id: str | None = None
-    metadata: dict[str, object] = Field(default_factory=dict)
-    created_at: datetime
+class UserApplicableCompetencyResponse(BaseModel):
+    id: str
+    code: str
+    name: str
+    domain: str
+    description: str
+    required_level: float
+    priority: int
+    importance: float
+    current_level: float | None = None
+    confidence: float = 0.0
+    gap: float = 0.0
+    gap_category: str = "NOT_ASSESSED"
+    last_assessed_at: datetime | None = None
+    indicator: str = "Not Assessed"
+    level_definitions: dict[str, str] = Field(default_factory=dict)
+
