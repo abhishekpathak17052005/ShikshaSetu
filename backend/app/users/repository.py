@@ -23,8 +23,14 @@ def get_user_by_email(database: Database, email: str) -> dict | None:
 
 
 def get_user_by_id(database: Database, user_id: str) -> dict | None:
+    if database is None or not user_id:
+        return None
     user_object_id = object_id(user_id)
-    return database.users.find_one({"_id": user_object_id}) if user_object_id else None
+    if user_object_id:
+        user = database.users.find_one({"_id": user_object_id})
+        if user:
+            return user
+    return database.users.find_one({"_id": str(user_id)})
 
 
 def role_exists(database: Database, role_id: str) -> bool:

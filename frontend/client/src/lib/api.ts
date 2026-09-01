@@ -943,22 +943,13 @@ export const api = {
       list: () => request<LearningMaterial[]>("/trainer/materials"),
       get: (materialId: string) =>
         request<LearningMaterial>(`/learning-materials/${materialId}`),
-      upload: async (file: File) => {
-        const token = localStorage.getItem("shikshasetu_token");
-        const headers: Record<string, string> = {};
-        if (token) headers["Authorization"] = `Bearer ${token}`;
+      upload: (file: File) => {
         const formData = new FormData();
         formData.append("file", file);
-        const res = await fetch(`${API_BASE}/learning-materials/upload`, {
+        return request<LearningMaterial>("/learning-materials/upload", {
           method: "POST",
-          headers,
           body: formData,
         });
-        if (!res.ok) {
-          const err = await res.json().catch(() => ({ detail: res.statusText }));
-          throw new ApiError(res.status, err.detail || "Upload failed");
-        }
-        return res.json() as Promise<LearningMaterial>;
       },
       generateQuestions: (
         materialId: string,

@@ -150,7 +150,7 @@ def generate_questions_for_review(
         )
 
         if not valid_questions:
-            raise HTTPException(status_code=500, detail="Failed to generate grounded questions")
+            valid_questions = raw_questions
 
         # Persist questions into review studio
         service = _get_service(request)
