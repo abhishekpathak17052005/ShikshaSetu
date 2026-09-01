@@ -89,10 +89,10 @@ export function OfficialRecommendations({
   const recommendations = data?.recommendations || [];
 
   const filtered = recommendations.filter((item) => {
-    const provider = item.provider || (item as any).resource?.provider;
-    const matchProvider = selectedProvider === "ALL" || provider === selectedProvider;
+    const provider = item.provider || (item as any).resource?.provider || "";
+    const matchProvider = selectedProvider === "ALL" || provider.toUpperCase() === selectedProvider.toUpperCase();
     const matchComp = !competencyCode || item.competency_code === competencyCode;
-    const gapSize = (item as any).explanation?.gap_size ?? 1.0;
+    const gapSize = (item as any).explanation?.gap_size ?? (item as any).gap ?? 1.0;
     const matchPriority = selectedPriority === "ALL" || (selectedPriority === "HIGH" && gapSize > 1.0);
 
     return matchProvider && matchComp && matchPriority;
@@ -243,11 +243,11 @@ export function OfficialRecommendations({
 
                   {/* Title & Metadata */}
                   <h3 className="text-lg font-bold text-[#123057] mt-3 group-hover:text-teal-800 transition-colors line-clamp-2">
-                    {item.resource_title || item.title || "Targeted Capability Course"}
+                    {item.resource_title || item.title || (item as any).resource?.title || "Targeted Capability Course"}
                   </h3>
 
                   <p className="text-xs text-slate-500 mt-1">
-                    {item.competency_name || "Mapped capability resource"} · {item.duration_hours ? `${item.duration_hours} hrs` : "Self-paced"}
+                    {item.competency_name || "Mapped capability resource"} · {item.duration_hours || (item as any).resource?.metadata?.duration_hours ? `${item.duration_hours || (item as any).resource?.metadata?.duration_hours} hrs` : "Self-paced"}
                   </p>
 
                   {/* Grounded Summary */}

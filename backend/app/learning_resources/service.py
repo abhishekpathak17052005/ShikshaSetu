@@ -59,39 +59,39 @@ class RecommendationService:
         from bson import ObjectId
 
         # 1. Get user's skill gaps
+        user = self.db.users.find_one({"$or": [{"_id": ObjectId(user_id) if ObjectId.is_valid(user_id) else None}, {"_id": user_id}]})
+        user_role = (user.get("designation") or user.get("role") or "Statistical Officer") if user else "Statistical Officer"
+
+        gaps = []
         try:
             gap_response = gaps_service.calculate_skill_gaps(self.db, user_id)
             # Convert Pydantic models to dicts
             gaps = [gap.model_dump() if hasattr(gap, 'model_dump') else gap for gap in gap_response.gaps]
         except Exception:
-            # User might have no role or no gaps
-            user = self.db.users.find_one({"_id": ObjectId(user_id)})
-            role = user.get("role", "Unknown") if user else "Unknown"
-
-            return RecommendationResponse(
-                user_id=user_id,
-                role=role,
-                total_recommendations=0,
-                recommendations=[],
-                metadata={"reason": "No skill gaps identified or role not configured"},
-            )
+            gaps = []
 
         if not gaps:
-            # User has no skill gaps - no recommendations needed
-            user = self.db.users.find_one({"_id": ObjectId(user_id)})
-            role = user.get("role", "Unknown") if user else "Unknown"
-
-            return RecommendationResponse(
-                user_id=user_id,
-                role=role,
-                total_recommendations=0,
-                recommendations=[],
-                metadata={"reason": "No skill gaps identified"},
-            )
-
-        # 2. Get user's role for role matching
-        user = self.db.users.find_one({"_id": ObjectId(user_id)})
-        user_role = user.get("role") if user else None
+            # Generate foundational candidate gaps from active competencies
+            active_comps = list(self.db.competencies.find({"framework_status": {"$ne": "DEPRECATED"}}).limit(10))
+            for comp in active_comps:
+                ccode = comp.get("code") or comp.get("competency_code")
+                cname = comp.get("name") or comp.get("competency_name")
+                if not ccode or not cname:
+                    continue
+                gaps.append({
+                    "competency_id": str(comp["_id"]),
+                    "competency_code": ccode,
+                    "competency_name": cname,
+                    "domain": comp.get("domain", "General"),
+                    "required_level": 3.0,
+                    "current_level": None,
+                    "gap": 3.0,
+                    "gap_category": "MEDIUM",
+                    "priority": 2,
+                    "priority_score": 0.75,
+                    "confidence": 0.0,
+                    "assessment_status": "NOT_ASSESSED",
+                })
 
         # 3. Generate candidates for all gaps
         all_candidates: Dict[str, List[CandidateResource]] = (

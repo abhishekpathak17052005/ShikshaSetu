@@ -77,9 +77,9 @@ def calculate_skill_gaps(database: Database | None, user_id: str) -> SkillGapRes
         competency_id_str = str(req["competency_id"])
         profile = profiles.get(competency_id_str)
         
-        current_level = profile["current_level"] if profile else None
+        current_level = profile.get("current_level") if (profile and profile.get("current_level") is not None) else (profile.get("level") if profile else None)
         confidence = profile.get("confidence", 0.0) if profile else 0.0
-        last_assessed_at = profile.get("last_assessed_at") if profile else None
+        last_assessed_at = profile.get("last_assessed_at") or profile.get("last_updated_at") if profile else None
         
         gap_item = engine.build_gap_item(
             competency_id=competency_id_str,

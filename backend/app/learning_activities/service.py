@@ -150,7 +150,7 @@ def complete_learning_activity(
         "competency_id": activity["competency_id"],
     })
     
-    current_level = current_profile["current_level"] if current_profile else 0
+    current_level = current_profile.get("current_level") if (current_profile and current_profile.get("current_level") is not None) else (current_profile.get("level", 0) if current_profile else 0)
     
     # NOTE: We DO NOT update the competency level here.
     # Competency updates only come from ASSESSMENT/QUIZ evidence (type: CAPABILITY_ASSESSMENT)
