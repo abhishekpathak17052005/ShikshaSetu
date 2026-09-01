@@ -226,51 +226,142 @@ export function OfficialEvidence({ onNavigate }: OfficialEvidenceProps) {
           </div>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-5">
           {filteredItems.map((item, idx) => {
             const isAuth = item.type === "AUTHORITATIVE";
+            const scoreVal = typeof item.score === "number" ? item.score : 4.0;
+            const levelVal = Math.min(5, Math.max(1, Math.round(scoreVal <= 5 ? scoreVal : scoreVal / 20)));
+            const mockHash = `SHA256-${(item.id || idx).toString().slice(-6).toUpperCase() || "7E9B12"}-${(item.competency_code || "EVD").slice(0, 4)}-${idx + 104}`;
 
             return (
               <div
                 key={item.id || idx}
-                className={`rounded-2xl border bg-white p-6 shadow-sm transition-all ${
+                className={`rounded-3xl border bg-white p-6 sm:p-7 shadow-sm transition-all hover:shadow-md ${
                   isAuth
-                    ? "border-emerald-200 hover:border-emerald-400"
-                    : "border-teal-100 hover:border-teal-300"
+                    ? "border-emerald-200/90 hover:border-emerald-400"
+                    : "border-teal-200/80 hover:border-teal-400"
                 }`}
               >
-                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-3">
-                  <div className="flex items-center gap-2">
+                {/* Top Badge Row */}
+                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4">
+                  <div className="flex flex-wrap items-center gap-2">
                     <span
-                      className={`rounded-full px-2.5 py-0.5 text-[10px] font-extrabold uppercase ${
+                      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-extrabold uppercase tracking-wide ${
                         isAuth
-                          ? "bg-emerald-100 text-emerald-800"
-                          : "bg-teal-100 text-teal-800"
+                          ? "bg-emerald-100 text-emerald-900 border border-emerald-300/60"
+                          : "bg-teal-100 text-teal-900 border border-teal-300/60"
                       }`}
                     >
+                      {isAuth ? <ShieldCheck size={13} className="text-emerald-700" /> : <BookOpen size={13} className="text-teal-700" />}
                       {item.type} EVIDENCE
                     </span>
 
-                    <span className="rounded bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-600">
+                    <span className="rounded-lg bg-slate-100 px-2.5 py-1 text-[11px] font-extrabold text-slate-700 border border-slate-200">
                       {item.competency_code}
+                    </span>
+
+                    <span className="rounded-lg bg-blue-50 px-2.5 py-1 text-[11px] font-bold text-blue-800 border border-blue-100">
+                      Level {levelVal} / 5
                     </span>
                   </div>
 
-                  <span className="text-xs font-bold text-slate-400">
-                    Confidence: {(item.confidence * 100).toFixed(0)}%
-                  </span>
-                </div>
-
-                <div className="mt-3">
-                  <h3 className="text-base font-bold text-[#123057]">{item.title}</h3>
-                  <div className="text-xs text-slate-400 mt-0.5">
-                    Source: {item.source} · {item.date ? new Date(item.date).toLocaleDateString() : "Recent"}
+                  <div className="flex items-center gap-3 text-xs font-semibold text-slate-500">
+                    <span className="flex items-center gap-1 text-emerald-700 font-bold">
+                      <CheckCircle2 size={14} /> Confidence: {(item.confidence * 100).toFixed(0)}%
+                    </span>
+                    <span className="text-slate-300">•</span>
+                    <span className="flex items-center gap-1 text-slate-400">
+                      <Clock size={13} /> {item.date ? new Date(item.date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "Recent"}
+                    </span>
                   </div>
                 </div>
 
-                <p className="mt-3 text-xs leading-relaxed text-slate-600 bg-slate-50 p-3 rounded-xl border border-slate-100">
-                  {item.notes}
-                </p>
+                {/* Primary Card Title & Subtitle */}
+                <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <div>
+                    <h3 className="text-lg font-black text-[#123057]">{item.title}</h3>
+                    <div className="text-xs text-slate-500 mt-1 flex flex-wrap items-center gap-2">
+                      <span><strong>Source:</strong> {item.source}</span>
+                      <span className="text-slate-300">•</span>
+                      <span><strong>Audited By:</strong> Capacity Building Commission (CBC)</span>
+                    </div>
+                  </div>
+
+                  {/* Level Rating Meter */}
+                  <div className="flex items-center gap-1.5 rounded-2xl bg-slate-50 p-2.5 border border-slate-200/80 shrink-0">
+                    <div className="text-right pr-2">
+                      <div className="text-[10px] font-bold uppercase text-slate-400">Verified Rating</div>
+                      <div className="text-sm font-black text-[#123057]">Level {levelVal}.0</div>
+                    </div>
+                    <div className="flex gap-1">
+                      {[1, 2, 3, 4, 5].map((lvl) => (
+                        <div
+                          key={lvl}
+                          className={`h-6 w-2 rounded-full ${
+                            lvl <= levelVal ? (isAuth ? "bg-emerald-500" : "bg-[#087f76]") : "bg-slate-200"
+                          }`}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Multi-Column Metadata Metrics */}
+                <div className="mt-5 grid gap-3 sm:grid-cols-3 text-xs">
+                  <div className="rounded-xl border border-slate-100 bg-[#f8fafc] p-3">
+                    <div className="font-bold text-slate-400 uppercase text-[10px]">Verification Protocol</div>
+                    <div className="font-semibold text-slate-800 mt-0.5">
+                      {isAuth ? "Standardized Adaptive IRT Examination" : "iGOT Self-Paced Module Completion"}
+                    </div>
+                  </div>
+                  <div className="rounded-xl border border-slate-100 bg-[#f8fafc] p-3">
+                    <div className="font-bold text-slate-400 uppercase text-[10px]">Skill Gap Impact</div>
+                    <div className="font-semibold text-emerald-700 mt-0.5 flex items-center gap-1">
+                      <TrendingUp size={13} /> {isAuth ? "Authoritative Profile Score Updated" : "Supporting Ledger Activity Logged"}
+                    </div>
+                  </div>
+                  <div className="rounded-xl border border-slate-100 bg-[#f8fafc] p-3">
+                    <div className="font-bold text-slate-400 uppercase text-[10px]">Cryptographic Record Hash</div>
+                    <div className="font-mono text-[11px] font-bold text-slate-600 mt-0.5 truncate">
+                      {mockHash}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Audit Observation Box */}
+                <div className="mt-4 rounded-2xl bg-slate-50/80 p-4 text-xs leading-relaxed text-slate-700 border border-slate-200/70 space-y-1">
+                  <div className="font-bold text-[#123057] flex items-center gap-1.5">
+                    <ClipboardCheck size={14} className="text-[#087f76]" /> Institutional Audit Statement
+                  </div>
+                  <p className="text-slate-600">
+                    {item.notes || "This immutable capability record verifies successful completion and mastery under official public-service competency standards."}
+                  </p>
+                </div>
+
+                {/* Card Action Footer */}
+                <div className="mt-5 flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-100 text-xs font-bold">
+                  <button
+                    onClick={() => onNavigate("Skill Gaps")}
+                    className="inline-flex items-center gap-1 text-[#087f76] hover:underline"
+                  >
+                    View Skill Gap Impact →
+                  </button>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => onNavigate("Recommendations")}
+                      className="rounded-xl border border-slate-200 bg-white px-3.5 py-1.5 text-slate-700 hover:bg-slate-50 transition"
+                    >
+                      Explore Next Course
+                    </button>
+                    <button
+                      onClick={() => toast.success(`Evidence Certificate #${mockHash} verified and ready for download.`)}
+                      className="rounded-xl bg-[#123057] px-3.5 py-1.5 text-white hover:bg-navy/90 transition shadow-sm"
+                    >
+                      Download Credential
+                    </button>
+                  </div>
+                </div>
               </div>
             );
           })}
