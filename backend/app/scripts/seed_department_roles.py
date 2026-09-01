@@ -304,8 +304,10 @@ def sync_department_roles(database: Database) -> dict[str, ObjectId]:
                 "department_code": dept_code,
                 "designations": designations,
                 "status": "active",
-                "framework_status": "prototype",
+                "mapping_status": "PROTOTYPE_CONFIGURED",
+                "source": "INTERNAL_PROTOTYPE_V1",
                 "source_type": "PROTOTYPE",
+                "framework_status": "prototype",
                 "updated_at": now,
             }
 
@@ -334,13 +336,18 @@ def sync_department_roles(database: Database) -> dict[str, ObjectId]:
                     req_docs.append({
                         "role_id": role_id,
                         "competency_id": comp_id,
+                        "competency_code": code,
                         "required_level": float(req["required_level"]),
                         "priority": int(req["priority"]),
                         "importance": float(req["importance"]),
+                        "mapping_status": "PROTOTYPE_CONFIGURED",
+                        "source": "INTERNAL_PROTOTYPE_V1",
+                        "active": True,
                         "framework_status": "prototype",
                         "created_at": now,
                         "updated_at": now,
                     })
+
 
             if req_docs:
                 database.role_requirements.insert_many(req_docs)

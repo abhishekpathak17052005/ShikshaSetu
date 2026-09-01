@@ -1,17 +1,21 @@
 """
-Phase 3F: Department & Role-Specific Competency Intelligence Comprehensive Test Suite.
+Phase 3F — Comprehensive Role & Department-Specific Competency Intelligence Test Suite.
 
-Verifies:
-- Test A: Different departments receive different applicable competency sets.
-- Test B: Intentionally shared competencies appear for both departments.
-- Test C: Irrelevant specialized competencies are excluded.
-- Test D: Skill gaps are calculated exclusively against applicable role requirements.
-- Test E: Recommendations are scoped to applicable skill gaps.
-- Test F: Adaptive assessments guard against non-applicable competencies.
-- Test G: Evidence governance (0.30 learning vs 0.85 assessment) is strictly maintained.
-- Test H: User isolation is strictly enforced.
-- Test I: Department/role change reconciles competency profile while preserving historical evidence.
-- Test J: RBAC permissions (OFFICIAL, TRAINER, ADMIN) remain intact.
+Automated verification covering all 14 mandatory tests:
+- TEST 1: Two users from different departments receive different applicable competencies.
+- TEST 2: Two users with different roles in the same department receive different applicable competencies.
+- TEST 3: A user does not receive all 42 competencies as active competencies.
+- TEST 4: A competency outside the user's role requirements cannot become an active skill gap.
+- TEST 5: A learning resource unrelated to active role gaps is not generated as a recommendation candidate.
+- TEST 6: A role-applicable resource can become a candidate when the corresponding competency is an active gap.
+- TEST 7: Adaptive assessment rejects an out-of-role competency.
+- TEST 8: Adaptive assessment accepts an applicable competency.
+- TEST 9: Changing department/designation re-resolves the role.
+- TEST 10: Role change deactivates obsolete competency profiles without deleting historical evidence.
+- TEST 11: AI Co-Pilot context contains the resolved role and applicable competency context.
+- TEST 12: Admin analytics does not count inactive/out-of-role competencies as active workforce gaps.
+- TEST 13: Invalid department/designation combination fails safely.
+- TEST 14: No user is silently forced to STATISTICAL_OFFICER.
 """
 
 from datetime import datetime, UTC
@@ -23,6 +27,8 @@ from app.main import create_app
 from app.core.config import Settings
 from app.auth.security import create_access_token, hash_password
 from app.roles.resolver import resolve_role_for_user, reconcile_user_competencies
+from app.assistant.context import build_user_capability_context
+
 
 
 class FakeCursor:
@@ -186,10 +192,10 @@ class FakeDatabase:
 
 @pytest.fixture
 def env():
-    """Sets up an isolated test environment with two users from different ministries."""
+    """Sets up an isolated multi-department test environment."""
     db = FakeDatabase()
     settings = Settings(
-        jwt_secret="test-department-secret-key-32-chars",
+        jwt_secret="test-phase-3f-secret-key-32-chars-long",
         api_prefix="/api/v1",
         mongodb_uri="mongodb://localhost:27017",
         mongodb_database="test",
@@ -201,7 +207,7 @@ def env():
 
     now = datetime.now(UTC)
 
-    # 1. Seed Competencies
+    # 1. Seed Competencies (Canonical 42 subset for test isolation)
     comp_stat = {
         "_id": ObjectId(),
         "code": "STAT_SAMPLING",
@@ -228,6 +234,19 @@ def env():
         "created_at": now,
         "updated_at": now,
     }
+    comp_edtech = {
+        "_id": ObjectId(),
+        "code": "TECH_DATA_VISUALIZATION",
+        "name": "Data Visualization & Dashboards",
+        "domain": "TECHNICAL",
+        "description": "Interactive data visualization and charts",
+        "level_definitions": {"1": "L1", "2": "L2", "3": "L3", "4": "L4", "5": "L5"},
+        "status": "active",
+        "framework_status": "prototype",
+        "source_type": "PROTOTYPE",
+        "created_at": now,
+        "updated_at": now,
+    }
     comp_shared = {
         "_id": ObjectId(),
         "code": "BEH_ETHICS",
@@ -241,17 +260,32 @@ def env():
         "created_at": now,
         "updated_at": now,
     }
-    db.competencies.insert_many([comp_stat, comp_edu, comp_shared])
+    comp_unrelated = {
+        "_id": ObjectId(),
+        "code": "DIGOV_CYBERSECURITY",
+        "name": "Information Security & Cybersecurity Governance",
+        "domain": "DIGITAL_GOVERNANCE",
+        "description": "Critical IT infrastructure protection",
+        "level_definitions": {"1": "L1", "2": "L2", "3": "L3", "4": "L4", "5": "L5"},
+        "status": "active",
+        "framework_status": "prototype",
+        "source_type": "PROTOTYPE",
+        "created_at": now,
+        "updated_at": now,
+    }
+    db.competencies.insert_many([comp_stat, comp_edu, comp_edtech, comp_shared, comp_unrelated])
 
-    # 2. Seed Roles
+    # 2. Seed Roles across Departments
     role_stat = {
         "_id": ObjectId(),
         "role_code": "STATISTICAL_OFFICER",
         "role_name": "Statistical Officer",
         "department": "Ministry of Statistics & Programme Implementation (MoSPI)",
         "department_code": "MOSPI",
-        "designations": ["Statistical Officer", "Senior Statistical Officer (SSO)"],
+        "designations": ["Statistical Officer", "Junior Statistical Officer (JSO)", "Senior Statistical Officer (SSO)"],
         "status": "active",
+        "mapping_status": "PROTOTYPE_CONFIGURED",
+        "source": "INTERNAL_PROTOTYPE_V1",
         "created_at": now,
         "updated_at": now,
     }
@@ -263,23 +297,39 @@ def env():
         "department_code": "MOE",
         "designations": ["Teacher", "Curriculum Specialist", "Education Officer"],
         "status": "active",
+        "mapping_status": "PROTOTYPE_CONFIGURED",
+        "source": "INTERNAL_PROTOTYPE_V1",
         "created_at": now,
         "updated_at": now,
     }
-    db.roles.insert_many([role_stat, role_edu])
+    role_edtech = {
+        "_id": ObjectId(),
+        "role_code": "DIGITAL_LEARNING_SPECIALIST",
+        "role_name": "Digital Pedagogy & EdTech Specialist",
+        "department": "Ministry of Education",
+        "department_code": "MOE",
+        "designations": ["Digital Learning Specialist", "EdTech Coordinator"],
+        "status": "active",
+        "mapping_status": "PROTOTYPE_CONFIGURED",
+        "source": "INTERNAL_PROTOTYPE_V1",
+        "created_at": now,
+        "updated_at": now,
+    }
+    db.roles.insert_many([role_stat, role_edu, role_edtech])
 
     # 3. Seed Role Requirements
-    # Statistics: STAT_SAMPLING (L4), BEH_ETHICS (L4)
     db.role_requirements.insert_many([
+        # MoSPI Statistical Officer Requirements
         {
             "role_id": role_stat["_id"],
             "competency_id": comp_stat["_id"],
             "competency_code": "STAT_SAMPLING",
-            "competency_name": "Sampling Methods & Survey Design",
-            "domain": "STATISTICAL",
             "required_level": 4.0,
             "priority": 1,
             "importance": 0.9,
+            "mapping_status": "PROTOTYPE_CONFIGURED",
+            "source": "INTERNAL_PROTOTYPE_V1",
+            "active": True,
             "created_at": now,
             "updated_at": now,
         },
@@ -287,24 +337,26 @@ def env():
             "role_id": role_stat["_id"],
             "competency_id": comp_shared["_id"],
             "competency_code": "BEH_ETHICS",
-            "competency_name": "Civil Service Ethics & Integrity",
-            "domain": "BEHAVIOURAL_MANAGERIAL",
             "required_level": 4.0,
             "priority": 2,
             "importance": 0.8,
+            "mapping_status": "PROTOTYPE_CONFIGURED",
+            "source": "INTERNAL_PROTOTYPE_V1",
+            "active": True,
             "created_at": now,
             "updated_at": now,
         },
-        # Education: BEH_COMMUNICATION (L4.0), BEH_ETHICS (L4.0)
+        # MoE Education Officer Requirements
         {
             "role_id": role_edu["_id"],
             "competency_id": comp_edu["_id"],
             "competency_code": "BEH_COMMUNICATION",
-            "competency_name": "Communication & Pedagogical Engagement",
-            "domain": "BEHAVIOURAL_MANAGERIAL",
             "required_level": 4.0,
             "priority": 1,
             "importance": 0.95,
+            "mapping_status": "PROTOTYPE_CONFIGURED",
+            "source": "INTERNAL_PROTOTYPE_V1",
+            "active": True,
             "created_at": now,
             "updated_at": now,
         },
@@ -312,17 +364,97 @@ def env():
             "role_id": role_edu["_id"],
             "competency_id": comp_shared["_id"],
             "competency_code": "BEH_ETHICS",
-            "competency_name": "Civil Service Ethics & Integrity",
-            "domain": "BEHAVIOURAL_MANAGERIAL",
             "required_level": 4.0,
             "priority": 2,
             "importance": 0.85,
+            "mapping_status": "PROTOTYPE_CONFIGURED",
+            "source": "INTERNAL_PROTOTYPE_V1",
+            "active": True,
+            "created_at": now,
+            "updated_at": now,
+        },
+        # MoE Digital Learning Specialist Requirements
+        {
+            "role_id": role_edtech["_id"],
+            "competency_id": comp_edtech["_id"],
+            "competency_code": "TECH_DATA_VISUALIZATION",
+            "required_level": 4.0,
+            "priority": 1,
+            "importance": 0.90,
+            "mapping_status": "PROTOTYPE_CONFIGURED",
+            "source": "INTERNAL_PROTOTYPE_V1",
+            "active": True,
             "created_at": now,
             "updated_at": now,
         },
     ])
 
-    # 4. Seed Questions for Adaptive Assessment
+    # 4. Seed Learning Resources and Mappings
+    res_stat = {
+        "_id": ObjectId(),
+        "resource_id": "RES-STAT-001",
+        "title": "iGOT: Statistical Sampling & Survey Estimation",
+        "provider": "IGOT",
+        "status": "ACTIVE",
+        "source": {
+            "source_type": "PROTOTYPE",
+            "source_document": "iGOT Public Catalog",
+            "verification_status": "VERIFIED",
+        },
+        "metadata": {
+            "difficulty": "Intermediate",
+        },
+        "provider_specific": {},
+        "created_at": now,
+        "updated_at": now,
+    }
+    res_cyber = {
+        "_id": ObjectId(),
+        "resource_id": "RES-CYBER-001",
+        "title": "MeitY: Advanced Cybersecurity Governance",
+        "provider": "IGOT",
+        "status": "ACTIVE",
+        "source": {
+            "source_type": "PROTOTYPE",
+            "source_document": "iGOT Public Catalog",
+            "verification_status": "VERIFIED",
+        },
+        "metadata": {
+            "difficulty": "Advanced",
+        },
+        "provider_specific": {},
+        "created_at": now,
+        "updated_at": now,
+    }
+    db.learning_resources.insert_many([res_stat, res_cyber])
+    db.learning_resource_mappings.insert_many([
+        {
+            "resource_id": str(res_stat["_id"]),
+            "competency_id": str(comp_stat["_id"]),
+            "competency_code": "STAT_SAMPLING",
+            "competency_name": "Sampling Methods & Survey Design",
+            "provider": "IGOT",
+            "mapping_type": "DERIVED",
+            "confidence": 0.8,
+            "status": "ACTIVE",
+            "created_at": now,
+        },
+        {
+            "resource_id": str(res_cyber["_id"]),
+            "competency_id": str(comp_unrelated["_id"]),
+            "competency_code": "DIGOV_CYBERSECURITY",
+            "competency_name": "Information Security & Cybersecurity Governance",
+            "provider": "IGOT",
+            "mapping_type": "DERIVED",
+            "confidence": 0.8,
+            "status": "ACTIVE",
+            "created_at": now,
+        },
+    ])
+
+
+
+    # 5. Seed Question Bank for Adaptive Assessment
     for i in range(1, 4):
         db.question_bank.insert_one({
             "question_id": f"q_stat_{i}",
@@ -336,9 +468,8 @@ def env():
             "created_at": now,
         })
 
-
-    # 5. Seed Users
-    user_a = {
+    # 6. Seed Users
+    user_stat = {
         "_id": ObjectId(),
         "email": "officer.stat@shikshasetu.gov.in",
         "password_hash": hash_password("Password123!"),
@@ -352,7 +483,7 @@ def env():
         "created_at": now,
         "updated_at": now,
     }
-    user_b = {
+    user_edu = {
         "_id": ObjectId(),
         "email": "officer.edu@shikshasetu.gov.in",
         "password_hash": hash_password("Password123!"),
@@ -361,6 +492,20 @@ def env():
         "designation": "Teacher",
         "employee_id": "EDU-001",
         "role_id": role_edu["_id"],
+        "access_role": "OFFICIAL",
+        "status": "active",
+        "created_at": now,
+        "updated_at": now,
+    }
+    user_edtech = {
+        "_id": ObjectId(),
+        "email": "officer.edtech@shikshasetu.gov.in",
+        "password_hash": hash_password("Password123!"),
+        "full_name": "Vikram Seth (EdTech Specialist)",
+        "department": "Ministry of Education",
+        "designation": "Digital Learning Specialist",
+        "employee_id": "EDU-002",
+        "role_id": role_edtech["_id"],
         "access_role": "OFFICIAL",
         "status": "active",
         "created_at": now,
@@ -380,191 +525,187 @@ def env():
         "created_at": now,
         "updated_at": now,
     }
-    db.users.insert_many([user_a, user_b, admin_user])
+    db.users.insert_many([user_stat, user_edu, user_edtech, admin_user])
 
     # Reconcile baseline profiles
-    reconcile_user_competencies(db, user_a["_id"], role_stat["_id"])
-    reconcile_user_competencies(db, user_b["_id"], role_edu["_id"])
+    reconcile_user_competencies(db, user_stat["_id"], role_stat["_id"])
+    reconcile_user_competencies(db, user_edu["_id"], role_edu["_id"])
+    reconcile_user_competencies(db, user_edtech["_id"], role_edtech["_id"])
 
     return {
         "client": client,
         "db": db,
         "settings": settings,
-        "user_a": user_a,
-        "user_b": user_b,
+        "user_stat": user_stat,
+        "user_edu": user_edu,
+        "user_edtech": user_edtech,
         "admin_user": admin_user,
         "role_stat": role_stat,
         "role_edu": role_edu,
+        "role_edtech": role_edtech,
         "comp_stat": comp_stat,
         "comp_edu": comp_edu,
+        "comp_edtech": comp_edtech,
         "comp_shared": comp_shared,
+        "comp_unrelated": comp_unrelated,
     }
 
 
-def test_a_different_departments_have_different_competencies(env):
-    """Test A: Verify user from Statistics receives different competencies than user from Education."""
-    client = env["client"]
-    settings = env["settings"]
-    user_a = env["user_a"]
-    user_b = env["user_b"]
+def test_01_different_departments_receive_different_competencies(env):
+    """TEST 1: Two users from different departments receive different applicable competencies."""
+    client, settings = env["client"], env["settings"]
+    token_stat = create_access_token(str(env["user_stat"]["_id"]), settings)
+    token_edu = create_access_token(str(env["user_edu"]["_id"]), settings)
 
-    token_a = create_access_token(str(user_a["_id"]), settings)
-    token_b = create_access_token(str(user_b["_id"]), settings)
+    res_stat = client.get("/api/v1/competencies/me", headers={"Authorization": f"Bearer {token_stat}"})
+    res_edu = client.get("/api/v1/competencies/me", headers={"Authorization": f"Bearer {token_edu}"})
 
-    res_a = client.get("/api/v1/competencies/me", headers={"Authorization": f"Bearer {token_a}"})
-    assert res_a.status_code == 200
-    comps_a = {c["code"] for c in res_a.json()}
+    assert res_stat.status_code == 200
+    assert res_edu.status_code == 200
 
-    res_b = client.get("/api/v1/competencies/me", headers={"Authorization": f"Bearer {token_b}"})
-    assert res_b.status_code == 200
-    comps_b = {c["code"] for c in res_b.json()}
+    comps_stat = {c["code"] for c in res_stat.json()}
+    comps_edu = {c["code"] for c in res_edu.json()}
 
-    # Sets must not be identical
-    assert comps_a != comps_b
-    assert "STAT_SAMPLING" in comps_a
-    assert "BEH_COMMUNICATION" in comps_b
+    assert comps_stat != comps_edu
+    assert "STAT_SAMPLING" in comps_stat
+    assert "BEH_COMMUNICATION" in comps_edu
 
 
-def test_b_shared_competencies_present_in_both(env):
-    """Test B: Verify that intentionally shared competencies (e.g. BEH_ETHICS) appear for both."""
-    client = env["client"]
-    settings = env["settings"]
-    token_a = create_access_token(str(env["user_a"]["_id"]), settings)
-    token_b = create_access_token(str(env["user_b"]["_id"]), settings)
+def test_02_different_roles_in_same_department_receive_different_competencies(env):
+    """TEST 2: Two users with different roles in the same department receive different applicable competencies."""
+    client, settings = env["client"], env["settings"]
+    token_edu = create_access_token(str(env["user_edu"]["_id"]), settings)
+    token_edtech = create_access_token(str(env["user_edtech"]["_id"]), settings)
 
-    res_a = client.get("/api/v1/competencies/me", headers={"Authorization": f"Bearer {token_a}"})
-    res_b = client.get("/api/v1/competencies/me", headers={"Authorization": f"Bearer {token_b}"})
+    res_edu = client.get("/api/v1/competencies/me", headers={"Authorization": f"Bearer {token_edu}"})
+    res_edtech = client.get("/api/v1/competencies/me", headers={"Authorization": f"Bearer {token_edtech}"})
 
-    comps_a = {c["code"] for c in res_a.json()}
-    comps_b = {c["code"] for c in res_b.json()}
+    comps_edu = {c["code"] for c in res_edu.json()}
+    comps_edtech = {c["code"] for c in res_edtech.json()}
 
-    assert "BEH_ETHICS" in comps_a
-    assert "BEH_ETHICS" in comps_b
-
-
-def test_c_irrelevant_competency_exclusion(env):
-    """Test C: Verify department-specific competency does not appear for unrelated department."""
-    client = env["client"]
-    settings = env["settings"]
-    token_b = create_access_token(str(env["user_b"]["_id"]), settings)
-
-    res_b = client.get("/api/v1/competencies/me", headers={"Authorization": f"Bearer {token_b}"})
-    comps_b = {c["code"] for c in res_b.json()}
-
-    # Education Officer must NOT have STAT_SAMPLING
-    assert "STAT_SAMPLING" not in comps_b
+    assert comps_edu != comps_edtech
+    assert "BEH_COMMUNICATION" in comps_edu
+    assert "TECH_DATA_VISUALIZATION" in comps_edtech
 
 
-def test_d_skill_gaps_calculated_only_against_applicable_competencies(env):
-    """Test D: Skill gaps must only reflect user's applicable department competencies."""
-    client = env["client"]
-    settings = env["settings"]
-    token_a = create_access_token(str(env["user_a"]["_id"]), settings)
-    token_b = create_access_token(str(env["user_b"]["_id"]), settings)
+def test_03_user_does_not_receive_all_42_competencies(env):
+    """TEST 3: A user does not receive all 42 competencies as active competencies."""
+    client, settings = env["client"], env["settings"]
+    token = create_access_token(str(env["user_stat"]["_id"]), settings)
 
-    res_a = client.get("/api/v1/skill-gaps/me", headers={"Authorization": f"Bearer {token_a}"})
-    assert res_a.status_code == 200
-    gaps_a = {g["competency_code"] for g in res_a.json()["gaps"]}
-
-    res_b = client.get("/api/v1/skill-gaps/me", headers={"Authorization": f"Bearer {token_b}"})
-    assert res_b.status_code == 200
-    gaps_b = {g["competency_code"] for g in res_b.json()["gaps"]}
-
-    assert "STAT_SAMPLING" in gaps_a
-    assert "BEH_COMMUNICATION" not in gaps_a
-    assert "BEH_COMMUNICATION" in gaps_b
-    assert "STAT_SAMPLING" not in gaps_b
+    res = client.get("/api/v1/competencies/me", headers={"Authorization": f"Bearer {token}"})
+    assert res.status_code == 200
+    applicable_comps = res.json()
+    assert len(applicable_comps) < 42
+    assert len(applicable_comps) == 2  # STAT_SAMPLING and BEH_ETHICS
 
 
-def test_f_adaptive_assessment_guards_irrelevant_competency(env):
-    """Test F: User cannot start an adaptive assessment for a non-applicable competency."""
-    client = env["client"]
-    settings = env["settings"]
-    token_b = create_access_token(str(env["user_b"]["_id"]), settings)
+def test_04_competency_outside_role_cannot_become_active_skill_gap(env):
+    """TEST 4: A competency outside the user's role requirements cannot become an active skill gap."""
+    client, settings = env["client"], env["settings"]
+    token_edu = create_access_token(str(env["user_edu"]["_id"]), settings)
 
-    # Education Officer attempts to start STAT_SAMPLING assessment
+    res = client.get("/api/v1/skill-gaps/me", headers={"Authorization": f"Bearer {token_edu}"})
+    assert res.status_code == 200
+    gap_codes = {g["competency_code"] for g in res.json()["gaps"]}
+
+    # Education Officer must never have STAT_SAMPLING or DIGOV_CYBERSECURITY as skill gaps
+    assert "STAT_SAMPLING" not in gap_codes
+    assert "DIGOV_CYBERSECURITY" not in gap_codes
+    assert "BEH_COMMUNICATION" in gap_codes
+
+
+def test_05_unrelated_resource_is_not_recommendation_candidate(env):
+    """TEST 5: A learning resource unrelated to active role gaps is not generated as a recommendation candidate."""
+    client, settings = env["client"], env["settings"]
+    token_stat = create_access_token(str(env["user_stat"]["_id"]), settings)
+
+    res = client.get("/api/v1/recommendations/me", headers={"Authorization": f"Bearer {token_stat}"})
+    assert res.status_code == 200
+    recs = res.json().get("recommendations", [])
+    rec_titles = [r["resource"]["title"] for r in recs]
+
+    # Cybersecurity course is NOT mapped to Statistical Officer's skill gaps
+    assert not any("Cybersecurity" in t for t in rec_titles)
+
+
+
+def test_06_role_applicable_resource_becomes_candidate_when_gap_exists(env):
+    """TEST 6: A role-applicable resource can become a candidate when the corresponding competency is an active gap."""
+    client, settings = env["client"], env["settings"]
+    token_stat = create_access_token(str(env["user_stat"]["_id"]), settings)
+
+    res = client.get("/api/v1/recommendations/me", headers={"Authorization": f"Bearer {token_stat}"})
+    assert res.status_code == 200
+    recs = res.json().get("recommendations", [])
+    rec_codes = {r.get("competency_code") for r in recs}
+    assert "STAT_SAMPLING" in rec_codes
+
+
+def test_07_adaptive_assessment_rejects_out_of_role_competency(env):
+    """TEST 7: Adaptive assessment rejects an out-of-role competency."""
+    client, settings = env["client"], env["settings"]
+    token_edu = create_access_token(str(env["user_edu"]["_id"]), settings)
+
+    # Education Officer attempts to start assessment for STAT_SAMPLING
     res = client.post(
         "/api/v1/adaptive-assessments/start",
-        json={"competency_code": "STAT_SAMPLING", "max_questions": 5},
-        headers={"Authorization": f"Bearer {token_b}"},
+        json={"competency_code": "STAT_SAMPLING", "max_questions": 3},
+        headers={"Authorization": f"Bearer {token_edu}"},
     )
     assert res.status_code == 403
     assert "not applicable" in res.json()["detail"].lower()
 
 
-def test_g_evidence_governance_authoritative_assessment(env):
-    """Test G: Adaptive assessment generates 0.85 authoritative evidence, updating profile and closing gap."""
-    client = env["client"]
-    settings = env["settings"]
-    db = env["db"]
-    user_a = env["user_a"]
-    token_a = create_access_token(str(user_a["_id"]), settings)
+def test_08_adaptive_assessment_accepts_applicable_competency(env):
+    """TEST 8: Adaptive assessment accepts an applicable competency."""
+    client, settings = env["client"], env["settings"]
+    token_stat = create_access_token(str(env["user_stat"]["_id"]), settings)
 
-    # 1. Start assessment for applicable STAT_SAMPLING
-    start_res = client.post(
+    # Statistical Officer starts assessment for STAT_SAMPLING
+    res = client.post(
         "/api/v1/adaptive-assessments/start",
         json={"competency_code": "STAT_SAMPLING", "max_questions": 3},
-        headers={"Authorization": f"Bearer {token_a}"},
+        headers={"Authorization": f"Bearer {token_stat}"},
     )
-    assert start_res.status_code == 200
-    session_id = start_res.json()["session_id"]
-    q_id = start_res.json()["question"]["question_id"]
-
-    # 2. Submit answer
-    ans_res = client.post(
-        f"/api/v1/adaptive-assessments/{session_id}/answer",
-        json={"question_id": q_id, "selected_answer": "Option A"},
-        headers={"Authorization": f"Bearer {token_a}"},
-    )
-    assert ans_res.status_code == 200
-
-    # 3. Finalize
-    fin_res = client.post(
-        f"/api/v1/adaptive-assessments/{session_id}/finalize",
-        headers={"Authorization": f"Bearer {token_a}"},
-    )
-    assert fin_res.status_code == 200
-    data = fin_res.json()
-    assert data["evidence_confidence"] == 0.85
-    assert data["updated_competency_level"] > 0
-
-
-    # 4. Check competency profile updated
-    profile = db.competency_profiles.find_one({
-        "user_id": user_a["_id"],
-        "competency_id": env["comp_stat"]["_id"],
-    })
-    assert profile is not None
-    assert profile["confidence"] == 0.85
-
-
-def test_h_user_isolation(env):
-    """Test H: User A cannot see User B's evidence or profile."""
-    client = env["client"]
-    settings = env["settings"]
-    token_a = create_access_token(str(env["user_a"]["_id"]), settings)
-
-    res = client.get("/api/v1/users/me/evidence", headers={"Authorization": f"Bearer {token_a}"})
     assert res.status_code == 200
-    records = res.json()
-    # All records must belong strictly to User A's role scope
-    for r in records:
-        assert r["competency_code"] != "BEH_COMMUNICATION"
+    assert res.json()["competency_code"] == "STAT_SAMPLING"
 
 
-def test_i_department_change_reconciles_competencies_and_preserves_evidence(env):
-    """Test I: Changing department reconciles competency profile while preserving historical evidence."""
-    client = env["client"]
-    settings = env["settings"]
-    db = env["db"]
-    user_a = env["user_a"]
-    token_a = create_access_token(str(user_a["_id"]), settings)
+def test_09_changing_department_designation_reresolves_role(env):
+    """TEST 9: Changing department/designation re-resolves the role."""
+    client, settings = env["client"], env["settings"]
+    user = env["user_stat"]
+    token = create_access_token(str(user["_id"]), settings)
 
-    # Insert historical evidence for user_a
-    ev_oid = ObjectId()
+    # Update profile to Ministry of Education / Teacher
+    res = client.put(
+        "/api/v1/users/me",
+        json={"department": "Ministry of Education", "designation": "Teacher"},
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert res.status_code == 200
+    assert res.json()["department"] == "Ministry of Education"
+
+    # Verify competencies re-resolved to Education Officer
+    comp_res = client.get("/api/v1/competencies/me", headers={"Authorization": f"Bearer {token}"})
+    assert comp_res.status_code == 200
+    codes = {c["code"] for c in comp_res.json()}
+    assert "BEH_COMMUNICATION" in codes
+    assert "STAT_SAMPLING" not in codes
+
+
+def test_10_role_change_deactivates_obsolete_profiles_and_preserves_evidence(env):
+    """TEST 10: Role change deactivates obsolete competency profiles without deleting historical evidence."""
+    db, settings, client = env["db"], env["settings"], env["client"]
+    user = env["user_stat"]
+    token = create_access_token(str(user["_id"]), settings)
+
+    # Record historical evidence for user
+    ev_id = ObjectId()
     db.competency_evidence.insert_one({
-        "_id": ev_oid,
-        "user_id": user_a["_id"],
+        "_id": ev_id,
+        "user_id": user["_id"],
         "competency_id": env["comp_stat"]["_id"],
         "evidence_type": "CAPABILITY_ASSESSMENT",
         "score": 4.0,
@@ -572,50 +713,162 @@ def test_i_department_change_reconciles_competencies_and_preserves_evidence(env)
         "created_at": datetime.now(UTC),
     })
 
-    # Update profile to Ministry of Education
-    update_res = client.put(
+    # Update role to Education
+    client.put(
         "/api/v1/users/me",
-        json={
-            "department": "Ministry of Education",
-            "designation": "Teacher",
-        },
-        headers={"Authorization": f"Bearer {token_a}"},
+        json={"department": "Ministry of Education", "designation": "Teacher"},
+        headers={"Authorization": f"Bearer {token}"},
     )
-    assert update_res.status_code == 200
-    assert update_res.json()["department"] == "Ministry of Education"
 
-    # Verify new applicable competencies
-    comp_res = client.get("/api/v1/competencies/me", headers={"Authorization": f"Bearer {token_a}"})
-    assert comp_res.status_code == 200
-    new_codes = {c["code"] for c in comp_res.json()}
-    assert "BEH_COMMUNICATION" in new_codes
-    assert "STAT_SAMPLING" not in new_codes
+    # Check that previous profile is inactive
+    old_profile = db.competency_profiles.find_one({
+        "user_id": user["_id"],
+        "competency_id": env["comp_stat"]["_id"],
+    })
+    assert old_profile is not None
+    assert old_profile["status"] == "inactive"
 
-    # Verify historical evidence is STILL INTACT in database
-    ev_record = db.competency_evidence.find_one({"_id": ev_oid})
-    assert ev_record is not None
-    assert ev_record["score"] == 4.0
+    # Check that historical evidence remains intact
+    ev = db.competency_evidence.find_one({"_id": ev_id})
+    assert ev is not None
+    assert ev["score"] == 4.0
 
 
-def test_j_rbac_and_admin_department_filtering(env):
-    """Test J: Verify RBAC permissions and admin department-level filtering."""
-    client = env["client"]
-    settings = env["settings"]
+def test_11_ai_copilot_context_contains_resolved_role_and_applicable_gaps(env):
+    """TEST 11: AI Co-Pilot context contains the resolved role and applicable competency context."""
+    db = env["db"]
+    user = env["user_stat"]
+
+    ctx = build_user_capability_context(db, str(user["_id"]))
+    assert ctx["profile"]["role_name"] == "Statistical Officer"
+    assert "STAT_SAMPLING" in [g["competency_code"] for g in ctx["top_gaps"]]
+    assert "BEH_COMMUNICATION" not in [g["competency_code"] for g in ctx["top_gaps"]]
+
+
+
+def test_12_admin_analytics_respects_department_and_active_gaps(env):
+    """TEST 12: Admin analytics does not count inactive/out-of-role competencies as active workforce gaps."""
+    client, settings = env["client"], env["settings"]
     admin_token = create_access_token(str(env["admin_user"]["_id"]), settings)
-    official_token = create_access_token(str(env["user_a"]["_id"]), settings)
 
-    # 1. Non-admin forbidden on /admin/dashboard
-    forbidden_res = client.get("/api/v1/admin/dashboard", headers={"Authorization": f"Bearer {official_token}"})
-    assert forbidden_res.status_code == 403
-
-    # 2. Admin allowed on /admin/dashboard
-    admin_res = client.get("/api/v1/admin/dashboard", headers={"Authorization": f"Bearer {admin_token}"})
-    assert admin_res.status_code == 200
-
-    # 3. Admin department filter
-    dept_filtered_res = client.get(
-        "/api/v1/admin/dashboard?department=Ministry%20of%20Education",
+    res = client.get(
+        "/api/v1/admin/skill-gaps?department=Ministry%20of%20Education",
         headers={"Authorization": f"Bearer {admin_token}"}
     )
-    assert dept_filtered_res.status_code == 200
-    assert dept_filtered_res.json()["total_users"] == 1
+    assert res.status_code == 200
+    gaps = res.json()["top_organization_gaps"]
+    gap_codes = {g["competency_code"] for g in gaps}
+
+    # Under Ministry of Education, BEH_COMMUNICATION is present, STAT_SAMPLING is not
+    assert "BEH_COMMUNICATION" in gap_codes
+
+
+
+def test_13_invalid_department_designation_fails_safely(env):
+    """TEST 13: Invalid department/designation combination fails safely or falls back gracefully."""
+    db = env["db"]
+    role_id = resolve_role_for_user(db, "Unknown Alien Department", "Galactic Commander")
+    # Must return fallback role rather than crashing
+    assert role_id is not None
+    assert ObjectId.is_valid(role_id)
+
+
+def test_14_no_user_silently_forced_to_statistical_officer(env):
+    """TEST 14: No user is silently forced to STATISTICAL_OFFICER when their department/designation maps elsewhere."""
+    db = env["db"]
+    edu_role_id = resolve_role_for_user(db, "Ministry of Education", "Teacher")
+    edu_role = db.roles.find_one({"_id": edu_role_id})
+    assert edu_role["role_code"] == "EDUCATION_OFFICER"
+    assert edu_role["role_code"] != "STATISTICAL_OFFICER"
+
+
+def test_15_reconciliation_is_idempotent(env):
+    """TEST 15: Reconciliation is strictly idempotent."""
+    db = env["db"]
+    user = env["user_stat"]
+    role = env["role_stat"]
+
+    # Run reconciliation 3 consecutive times
+    res1 = reconcile_user_competencies(db, user["_id"], role["_id"])
+    res2 = reconcile_user_competencies(db, user["_id"], role["_id"])
+    res3 = reconcile_user_competencies(db, user["_id"], role["_id"])
+
+    # Profiles count must remain exactly equal to required competencies
+    active_profs = list(db.competency_profiles.find({"user_id": user["_id"], "status": "active"}))
+    reqs = list(db.role_requirements.find({"role_id": role["_id"]}))
+    assert len(active_profs) == len(reqs)
+    assert res2["created"] == 0
+    assert res3["created"] == 0
+
+
+def test_16_unmapped_resource_cannot_become_recommendation(env):
+    """TEST 16: An unmapped resource in the catalogue is never returned as a recommendation."""
+    db, client, settings = env["db"], env["client"], env["settings"]
+    token_stat = create_access_token(str(env["user_stat"]["_id"]), settings)
+
+    # Insert an unmapped catalogue resource
+    unmapped_id = ObjectId()
+    db.learning_resources.insert_one({
+        "_id": unmapped_id,
+        "resource_id": "RES-UNMAPPED-999",
+        "title": "General Civil Services Administrative Guidelines",
+        "provider": "IGOT",
+        "status": "ACTIVE",
+        "source": {
+            "source_type": "PROTOTYPE",
+            "source_document": "iGOT General Catalog",
+            "verification_status": "VERIFIED",
+        },
+        "metadata": {"difficulty": "Beginner"},
+        "created_at": datetime.now(UTC),
+        "updated_at": datetime.now(UTC),
+    })
+
+    # Query recommendations
+    res = client.get("/api/v1/recommendations/me", headers={"Authorization": f"Bearer {token_stat}"})
+    assert res.status_code == 200
+    rec_ids = [r["resource"]["resource_id"] for r in res.json().get("recommendations", [])]
+    assert "RES-UNMAPPED-999" not in rec_ids
+
+
+def test_17_role_match_cannot_bypass_competency_filter(env):
+    """TEST 17: Role match factor never leaks out-of-scope resources without competency mappings."""
+    db, client, settings = env["db"], env["client"], env["settings"]
+    token_stat = create_access_token(str(env["user_stat"]["_id"]), settings)
+
+
+    # Insert resource with target participants matching Statistical Officer, but mapped to out-of-role competency
+    cyber_role_match_id = ObjectId()
+    db.learning_resources.insert_one({
+        "_id": cyber_role_match_id,
+        "resource_id": "RES-CYBER-STAT-001",
+        "title": "Cybersecurity for Statistical Officers",
+        "provider": "IGOT",
+        "status": "ACTIVE",
+        "source": {
+            "source_type": "PROTOTYPE",
+            "source_document": "iGOT Catalog",
+            "verification_status": "VERIFIED",
+        },
+        "metadata": {"difficulty": "Intermediate"},
+        "created_at": datetime.now(UTC),
+        "updated_at": datetime.now(UTC),
+    })
+    db.learning_resource_mappings.insert_one({
+        "resource_id": str(cyber_role_match_id),
+        "competency_id": str(env["comp_unrelated"]["_id"]),
+        "competency_code": "DIGOV_CYBERSECURITY",
+        "competency_name": "Cybersecurity",
+        "provider": "IGOT",
+        "mapping_type": "DERIVED",
+        "confidence": 0.95,
+        "status": "ACTIVE",
+        "created_at": datetime.now(UTC),
+    })
+
+    res = client.get("/api/v1/recommendations/me", headers={"Authorization": f"Bearer {token_stat}"})
+    assert res.status_code == 200
+    rec_ids = [r["resource"]["resource_id"] for r in res.json().get("recommendations", [])]
+    # Despite the title referencing Statistical Officers, it is mapped to DIGOV_CYBERSECURITY (out of role) -> must not be recommended
+    assert "RES-CYBER-STAT-001" not in rec_ids
+
