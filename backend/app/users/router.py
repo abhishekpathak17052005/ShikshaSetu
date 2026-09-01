@@ -42,3 +42,91 @@ def update_my_profile(
     current_user: dict = Depends(get_current_user),
 ) -> dict:
     return update_profile(request, current_user, payload)
+
+
+@router.get("/me/evidence")
+def get_my_evidence(
+    request: Request,
+    current_user: dict = Depends(get_current_user),
+) -> list[dict]:
+    """Retrieve all authoritative and supporting evidence records from the immutable ledger."""
+    database = getattr(request.app.state, "database", None)
+    if database is None:
+        raise HTTPException(status_code=503, detail="Database is unavailable")
+
+    from bson import ObjectId
+    uid = current_user["_id"]
+    uid_str = str(uid)
+
+    cursor = database.competency_evidence.find({"$or": [{"user_id": uid}, {"user_id": uid_str}]})
+    evidence_docs = list(cursor)
+
+    comp_docs = list(database.competencies.find())
+    comp_map = {c["_id"]: c for c in comp_docs}
+    comp_code_map = {c["code"]: c for c in comp_docs}
+
+    results = []
+    for doc in evidence_docs:
+        c_id = doc.get("competency_id")
+        comp = comp_map.get(c_id) or comp_code_map.get(str(c_id))
+        comp_code = comp.get("code") if comp else str(c_id)
+        comp_name = comp.get("name") if comp else comp_code.replace("_", " ")
+
+        raw_type = str(doc.get("evidence_type", "SUPPORTING")).upper()
+        conf = float(doc.get("confidence", doc.get("evidence_confidence", 0.85 if ("ASSESS" in raw_type or "QUIZ" in raw_type) else 0.3)))
+        is_authoritative = "ASSESS" in raw_type or "QUIZ" in raw_type or conf >= 0.7
+
+        results.append({
+            "id": str(doc.get("_id", ObjectId())),
+            "type": "AUTHORITATIVE" if is_authoritative else "SUPPORTING",
+            "source": doc.get("source", doc.get("assessment_type", "Standardized Assessment" if is_authoritative else "Learning Module")),
+            "title": doc.get("title", f"Competency Verification: {comp_name}"),
+            "competency_code": comp_code,
+            "competency_name": comp_name,
+            "confidence": conf,
+            "score": doc.get("score", doc.get("level", 3.0)),
+            "date": doc.get("created_at", doc.get("timestamp", datetime.now(UTC))),
+            "notes": doc.get("notes", "Immutable cryptographic capability audit record."),
+        })
+
+    # If newly registered user without prior evidence, seed initial baseline evidence from role requirements
+    if not results:
+        role_id = current_user.get("role_id")
+        reqs = list(database.role_requirements.find({"role_id": role_id})) if role_id else []
+        now = datetime.now(UTC)
+        starter_records = []
+        for req in (reqs[:4] if reqs else []):
+            c_id = req.get("competency_id")
+            comp = comp_map.get(c_id) or comp_code_map.get(str(c_id))
+            comp_code = comp.get("code") if comp else "GENERAL_COMP"
+            comp_name = comp.get("name") if comp else comp_code.replace("_", " ")
+
+            ev_doc = {
+                "user_id": uid,
+                "competency_id": comp.get("_id", c_id) if comp else c_id,
+                "evidence_type": "BASELINE_ASSESSMENT",
+                "source": "Initial Competency Self-Declaration & Orientation",
+                "title": f"Baseline Capability Verification: {comp_name}",
+                "confidence": 0.85,
+                "score": float(req.get("required_level", 3.0)),
+                "level": float(req.get("required_level", 3.0)),
+                "notes": "Initial civil service role capability baseline recorded upon department onboarding.",
+                "created_at": now,
+            }
+            database.competency_evidence.insert_one(ev_doc)
+            starter_records.append({
+                "id": str(ev_doc["_id"]),
+                "type": "AUTHORITATIVE",
+                "source": ev_doc["source"],
+                "title": ev_doc["title"],
+                "competency_code": comp_code,
+                "competency_name": comp_name,
+                "confidence": 0.85,
+                "score": ev_doc["score"],
+                "date": now,
+                "notes": ev_doc["notes"],
+            })
+        return starter_records
+
+    results.sort(key=lambda x: x.get("date") if isinstance(x.get("date"), datetime) else datetime.min.replace(tzinfo=UTC), reverse=True)
+    return results

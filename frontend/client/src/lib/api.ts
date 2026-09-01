@@ -807,6 +807,11 @@ export const api = {
     me: () => request<SkillGapResponse>("/skill-gaps/me"),
   },
 
+  // Evidence Ledger
+  evidence: {
+    list: () => request<any[]>("/users/me/evidence"),
+  },
+
   // Recommendations
   recommendations: {
     me: () => request<RecommendationResponse>("/recommendations/me"),

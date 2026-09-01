@@ -27,43 +27,61 @@ export function OfficialEvidence({ onNavigate }: OfficialEvidenceProps) {
   const fetchEvidence = async () => {
     try {
       setLoading(true);
-      const [activitiesRes, assessmentsRes] = await Promise.allSettled([
+      const [evidenceRes, activitiesRes, assessmentsRes] = await Promise.allSettled([
+        api.evidence.list(),
         api.learningActivities.list("completed"),
         api.capabilityAssessments.list(undefined, "SUBMITTED"),
       ]);
 
       const items: any[] = [];
+      const seenIds = new Set<string>();
+
+      // Primary source: dedicated competency evidence ledger API
+      if (evidenceRes.status === "fulfilled" && Array.isArray(evidenceRes.value)) {
+        evidenceRes.value.forEach((ev: any) => {
+          if (!seenIds.has(ev.id)) {
+            seenIds.add(ev.id);
+            items.push(ev);
+          }
+        });
+      }
 
       // Add completed learning activities as SUPPORTING evidence
-      if (activitiesRes.status === "fulfilled") {
-        (activitiesRes.value.activities || []).forEach((act: LearningActivity) => {
-          items.push({
-            id: act.activity_id,
-            type: "SUPPORTING",
-            source: "Learning Module Completion",
-            title: act.resource_id,
-            competency_code: act.competency_id,
-            confidence: 0.3,
-            date: act.completed_at || act.last_accessed_at,
-            notes: act.notes || "Completed structured self-paced learning curriculum.",
-          });
+      if (activitiesRes.status === "fulfilled" && (activitiesRes.value as any)?.activities) {
+        ((activitiesRes.value as any).activities || []).forEach((act: LearningActivity) => {
+          if (!seenIds.has(act.activity_id)) {
+            seenIds.add(act.activity_id);
+            items.push({
+              id: act.activity_id,
+              type: "SUPPORTING",
+              source: "Learning Module Completion",
+              title: act.resource_id,
+              competency_code: act.competency_id,
+              confidence: 0.3,
+              date: act.completed_at || act.last_accessed_at,
+              notes: act.notes || "Completed structured self-paced learning curriculum.",
+            });
+          }
         });
       }
 
       // Add submitted capability assessments as AUTHORITATIVE evidence
-      if (assessmentsRes.status === "fulfilled") {
-        (assessmentsRes.value || []).forEach((ass: any) => {
-          items.push({
-            id: ass.id,
-            type: "AUTHORITATIVE",
-            source: "Standardized Capability Assessment",
-            title: ass.title || `Formal Assessment (${ass.competency_code})`,
-            competency_code: ass.competency_code,
-            confidence: 0.85,
-            score: ass.score || (ass.percentage ? ass.percentage / 20 : 4.0),
-            date: ass.submitted_at || ass.started_at,
-            notes: "Authoritative server-side scored examination. Verified competency profile update.",
-          });
+      if (assessmentsRes.status === "fulfilled" && Array.isArray(assessmentsRes.value)) {
+        assessmentsRes.value.forEach((ass: any) => {
+          if (!seenIds.has(ass.id)) {
+            seenIds.add(ass.id);
+            items.push({
+              id: ass.id,
+              type: "AUTHORITATIVE",
+              source: "Standardized Capability Assessment",
+              title: ass.title || `Formal Assessment (${ass.competency_code})`,
+              competency_code: ass.competency_code,
+              confidence: 0.85,
+              score: ass.score || (ass.percentage ? ass.percentage / 20 : 4.0),
+              date: ass.submitted_at || ass.started_at,
+              notes: "Authoritative server-side scored examination. Verified competency profile update.",
+            });
+          }
         });
       }
 
