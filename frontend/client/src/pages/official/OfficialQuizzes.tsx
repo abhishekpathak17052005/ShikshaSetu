@@ -21,10 +21,11 @@ import {
 import { toast } from "sonner";
 
 interface OfficialQuizzesProps {
+  initialCompetencyCode?: string;
   onNavigate: (page: string, context?: { competencyCode?: string }) => void;
 }
 
-export function OfficialQuizzes({ onNavigate }: OfficialQuizzesProps) {
+export function OfficialQuizzes({ initialCompetencyCode, onNavigate }: OfficialQuizzesProps) {
   const [assignedQuizzes, setAssignedQuizzes] = useState<AssignedQuiz[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -39,6 +40,19 @@ export function OfficialQuizzes({ onNavigate }: OfficialQuizzesProps) {
       setLoading(true);
       const list = await api.quizzes.assigned();
       setAssignedQuizzes(list);
+
+      // Auto-start if navigated with competency code
+      if (initialCompetencyCode && list.length > 0) {
+        const match = list.find(
+          (q) => q.competency_code === initialCompetencyCode || q.title?.includes(initialCompetencyCode)
+        );
+        if (match) {
+          const targetId = match._id || match.id || match.quiz_id;
+          if (targetId) {
+            startQuizSession(targetId);
+          }
+        }
+      }
     } catch (err: any) {
       toast.error(err.message || "Failed to load assigned quizzes");
     } finally {
@@ -48,7 +62,7 @@ export function OfficialQuizzes({ onNavigate }: OfficialQuizzesProps) {
 
   useEffect(() => {
     fetchAssignedQuizzes();
-  }, []);
+  }, [initialCompetencyCode]);
 
   const startQuizSession = async (quizId: string) => {
     try {

@@ -10,9 +10,14 @@ import {
   AlertCircle,
   RotateCcw,
   Check,
+  Sparkles,
+  FileQuestion,
+  BookMarked,
 } from "lucide-react";
 import { useLearningActivities } from "@/hooks/useLearningActivities";
 import { LearningActivity } from "@/lib/api";
+import { CourseViewerModal } from "@/components/CourseViewerModal";
+import { getCourseCurriculum } from "@/lib/courseContent";
 import { toast } from "sonner";
 
 interface OfficialLearningProps {
@@ -32,6 +37,13 @@ export function OfficialLearning({
   const [targetCompleteActivity, setTargetCompleteActivity] = useState<LearningActivity | null>(null);
   const [completionScore, setCompletionScore] = useState<number | undefined>(85);
   const [notes, setNotes] = useState("");
+
+  // Course Reader Modal
+  const [viewerOpen, setViewerOpen] = useState(false);
+  const [viewingCurriculum, setViewingCurriculum] = useState<{
+    competencyCode?: string;
+    resourceTitle?: string;
+  }>({});
 
   const activeActivities = activities.filter((a) => a.status === "in_progress" || a.status === "not_started");
   const completedActivities = activities.filter((a) => a.status === "completed");
@@ -53,6 +65,14 @@ export function OfficialLearning({
     setShowCompleteModal(true);
   };
 
+  const handleLaunchReader = (activity: LearningActivity) => {
+    setViewingCurriculum({
+      competencyCode: activity.competency_id,
+      resourceTitle: activity.resource_id,
+    });
+    setViewerOpen(true);
+  };
+
   const handleConfirmComplete = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!targetCompleteActivity) return;
@@ -72,8 +92,26 @@ export function OfficialLearning({
     }
   };
 
+  const selectedCurriculum = selectedActivity
+    ? getCourseCurriculum(selectedActivity.competency_id, selectedActivity.resource_id)
+    : null;
+
   return (
     <div className="space-y-6 animate-fadeIn">
+      {/* Course Reader Modal */}
+      <CourseViewerModal
+        isOpen={viewerOpen}
+        onClose={() => setViewerOpen(false)}
+        competencyCode={viewingCurriculum.competencyCode}
+        resourceTitle={viewingCurriculum.resourceTitle}
+        onLaunchQuiz={(comp) => onNavigate("Quizzes", { competencyCode: comp })}
+        onCompleteActivity={() => {
+          if (selectedActivity) {
+            handleUpdateProgress(selectedActivity, 100);
+          }
+        }}
+      />
+
       {/* Top Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -151,15 +189,20 @@ export function OfficialLearning({
           ) : (
             <div className="grid gap-6 lg:grid-cols-3">
               {/* Primary Active Card (2 cols) */}
-              {selectedActivity && (
+              {selectedActivity && selectedCurriculum && (
                 <div className="rounded-3xl border border-[#dfe7f0] bg-white p-6 sm:p-8 shadow-sm lg:col-span-2 space-y-6">
                   <div className="flex flex-wrap items-start justify-between gap-3 border-b border-slate-100 pb-4">
                     <div>
-                      <span className="rounded-md bg-teal-50 px-2.5 py-0.5 text-[11px] font-extrabold uppercase text-teal-800">
-                        {selectedActivity.competency_id}
-                      </span>
-                      <h2 className="text-xl font-bold text-[#123057] mt-1.5">
-                        {selectedActivity.resource_id}
+                      <div className="flex items-center gap-2">
+                        <span className="rounded-full bg-[#123057] px-2.5 py-0.5 text-[10px] font-extrabold uppercase text-white">
+                          {selectedCurriculum.provider}
+                        </span>
+                        <span className="rounded-md bg-teal-50 px-2.5 py-0.5 text-[11px] font-extrabold uppercase text-teal-800">
+                          {selectedActivity.competency_id}
+                        </span>
+                      </div>
+                      <h2 className="text-xl font-bold text-[#123057] mt-2">
+                        {selectedCurriculum.title}
                       </h2>
                     </div>
 
@@ -184,12 +227,24 @@ export function OfficialLearning({
                   </div>
 
                   {/* Objective & Context */}
-                  <div className="rounded-2xl bg-[#f8fafc] p-4 text-xs leading-relaxed text-slate-600 border border-slate-100">
-                    <strong className="text-[#123057] font-semibold">Learning Objective:</strong> Master the operational concepts of {selectedActivity.competency_id} through structured reading, exercises, and practice questions.
+                  <div className="rounded-2xl bg-[#f8fafc] p-4 text-xs leading-relaxed text-slate-600 border border-slate-100 space-y-1.5">
+                    <div>
+                      <strong className="text-[#123057] font-semibold">Curriculum Overview:</strong> {selectedCurriculum.overview}
+                    </div>
+                    <div className="text-[11px] text-slate-500">
+                      <strong>Target Competency:</strong> {selectedCurriculum.competencyName} • <strong>Estimated Time:</strong> {selectedCurriculum.estimatedTime}
+                    </div>
                   </div>
 
                   {/* Action Buttons */}
                   <div className="flex flex-wrap items-center gap-3 pt-2">
+                    <button
+                      onClick={() => handleLaunchReader(selectedActivity)}
+                      className="inline-flex items-center gap-2 rounded-xl bg-[#087f76] px-5 py-2.5 text-xs font-bold text-white shadow hover:bg-[#06655e] transition-all"
+                    >
+                      <BookOpen size={14} /> Study Course Content ({selectedCurriculum.chapters.length} Chapters)
+                    </button>
+
                     <button
                       onClick={() => handleUpdateProgress(selectedActivity, 25)}
                       disabled={selectedActivity.progress_percent >= 100}
@@ -200,16 +255,16 @@ export function OfficialLearning({
 
                     <button
                       onClick={() => handleOpenCompleteModal(selectedActivity)}
-                      className="inline-flex items-center gap-2 rounded-xl bg-[#087f76] px-5 py-2.5 text-xs font-bold text-white shadow hover:bg-[#06655e] transition-all"
+                      className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors"
                     >
                       <CheckCircle2 size={14} /> Mark as Complete
                     </button>
 
                     <button
-                      onClick={() => onNavigate("Quizzes")}
+                      onClick={() => onNavigate("Quizzes", { competencyCode: selectedActivity.competency_id })}
                       className="inline-flex items-center gap-1 text-xs font-bold text-[#ef7e37] hover:underline ml-auto"
                     >
-                      Attempt Practice Quiz →
+                      <FileQuestion size={14} /> Attempt Practice Quiz →
                     </button>
                   </div>
                 </div>

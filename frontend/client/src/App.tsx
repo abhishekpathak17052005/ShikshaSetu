@@ -254,7 +254,12 @@ function OfficialApp() {
           />
         );
       case "Quizzes":
-        return <OfficialQuizzes onNavigate={handleNavigate} />;
+        return (
+          <OfficialQuizzes
+            initialCompetencyCode={navContext.competencyCode}
+            onNavigate={handleNavigate}
+          />
+        );
       case "Evidence":
         return <OfficialEvidence onNavigate={handleNavigate} />;
       case "Progress":

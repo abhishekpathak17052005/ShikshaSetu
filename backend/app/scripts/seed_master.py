@@ -652,6 +652,8 @@ def main():
         sync_initial_assessment(database, comp_map)
         repair_competency_profiles(database, comp_map)
         repair_competency_evidence(database, comp_map)
+        from app.scripts.seed_demo_course_quizzes import sync_demo_quizzes
+        sync_demo_quizzes(database)
 
         print("\n" + "=" * 70)
         print("MASTER DATA SYNCHRONIZATION COMPLETED SUCCESSFULLY")
