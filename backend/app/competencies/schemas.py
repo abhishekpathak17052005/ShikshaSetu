@@ -40,9 +40,12 @@ class RoleResponse(BaseModel):
     role_name: str
     description: str
     status: str
-    framework_status: FrameworkStatus
-    source_type: SourceType
+    framework_status: FrameworkStatus = FrameworkStatus.PROTOTYPE
+    source_type: SourceType = SourceType.PROTOTYPE
     source_reference: str | None = None
+    department: str | None = None
+    department_code: str | None = None
+    designations: list[str] | None = None
     created_at: datetime
     updated_at: datetime
 

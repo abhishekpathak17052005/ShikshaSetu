@@ -642,6 +642,8 @@ def main():
         comp_map = sync_competencies(database, base_dir)
         role_id = sync_roles(database)
         sync_role_requirements(database, role_id, comp_map)
+        from app.scripts.seed_department_roles import sync_department_roles
+        sync_department_roles(database)
         sync_assessment_configurations(database)
         sync_question_bank(database)
         res_map = sync_learning_resources(database, base_dir)
