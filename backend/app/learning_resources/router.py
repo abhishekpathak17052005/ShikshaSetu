@@ -7,6 +7,10 @@ from pydantic import BaseModel
 from app.auth.dependencies import get_current_user
 from app.learning_resources.service import RecommendationService
 from app.learning_resources.models import RecommendationResponse, LearningRecommendation
+from app.learning_resources.cache import (
+    get_cached_recommendations,
+    set_cached_recommendations,
+)
 
 router = APIRouter(prefix="/recommendations", tags=["learning-resources"])
 
@@ -21,26 +25,24 @@ def get_my_recommendations(
     Get personalized learning recommendations for authenticated user.
 
     Uses the user's skill gaps and role to generate ranked recommendations.
-
-    Query Parameters:
-        limit: Maximum number of recommendations to return (default: None = all)
-
-    Returns:
-        RecommendationResponse with ranked recommendations and explanations
-
-    Raises:
-        401: Not authenticated
-        503: Database unavailable
+    Employs short-term in-memory caching invalidated on assessment completion.
     """
+    user_id = str(current_user["_id"])
+    cached = get_cached_recommendations(user_id, limit)
+    if cached is not None:
+        return cached
+
     database = getattr(request.app.state, "database", None)
     if database is None:
         raise HTTPException(status_code=503, detail="Database unavailable")
 
     service = RecommendationService(database)
-    return service.get_recommendations_for_user(
-        user_id=str(current_user["_id"]),
+    res = service.get_recommendations_for_user(
+        user_id=user_id,
         limit=limit,
     )
+    set_cached_recommendations(user_id, res, limit)
+    return res
 
 
 class ResourceDetailsResponse(BaseModel):

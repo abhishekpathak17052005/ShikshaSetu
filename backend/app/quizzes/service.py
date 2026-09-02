@@ -261,6 +261,12 @@ class QuizService:
             percentage,
         )
 
+        try:
+            from app.learning_resources.cache import invalidate_recommendations_cache
+            invalidate_recommendations_cache(str(user_oid))
+        except Exception:
+            pass
+
         # Get skill gap before and after
         skill_gap_before = self._calculate_skill_gap(user_oid, competency_code, competency_before)
         skill_gap_after = self._calculate_skill_gap(user_oid, competency_code, competency_after)

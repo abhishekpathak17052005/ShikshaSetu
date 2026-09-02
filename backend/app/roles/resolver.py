@@ -163,6 +163,13 @@ def reconcile_user_competencies(
             )
             deactivated_count += 1
 
+    # 6. Invalidate cached recommendations for user
+    try:
+        from app.learning_resources.cache import invalidate_recommendations_cache
+        invalidate_recommendations_cache(str(u_oid))
+    except Exception:
+        pass
+
     return {
         "reconciled": True,
         "role_id": str(r_oid),

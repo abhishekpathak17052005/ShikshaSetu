@@ -416,8 +416,14 @@ class AdaptiveAssessmentService:
             upsert=True,
         )
 
-        # 5. Recalculate Skill Gaps
+        # 5. Recalculate Skill Gaps & Invalidate Recommendations Cache
         updated_gap = 0.0
+        try:
+            from app.learning_resources.cache import invalidate_recommendations_cache
+            invalidate_recommendations_cache(user_id)
+        except Exception:
+            pass
+
         try:
             gap_resp_after = calculate_skill_gaps(self.db, user_id)
             for g in gap_resp_after.gaps:
