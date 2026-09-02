@@ -92,19 +92,24 @@ def get_role_requirements_with_competencies(
         )
     )
     
+    # Batch fetch all competencies in a single query
+    comp_ids = [req["competency_id"] for req in requirements if req.get("competency_id")]
+    competencies_cursor = database.competencies.find(
+        {"_id": {"$in": comp_ids}},
+        {
+            "_id": 1,
+            "code": 1,
+            "name": 1,
+            "title": 1,
+            "domain": 1,
+        },
+    )
+    competencies_map = {c["_id"]: c for c in competencies_cursor}
+
     # Enrich with competency details
     enriched = []
     for req in requirements:
-        competency = database.competencies.find_one(
-            {"_id": req["competency_id"]},
-            {
-                "_id": 1,
-                "code": 1,
-                "name": 1,
-                "title": 1,
-                "domain": 1,
-            },
-        )
+        competency = competencies_map.get(req.get("competency_id"))
         if competency:
             enriched.append(
                 {
