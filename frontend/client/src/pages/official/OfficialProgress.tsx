@@ -70,6 +70,13 @@ export function OfficialProgress({ onNavigate }: OfficialProgressProps) {
     (a) => a.status === "completed"
   ).length;
 
+  const normalizeScore = (score: any): number => {
+    const val = Number(score);
+    if (isNaN(val)) return 3.0;
+    if (val > 5.0) return Math.min(5.0, Math.max(1.0, Math.round((val / 20.0) * 10) / 10));
+    return Math.min(5.0, Math.max(1.0, Math.round(val * 10) / 10));
+  };
+
   // Combine authoritative records from adaptive history + evidence ledger
   const allAuthoritativeItems: any[] = [];
   const seenIds = new Set<string>();
@@ -84,7 +91,7 @@ export function OfficialProgress({ onNavigate }: OfficialProgressProps) {
       competency_name: item.competency_name,
       title: `Adaptive Assessment: ${item.competency_name || item.competency_code}`,
       source: "Standardized IRT Adaptive Examination",
-      score: item.final_score,
+      score: normalizeScore(item.final_score),
       confidence: 0.85,
       date: item.completed_at,
     });
@@ -92,7 +99,10 @@ export function OfficialProgress({ onNavigate }: OfficialProgressProps) {
 
   evidenceList.forEach((ev) => {
     if (!seenIds.has(ev.id) && !seenIds.has(ev.session_id)) {
-      allAuthoritativeItems.push(ev);
+      allAuthoritativeItems.push({
+        ...ev,
+        score: normalizeScore(ev.score ?? ev.level ?? 3.0),
+      });
     }
   });
 
@@ -101,19 +111,23 @@ export function OfficialProgress({ onNavigate }: OfficialProgressProps) {
   ).length;
 
   const assessedGaps = (skillGaps?.gaps || []).filter((g) => g.current_level != null);
-  const averageLevel =
-    assessedGaps.length > 0
-      ? (
-          assessedGaps.reduce((acc, g) => acc + (g.current_level || 0), 0) /
-          assessedGaps.length
-        ).toFixed(1)
-      : (allAuthoritativeItems.length > 0
-          ? (
-              allAuthoritativeItems.reduce((acc, e) => acc + (e.score || e.level || 3.0), 0) /
-              allAuthoritativeItems.length
-            ).toFixed(1)
-          : "—");
-
+  let averageLevel = "—";
+  if (assessedGaps.length > 0) {
+    const sum = assessedGaps.reduce((acc, g) => acc + (g.current_level || 0), 0);
+    averageLevel = (sum / assessedGaps.length).toFixed(1);
+  } else if (allAuthoritativeItems.length > 0) {
+    const compScores = new Map<string, number>();
+    allAuthoritativeItems.forEach((item) => {
+      const code = item.competency_code || "GENERAL";
+      if (!compScores.has(code)) {
+        compScores.set(code, normalizeScore(item.score));
+      }
+    });
+    const values: number[] = [];
+    compScores.forEach((v) => values.push(v));
+    const sum = values.reduce((acc, s) => acc + s, 0);
+    averageLevel = (sum / Math.max(values.length, 1)).toFixed(1);
+  }
 
   return (
     <div className="space-y-6 animate-fadeIn max-w-4xl mx-auto">
@@ -206,7 +220,7 @@ export function OfficialProgress({ onNavigate }: OfficialProgressProps) {
           <div className="space-y-3">
             {allAuthoritativeItems.map((ev, idx) => {
               const isAuthoritative = ev.type === "AUTHORITATIVE" || (ev.confidence && ev.confidence >= 0.7);
-              const scoreVal = typeof ev.score === "number" ? ev.score.toFixed(1) : (ev.level ? Number(ev.level).toFixed(1) : "3.0");
+              const scoreVal = normalizeScore(ev.score ?? ev.level ?? 3.0).toFixed(1);
               const dateStr = ev.date ? new Date(ev.date).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" }) : "Recent";
 
               return (
