@@ -769,11 +769,45 @@ export type AdaptiveFinalizeResponse = {
   status: string;
 };
 
+// ─── High-Speed In-Memory Request Cache ─────────────────────────────────────
+
+const requestCache = new Map<string, { data: unknown; expiresAt: number }>();
+const DEFAULT_CACHE_TTL_MS = 30_000; // 30 seconds
+
+export function clearApiCache(prefix?: string) {
+  if (!prefix) {
+    requestCache.clear();
+    return;
+  }
+  requestCache.forEach((_, key) => {
+    if (key.startsWith(prefix)) {
+      requestCache.delete(key);
+    }
+  });
+}
+
+
 // ─── HTTP helper ─────────────────────────────────────────────────────────────
 
-async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
+async function request<T>(path: string, init: RequestInit = {}, options: { skipCache?: boolean; ttlMs?: number } = {}): Promise<T> {
   const token = localStorage.getItem("shikshasetu_token");
   const isFormData = init.body instanceof FormData;
+  const method = (init.method || "GET").toUpperCase();
+  const isGet = method === "GET";
+
+  // Check cache for GET requests
+  const cacheKey = `${token || "anon"}:${path}`;
+  if (isGet && !options.skipCache) {
+    const cached = requestCache.get(cacheKey);
+    if (cached && Date.now() < cached.expiresAt) {
+      return cached.data as T;
+    }
+  }
+
+  // Mutating requests invalidate cache
+  if (!isGet) {
+    clearApiCache();
+  }
 
   const response = await fetch(`${API_BASE}${path}`, {
     ...init,
@@ -789,14 +823,22 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   if (!response.ok) {
     if (response.status === 401) {
       localStorage.removeItem("shikshasetu_token");
+      requestCache.clear();
     }
     throw new ApiError(response.status, body.detail || "Request failed");
+  }
+
+  // Store in cache if GET request
+  if (isGet) {
+    const ttl = options.ttlMs || DEFAULT_CACHE_TTL_MS;
+    requestCache.set(cacheKey, { data: body, expiresAt: Date.now() + ttl });
   }
 
   return body as T;
 }
 
 // ─── API surface ──────────────────────────────────────────────────────────────
+
 
 export const api = {
   // Auth

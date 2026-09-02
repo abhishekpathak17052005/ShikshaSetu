@@ -86,8 +86,30 @@ export function OfficialDashboard({ onNavigate }: OfficialDashboardProps) {
   const completedActivities = activities?.activities?.filter((a) => a.status === "completed") || [];
   const inProgressActivities = activities?.activities?.filter((a) => a.status === "in_progress") || [];
 
+  if (loading && !skillGaps && !competencies.length) {
+    return (
+      <div className="space-y-8 animate-fadeIn">
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#123057] via-[#1a3d6d] to-[#087f76] p-8 text-white shadow-lg">
+          <div className="h-6 w-48 rounded bg-white/20 animate-pulse" />
+          <div className="mt-3 h-10 w-72 rounded bg-white/30 animate-pulse" />
+        </div>
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+          <div className="h-28 rounded-3xl bg-slate-200/60 animate-pulse" />
+          <div className="h-28 rounded-3xl bg-slate-200/60 animate-pulse" />
+          <div className="h-28 rounded-3xl bg-slate-200/60 animate-pulse" />
+          <div className="h-28 rounded-3xl bg-slate-200/60 animate-pulse" />
+        </div>
+        <div className="grid gap-6 lg:grid-cols-2">
+          <div className="h-64 rounded-3xl bg-slate-200/50 animate-pulse" />
+          <div className="h-64 rounded-3xl bg-slate-200/50 animate-pulse" />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-8 animate-fadeIn">
+
       {/* ── Welcome & Capability Header ── */}
       <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#123057] via-[#1a3d6d] to-[#087f76] p-8 text-white shadow-lg">
         <div className="relative z-10 flex flex-col justify-between gap-6 md:flex-row md:items-center">
