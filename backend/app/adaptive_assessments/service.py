@@ -1,5 +1,4 @@
-"""Service orchestrator for the Adaptive Capability Assessment Engine."""
-
+import logging
 from datetime import datetime, UTC
 from typing import Dict, Any, Optional, List
 from bson import ObjectId
@@ -7,6 +6,8 @@ from fastapi import HTTPException, status
 from pymongo.database import Database
 
 from app.skill_gaps.service import calculate_skill_gaps
+
+logger = logging.getLogger(__name__)
 from .calibration import (
     DEFAULT_INITIAL_THETA,
     MIN_THETA,
@@ -421,8 +422,8 @@ class AdaptiveAssessmentService:
         try:
             from app.learning_resources.cache import invalidate_recommendations_cache
             invalidate_recommendations_cache(user_id)
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning("Failed to invalidate recommendation cache for user %s: %s", user_id, e)
 
         try:
             gap_resp_after = calculate_skill_gaps(self.db, user_id)
@@ -430,8 +431,12 @@ class AdaptiveAssessmentService:
                 if getattr(g, "competency_code", "") == competency_code:
                     updated_gap = float(getattr(g, "gap", 0.0))
                     break
-        except Exception:
-            pass
+        except HTTPException as he:
+            # Expected if user has no assigned role or unassigned requirements
+            logger.warning("Role requirements not established for user %s during finalization: %s", user_id, he.detail)
+        except Exception as e:
+            logger.error("Downstream skill-gap recalculation failed during assessment finalization for user %s: %s", user_id, e)
+            raise RuntimeError(f"Downstream skill-gap recalculation failed: {e}") from e
 
         # 6. Mark Session Completed
         self.db.adaptive_assessment_sessions.update_one(

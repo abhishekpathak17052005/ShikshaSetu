@@ -13,7 +13,7 @@ GAP_THRESHOLDS = {
     "LOW": (0.01, 0.50),
     "MEDIUM": (0.51, 1.00),
     "HIGH": (1.01, 1.50),
-    "CRITICAL": (1.51, 4.0),
+    "CRITICAL": (1.51, 5.0),
 }
 
 
@@ -22,16 +22,16 @@ def categorize_gap(gap: float) -> str:
     Categorize a gap into NO_GAP, LOW, MEDIUM, HIGH, or CRITICAL.
     
     Args:
-        gap: Gap size (0.0 to 4.0)
+        gap: Gap size (0.0 to 5.0)
     
     Returns:
         Gap category as string
     
     Raises:
-        ValueError: If gap is negative or > 4.0
+        ValueError: If gap is negative or > 5.0
     """
-    if gap < 0 or gap > 4.0:
-        raise ValueError(f"gap must be between 0 and 4.0, got {gap}")
+    if gap < 0 or gap > 5.0:
+        raise ValueError(f"gap must be between 0 and 5.0, got {gap}")
     
     for category, (min_val, max_val) in GAP_THRESHOLDS.items():
         if min_val <= gap <= max_val:
@@ -53,7 +53,7 @@ def calculate_gap(required_level: float, current_level: float | None) -> float:
         current_level: Current competency level (1.0-5.0) or None if not assessed
     
     Returns:
-        Gap (0.0 to 4.0)
+        Gap (0.0 to 5.0)
     
     Raises:
         ValueError: If required_level is invalid
@@ -62,7 +62,7 @@ def calculate_gap(required_level: float, current_level: float | None) -> float:
         raise ValueError(f"required_level must be between 1 and 5, got {required_level}")
     
     if current_level is None:
-        # Not assessed: treat as zero for gap calculation
+        # Not assessed: treat as zero for gap calculation (gap equals full required level)
         return required_level
     
     if current_level < 1 or current_level > 5:
@@ -88,10 +88,10 @@ def calculate_priority_score(
     priority_score = normalized_gap × 0.60 + normalized_importance × 0.25 + normalized_priority × 0.15
     
     Args:
-        gap: Gap size (0.0-4.0)
+        gap: Gap size (0.0-5.0)
         importance: Importance weight (0.0-1.0)
         role_priority: Role requirement priority (1-4, where 1 is highest)
-        max_gap: Maximum possible gap (default 4.0)
+        max_gap: Normalization gap reference (default 4.0)
         max_priority: Maximum priority value (default 4)
     
     Returns:
@@ -100,15 +100,15 @@ def calculate_priority_score(
     Raises:
         ValueError: If inputs are invalid
     """
-    if gap < 0 or gap > max_gap:
-        raise ValueError(f"gap must be between 0 and {max_gap}, got {gap}")
+    if gap < 0 or gap > 5.0:
+        raise ValueError(f"gap must be between 0 and 5.0, got {gap}")
     if importance < 0 or importance > 1:
         raise ValueError(f"importance must be between 0 and 1, got {importance}")
     if role_priority < 1 or role_priority > max_priority:
         raise ValueError(f"role_priority must be between 1 and {max_priority}, got {role_priority}")
     
-    # Normalize gap (0 gap → 0, max gap → 1)
-    normalized_gap = gap / max_gap if max_gap > 0 else 0
+    # Normalize gap (0 gap → 0, max gap 4.0+ → 1.0 clamped)
+    normalized_gap = min(1.0, gap / max_gap) if max_gap > 0 else 0
     
     # Importance already normalized (0.0-1.0)
     normalized_importance = importance

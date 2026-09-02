@@ -113,12 +113,12 @@ class TestGapCategorization:
         assert engine.categorize_gap(1.51) == "CRITICAL"
 
     def test_invalid_gap_raises_error(self) -> None:
-        """Gap must be between 0 and 4."""
-        with pytest.raises(ValueError, match="gap must be between 0 and 4.0"):
+        """Gap must be between 0 and 5.0."""
+        with pytest.raises(ValueError, match="gap must be between 0 and 5.0"):
             engine.categorize_gap(-0.1)
         
-        with pytest.raises(ValueError, match="gap must be between 0 and 4.0"):
-            engine.categorize_gap(4.1)
+        with pytest.raises(ValueError, match="gap must be between 0 and 5.0"):
+            engine.categorize_gap(5.1)
 
 
 class TestAssessmentStatus:

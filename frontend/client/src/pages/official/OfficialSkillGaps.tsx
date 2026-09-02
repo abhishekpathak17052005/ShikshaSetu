@@ -23,15 +23,19 @@ export function OfficialSkillGaps({ onNavigate }: OfficialSkillGapsProps) {
   const { user } = useAuth();
   const [skillGaps, setSkillGaps] = useState<SkillGapResponse | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchSkillGaps = async () => {
     try {
       setLoading(true);
+      setError(null);
       const res = await api.skillGaps.me();
       setSkillGaps(res);
     } catch (err: any) {
+      const msg = err.message || "Unable to load skill-gap analysis. Please try again.";
+      setError(msg);
       if (err.status !== 404) {
-        toast.error(err.message || "Failed to load skill gaps");
+        toast.error(msg);
       }
     } finally {
       setLoading(false);
@@ -44,6 +48,26 @@ export function OfficialSkillGaps({ onNavigate }: OfficialSkillGapsProps) {
 
   if (loading && !skillGaps) {
     return <PageSkeleton />;
+  }
+
+  if (error && !skillGaps) {
+    return (
+      <div className="space-y-6 animate-fadeIn">
+        <div className="rounded-3xl border border-red-200 bg-red-50/50 p-8 text-center">
+          <AlertCircle className="h-10 w-10 text-red-500 mx-auto mb-3" />
+          <h2 className="text-lg font-bold text-red-950">Unable to load skill-gap analysis</h2>
+          <p className="text-sm text-red-700 mt-1 max-w-md mx-auto">
+            {error}
+          </p>
+          <button
+            onClick={fetchSkillGaps}
+            className="mt-4 inline-flex items-center gap-2 rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-red-700 transition"
+          >
+            <RefreshCw className="h-4 w-4" /> Try Again
+          </button>
+        </div>
+      </div>
+    );
   }
 
   const summary = skillGaps?.summary;

@@ -14,7 +14,7 @@ class SkillGapCompetency(BaseModel):
     domain: str
     required_level: float = Field(ge=1, le=5)
     current_level: float | None = Field(default=None, ge=1, le=5)
-    gap: float = Field(ge=0, le=4)
+    gap: float = Field(ge=0, le=5)
     gap_category: str  # NO_GAP, LOW, MEDIUM, HIGH, CRITICAL
     assessment_status: str  # ASSESSED, NOT_ASSESSED
     confidence: float = Field(default=0.0, ge=0, le=1)
