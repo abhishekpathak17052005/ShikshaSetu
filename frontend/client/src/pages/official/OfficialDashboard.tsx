@@ -43,22 +43,36 @@ export function OfficialDashboard({ onNavigate }: OfficialDashboardProps) {
     let active = true;
     setLoading(true);
 
+    // 1. Primary data needed to render Dashboard KPIs and skill gaps immediately:
     api.skillGaps.me()
-      .then((res) => { if (active) setSkillGaps(res); })
-      .catch(() => {});
+      .then((res) => {
+        if (active) {
+          setSkillGaps(res);
+          setLoading(false);
+        }
+      })
+      .catch(() => {
+        if (active) setLoading(false);
+      });
 
+    // 2. Secondary framework items
     api.competencies.me()
-      .then((res) => { if (active) setCompetencies(res as any); })
+      .then((res) => {
+        if (active) {
+          setCompetencies(res as any);
+          setLoading(false);
+        }
+      })
       .catch(() => {});
 
+    // 3. Asynchronous non-blocking background loads:
     api.learningActivities.list()
       .then((res) => { if (active) setActivities(res); })
       .catch(() => {});
 
     api.recommendations.me()
       .then((res) => { if (active) setRecommendations(res); })
-      .catch(() => {})
-      .finally(() => { if (active) setLoading(false); });
+      .catch(() => {});
 
     return () => { active = false; };
   }, []);
