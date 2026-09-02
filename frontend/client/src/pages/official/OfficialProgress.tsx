@@ -27,20 +27,23 @@ export function OfficialProgress({ onNavigate }: OfficialProgressProps) {
   const [skillGaps, setSkillGaps] = useState<SkillGapResponse | null>(null);
   const [activities, setActivities] = useState<LearningActivityListResponse | null>(null);
   const [evidenceList, setEvidenceList] = useState<any[]>([]);
+  const [adaptiveHistory, setAdaptiveHistory] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchProgress = async () => {
     try {
       setLoading(true);
-      const [gapsRes, actsRes, evRes] = await Promise.allSettled([
+      const [gapsRes, actsRes, evRes, adaptRes] = await Promise.allSettled([
         api.skillGaps.me(),
         api.learningActivities.list(),
         api.evidence.list(),
+        api.adaptiveAssessments.history(),
       ]);
 
       if (gapsRes.status === "fulfilled") setSkillGaps(gapsRes.value);
       if (actsRes.status === "fulfilled") setActivities(actsRes.value);
       if (evRes.status === "fulfilled") setEvidenceList(evRes.value);
+      if (adaptRes.status === "fulfilled") setAdaptiveHistory(adaptRes.value);
     } catch (err: any) {
       toast.error(err.message || "Failed to load progress metrics");
     } finally {
@@ -52,7 +55,7 @@ export function OfficialProgress({ onNavigate }: OfficialProgressProps) {
     fetchProgress();
   }, []);
 
-  if (loading && !skillGaps && evidenceList.length === 0) {
+  if (loading && !skillGaps && evidenceList.length === 0 && adaptiveHistory.length === 0) {
     return <PageSkeleton />;
   }
 
@@ -67,9 +70,35 @@ export function OfficialProgress({ onNavigate }: OfficialProgressProps) {
     (a) => a.status === "completed"
   ).length;
 
-  const authoritativeEvidence = evidenceList.filter(
+  // Combine authoritative records from adaptive history + evidence ledger
+  const allAuthoritativeItems: any[] = [];
+  const seenIds = new Set<string>();
+
+  adaptiveHistory.forEach((item) => {
+    const id = item.session_id || item.competency_code;
+    seenIds.add(id);
+    allAuthoritativeItems.push({
+      id,
+      type: "AUTHORITATIVE",
+      competency_code: item.competency_code,
+      competency_name: item.competency_name,
+      title: `Adaptive Assessment: ${item.competency_name || item.competency_code}`,
+      source: "Standardized IRT Adaptive Examination",
+      score: item.final_score,
+      confidence: 0.85,
+      date: item.completed_at,
+    });
+  });
+
+  evidenceList.forEach((ev) => {
+    if (!seenIds.has(ev.id) && !seenIds.has(ev.session_id)) {
+      allAuthoritativeItems.push(ev);
+    }
+  });
+
+  const authoritativeCount = allAuthoritativeItems.filter(
     (e) => e.type === "AUTHORITATIVE" || (e.confidence && e.confidence >= 0.7)
-  );
+  ).length;
 
   const assessedGaps = (skillGaps?.gaps || []).filter((g) => g.current_level != null);
   const averageLevel =
@@ -78,12 +107,13 @@ export function OfficialProgress({ onNavigate }: OfficialProgressProps) {
           assessedGaps.reduce((acc, g) => acc + (g.current_level || 0), 0) /
           assessedGaps.length
         ).toFixed(1)
-      : (authoritativeEvidence.length > 0
+      : (allAuthoritativeItems.length > 0
           ? (
-              authoritativeEvidence.reduce((acc, e) => acc + (e.score || e.level || 3.0), 0) /
-              authoritativeEvidence.length
+              allAuthoritativeItems.reduce((acc, e) => acc + (e.score || e.level || 3.0), 0) /
+              allAuthoritativeItems.length
             ).toFixed(1)
           : "—");
+
 
   return (
     <div className="space-y-6 animate-fadeIn max-w-4xl mx-auto">
@@ -130,7 +160,7 @@ export function OfficialProgress({ onNavigate }: OfficialProgressProps) {
             <span className="text-xs font-bold uppercase">Assessments Taken</span>
             <ClipboardCheck size={18} className="text-emerald-600" />
           </div>
-          <div className="mt-3 text-3xl font-black text-[#123057]">{authoritativeEvidence.length}</div>
+          <div className="mt-3 text-3xl font-black text-[#123057]">{authoritativeCount}</div>
           <div className="mt-1 text-[11px] text-slate-400 font-semibold">Authoritative records</div>
         </div>
 
@@ -158,7 +188,7 @@ export function OfficialProgress({ onNavigate }: OfficialProgressProps) {
           </span>
         </div>
 
-        {evidenceList.length === 0 ? (
+        {allAuthoritativeItems.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-[#dfe7f0] bg-slate-50/50 p-8 text-center">
             <TrendingUp size={24} className="mx-auto text-slate-400" />
             <h3 className="mt-2 text-sm font-bold text-[#123057]">No historical assessment data</h3>
@@ -174,7 +204,7 @@ export function OfficialProgress({ onNavigate }: OfficialProgressProps) {
           </div>
         ) : (
           <div className="space-y-3">
-            {evidenceList.map((ev, idx) => {
+            {allAuthoritativeItems.map((ev, idx) => {
               const isAuthoritative = ev.type === "AUTHORITATIVE" || (ev.confidence && ev.confidence >= 0.7);
               const scoreVal = typeof ev.score === "number" ? ev.score.toFixed(1) : (ev.level ? Number(ev.level).toFixed(1) : "3.0");
               const dateStr = ev.date ? new Date(ev.date).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" }) : "Recent";

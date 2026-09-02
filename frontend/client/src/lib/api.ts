@@ -1192,6 +1192,16 @@ export const api = {
       request<AdaptiveFinalizeResponse>(`/adaptive-assessments/${session_id}/finalize`, {
         method: "POST",
       }),
+    history: () =>
+      request<{
+        session_id: string;
+        competency_code: string;
+        competency_name: string;
+        final_score: number;
+        accuracy_pct: number;
+        completed_at: string;
+        status: string;
+      }[]>("/adaptive-assessments/history"),
   },
 
   // ── Legacy flat aliases kept for backwards-compat with LiveHome.tsx ──────
