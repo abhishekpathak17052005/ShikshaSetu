@@ -90,9 +90,17 @@ def login(request: Request, payload: LoginRequest) -> dict:
     if user.get("status") != "active":
         raise HTTPException(status_code=401, detail="Invalid email or password")
 
+    from app.roles.resolver import resolve_role_for_user, reconcile_user_competencies
+    resolved_role_oid = resolve_role_for_user(database, user.get("department"), user.get("designation"))
+    if resolved_role_oid and resolved_role_oid != user.get("role_id"):
+        repository.update_user(database, str(user["_id"]), {"role_id": resolved_role_oid})
+        reconcile_user_competencies(database, user["_id"], resolved_role_oid)
+        user["role_id"] = resolved_role_oid
+
     updated_user = repository.update_last_login(database, str(user["_id"]), datetime.now(UTC)) or user
     token = create_access_token(str(updated_user["_id"]), request.app.state.settings)
     return {"access_token": token, "token_type": "bearer", "user": public_user(updated_user)}
+
 
 
 @router.get("/me", response_model=UserResponse)

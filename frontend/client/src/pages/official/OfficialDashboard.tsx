@@ -40,28 +40,27 @@ export function OfficialDashboard({ onNavigate }: OfficialDashboardProps) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function loadDashboardData() {
-      try {
-        setLoading(true);
-        const [gapsRes, compsRes, recsRes, actsRes] = await Promise.allSettled([
-          api.skillGaps.me(),
-          api.competencies.me(),
-          api.recommendations.me(),
-          api.learningActivities.list(),
-        ]);
+    let active = true;
+    setLoading(true);
 
-        if (gapsRes.status === "fulfilled") setSkillGaps(gapsRes.value);
-        if (compsRes.status === "fulfilled") setCompetencies(compsRes.value as any);
-        if (recsRes.status === "fulfilled") setRecommendations(recsRes.value);
-        if (actsRes.status === "fulfilled") setActivities(actsRes.value);
+    api.skillGaps.me()
+      .then((res) => { if (active) setSkillGaps(res); })
+      .catch(() => {});
 
-      } catch (err: any) {
-        toast.error(err.message || "Failed to load dashboard data");
-      } finally {
-        setLoading(false);
-      }
-    }
-    loadDashboardData();
+    api.competencies.me()
+      .then((res) => { if (active) setCompetencies(res as any); })
+      .catch(() => {});
+
+    api.learningActivities.list()
+      .then((res) => { if (active) setActivities(res); })
+      .catch(() => {});
+
+    api.recommendations.me()
+      .then((res) => { if (active) setRecommendations(res); })
+      .catch(() => {})
+      .finally(() => { if (active) setLoading(false); });
+
+    return () => { active = false; };
   }, []);
 
   const assessedGaps = skillGaps?.gaps?.filter((g) => g.current_level != null) || [];
@@ -167,7 +166,7 @@ export function OfficialDashboard({ onNavigate }: OfficialDashboardProps) {
           </div>
           <div className="mt-4 flex items-baseline gap-2">
             <span className="text-3xl font-black text-[#123057]">
-              {loading ? "..." : averageLevel != null ? `${averageLevel.toFixed(1)} / 5.0` : "—"}
+              {averageLevel != null ? `${averageLevel.toFixed(1)} / 5.0` : "—"}
             </span>
           </div>
           <div className="mt-2 text-[11px] text-slate-400 font-semibold">
@@ -189,7 +188,7 @@ export function OfficialDashboard({ onNavigate }: OfficialDashboardProps) {
           </div>
           <div className="mt-4 flex items-baseline gap-2">
             <span className="text-3xl font-black text-[#123057]">
-              {loading ? "..." : (skillGaps?.summary?.required_competencies || competencies.length || 0)}
+              {skillGaps?.summary?.required_competencies ?? competencies.length ?? 0}
             </span>
             <span className="text-xs font-semibold text-slate-400">framework items</span>
           </div>
@@ -213,7 +212,7 @@ export function OfficialDashboard({ onNavigate }: OfficialDashboardProps) {
           </div>
           <div className="mt-4 flex items-baseline gap-2">
             <span className="text-3xl font-black text-[#ef7e37]">
-              {loading ? "..." : priorityGaps.length}
+              {priorityGaps.length}
             </span>
             <span className="text-xs font-semibold text-slate-400">areas for growth</span>
           </div>
@@ -237,7 +236,7 @@ export function OfficialDashboard({ onNavigate }: OfficialDashboardProps) {
           </div>
           <div className="mt-4 flex items-baseline gap-2">
             <span className="text-3xl font-black text-[#123057]">
-              {loading ? "..." : completedActivities.length}
+              {completedActivities.length}
             </span>
             <span className="text-xs font-semibold text-slate-400">
               completed ({inProgressActivities.length} active)

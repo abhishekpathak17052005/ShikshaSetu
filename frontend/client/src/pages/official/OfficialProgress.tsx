@@ -8,37 +8,39 @@ import {
   BookOpen,
   RefreshCw,
   ArrowRight,
-  Layers,
+  ShieldCheck,
+  Sparkles,
 } from "lucide-react";
 import {
   api,
   SkillGapResponse,
   LearningActivityListResponse,
 } from "@/lib/api";
+import { PageSkeleton } from "@/components/PageSkeleton";
 import { toast } from "sonner";
 
 interface OfficialProgressProps {
-  onNavigate: (page: string) => void;
+  onNavigate: (page: string, context?: { competencyCode?: string }) => void;
 }
 
 export function OfficialProgress({ onNavigate }: OfficialProgressProps) {
   const [skillGaps, setSkillGaps] = useState<SkillGapResponse | null>(null);
   const [activities, setActivities] = useState<LearningActivityListResponse | null>(null);
-  const [assessments, setAssessments] = useState<any[]>([]);
+  const [evidenceList, setEvidenceList] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchProgress = async () => {
     try {
       setLoading(true);
-      const [gapsRes, actsRes, assessRes] = await Promise.allSettled([
+      const [gapsRes, actsRes, evRes] = await Promise.allSettled([
         api.skillGaps.me(),
         api.learningActivities.list(),
-        api.capabilityAssessments.list(undefined, "SUBMITTED"),
+        api.evidence.list(),
       ]);
 
       if (gapsRes.status === "fulfilled") setSkillGaps(gapsRes.value);
       if (actsRes.status === "fulfilled") setActivities(actsRes.value);
-      if (assessRes.status === "fulfilled") setAssessments(assessRes.value);
+      if (evRes.status === "fulfilled") setEvidenceList(evRes.value);
     } catch (err: any) {
       toast.error(err.message || "Failed to load progress metrics");
     } finally {
@@ -50,6 +52,11 @@ export function OfficialProgress({ onNavigate }: OfficialProgressProps) {
     fetchProgress();
   }, []);
 
+  if (loading && !skillGaps && evidenceList.length === 0) {
+    return <PageSkeleton />;
+  }
+
+  // Calculate total learning time
   const totalMinutes = (activities?.activities || []).reduce(
     (acc, a) => acc + (a.duration_minutes || 0),
     0
@@ -60,6 +67,10 @@ export function OfficialProgress({ onNavigate }: OfficialProgressProps) {
     (a) => a.status === "completed"
   ).length;
 
+  const authoritativeEvidence = evidenceList.filter(
+    (e) => e.type === "AUTHORITATIVE" || (e.confidence && e.confidence >= 0.7)
+  );
+
   const assessedGaps = (skillGaps?.gaps || []).filter((g) => g.current_level != null);
   const averageLevel =
     assessedGaps.length > 0
@@ -67,7 +78,12 @@ export function OfficialProgress({ onNavigate }: OfficialProgressProps) {
           assessedGaps.reduce((acc, g) => acc + (g.current_level || 0), 0) /
           assessedGaps.length
         ).toFixed(1)
-      : "—";
+      : (authoritativeEvidence.length > 0
+          ? (
+              authoritativeEvidence.reduce((acc, e) => acc + (e.score || e.level || 3.0), 0) /
+              authoritativeEvidence.length
+            ).toFixed(1)
+          : "—");
 
   return (
     <div className="space-y-6 animate-fadeIn max-w-4xl mx-auto">
@@ -76,7 +92,7 @@ export function OfficialProgress({ onNavigate }: OfficialProgressProps) {
         <div>
           <h1 className="text-2xl font-black text-[#123057]">Progress & Capability Growth</h1>
           <p className="text-sm text-slate-500 mt-1">
-            Real longitudinal capability progress based exclusively on verified assessments and recorded learning time.
+            Real longitudinal capability progress based on verified assessments and recorded learning time.
           </p>
         </div>
 
@@ -114,8 +130,8 @@ export function OfficialProgress({ onNavigate }: OfficialProgressProps) {
             <span className="text-xs font-bold uppercase">Assessments Taken</span>
             <ClipboardCheck size={18} className="text-emerald-600" />
           </div>
-          <div className="mt-3 text-3xl font-black text-[#123057]">{assessments.length}</div>
-          <div className="mt-1 text-[11px] text-slate-400 font-semibold">Authoritative examinations</div>
+          <div className="mt-3 text-3xl font-black text-[#123057]">{authoritativeEvidence.length}</div>
+          <div className="mt-1 text-[11px] text-slate-400 font-semibold">Authoritative records</div>
         </div>
 
         <div className="rounded-2xl border border-[#dfe7f0] bg-white p-5 shadow-sm">
@@ -128,16 +144,21 @@ export function OfficialProgress({ onNavigate }: OfficialProgressProps) {
         </div>
       </div>
 
-      {/* Capability Timeline */}
+      {/* Validated Evidence Timeline */}
       <div className="rounded-3xl border border-[#dfe7f0] bg-white p-6 sm:p-8 shadow-sm space-y-6">
-        <div className="border-b border-slate-100 pb-4">
-          <h2 className="text-lg font-bold text-[#123057]">Validated Assessment History</h2>
-          <p className="text-xs text-slate-400 mt-0.5">
-            Chronological audit of formal competency evaluations that modified your profile.
-          </p>
+        <div className="border-b border-slate-100 pb-4 flex items-center justify-between">
+          <div>
+            <h2 className="text-lg font-bold text-[#123057]">Validated Assessment & Capability History</h2>
+            <p className="text-xs text-slate-400 mt-0.5">
+              Chronological audit of formal competency evaluations and validated learning milestones.
+            </p>
+          </div>
+          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">
+            <ShieldCheck size={14} /> Immutable Ledger
+          </span>
         </div>
 
-        {assessments.length === 0 ? (
+        {evidenceList.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-[#dfe7f0] bg-slate-50/50 p-8 text-center">
             <TrendingUp size={24} className="mx-auto text-slate-400" />
             <h3 className="mt-2 text-sm font-bold text-[#123057]">No historical assessment data</h3>
@@ -153,32 +174,49 @@ export function OfficialProgress({ onNavigate }: OfficialProgressProps) {
           </div>
         ) : (
           <div className="space-y-3">
-            {assessments.map((ass, idx) => (
-              <div
-                key={ass.id || idx}
-                className="rounded-2xl border border-slate-100 bg-[#f8fafc] p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
-              >
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="rounded bg-teal-50 px-2 py-0.5 text-[10px] font-bold text-teal-800">
-                      {ass.competency_code}
-                    </span>
-                    <span className="text-xs font-bold text-[#123057]">
-                      {ass.title || "Standardized Assessment"}
-                    </span>
-                  </div>
-                  <div className="text-[11px] text-slate-400 mt-1">
-                    Submitted on {ass.submitted_at ? new Date(ass.submitted_at).toLocaleDateString() : "Recent"}
-                  </div>
-                </div>
+            {evidenceList.map((ev, idx) => {
+              const isAuthoritative = ev.type === "AUTHORITATIVE" || (ev.confidence && ev.confidence >= 0.7);
+              const scoreVal = typeof ev.score === "number" ? ev.score.toFixed(1) : (ev.level ? Number(ev.level).toFixed(1) : "3.0");
+              const dateStr = ev.date ? new Date(ev.date).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" }) : "Recent";
 
-                <div className="flex items-center gap-3">
-                  <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-extrabold text-emerald-800">
-                    Level {ass.score?.toFixed(1) || (ass.percentage ? (ass.percentage / 20).toFixed(1) : "4.0")} / 5.0
-                  </span>
+              return (
+                <div
+                  key={ev.id || idx}
+                  className="rounded-2xl border border-slate-100 bg-[#f8fafc] p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 hover:border-slate-200 transition-colors"
+                >
+                  <div className="flex items-start gap-3">
+                    <div className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl font-black text-xs ${
+                      isAuthoritative ? "bg-emerald-100 text-emerald-800" : "bg-teal-100 text-teal-800"
+                    }`}>
+                      {isAuthoritative ? <ClipboardCheck size={18} /> : <BookOpen size={18} />}
+                    </div>
+                    <div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="rounded bg-slate-200/80 px-2 py-0.5 text-[10px] font-bold text-slate-800">
+                          {ev.competency_code || "COMPETENCY"}
+                        </span>
+                        <span className="text-xs font-bold text-[#123057]">
+                          {ev.title || ev.source || "Competency Verification"}
+                        </span>
+                      </div>
+                      <div className="text-[11px] text-slate-400 mt-1 flex items-center gap-2">
+                        <span>Recorded on {dateStr}</span>
+                        <span>·</span>
+                        <span className="font-semibold text-slate-500">{ev.source || "System Verification"}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3 shrink-0">
+                    <span className={`rounded-full px-3 py-1 text-xs font-extrabold ${
+                      isAuthoritative ? "bg-emerald-100 text-emerald-800" : "bg-teal-100 text-teal-800"
+                    }`}>
+                      Level {scoreVal} / 5.0
+                    </span>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

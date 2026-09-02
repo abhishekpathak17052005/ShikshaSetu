@@ -10,6 +10,8 @@ import {
   BookOpen,
 } from "lucide-react";
 import { api, SkillGapResponse } from "@/lib/api";
+import { useAuth } from "@/contexts/AuthContext";
+import { PageSkeleton } from "@/components/PageSkeleton";
 import { toast } from "sonner";
 
 interface OfficialSkillGapsProps {
@@ -17,6 +19,7 @@ interface OfficialSkillGapsProps {
 }
 
 export function OfficialSkillGaps({ onNavigate }: OfficialSkillGapsProps) {
+  const { user } = useAuth();
   const [skillGaps, setSkillGaps] = useState<SkillGapResponse | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -38,6 +41,10 @@ export function OfficialSkillGaps({ onNavigate }: OfficialSkillGapsProps) {
     fetchSkillGaps();
   }, []);
 
+  if (loading && !skillGaps) {
+    return <PageSkeleton />;
+  }
+
   const summary = skillGaps?.summary;
   const gaps = skillGaps?.gaps || [];
 
@@ -48,6 +55,11 @@ export function OfficialSkillGaps({ onNavigate }: OfficialSkillGapsProps) {
     : summary?.medium_gaps
     ? "Developing"
     : "On Track";
+
+  const displayedRoleName =
+    summary?.role_name ||
+    skillGaps?.role ||
+    (user?.designation ? `${user.designation} Framework` : "Role Capability Framework");
 
   return (
     <div className="space-y-6 animate-fadeIn">
@@ -85,7 +97,7 @@ export function OfficialSkillGaps({ onNavigate }: OfficialSkillGapsProps) {
               Role Requirements Matrix
             </div>
             <h2 className="text-xl font-bold text-[#123057] mt-1">
-              {summary?.role_name || skillGaps?.role || "Statistical Officer Framework"}
+              {displayedRoleName}
             </h2>
           </div>
 
