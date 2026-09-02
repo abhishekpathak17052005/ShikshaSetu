@@ -29,3 +29,8 @@ def ensure_framework_indexes(database: Database) -> None:
         [("user_id", ASCENDING), ("competency_id", ASCENDING)],
         name="ix_user_competency_evidence",
     )
+    database.adaptive_assessment_sessions.create_index(
+        [("user_id", ASCENDING), ("status", ASCENDING), ("completed_at", -1)],
+        name="ix_adaptive_sessions_user_status_date",
+    )
+

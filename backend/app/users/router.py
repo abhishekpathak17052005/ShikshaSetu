@@ -89,16 +89,30 @@ def get_my_evidence(
         conf = float(doc.get("confidence", doc.get("evidence_confidence", 0.85 if ("ASSESS" in raw_type or "QUIZ" in raw_type) else 0.3)))
         is_authoritative = "ASSESS" in raw_type or "QUIZ" in raw_type or conf >= 0.7
 
-        raw_score = doc.get("score", doc.get("level", 3.0))
+        # Source-aware score type determination
+        score_type = doc.get("score_type")
+        raw_score = doc.get("raw_score", doc.get("score", doc.get("level", 3.0)))
+        
+        # Legacy fallback inference if not stamped
+        if not score_type:
+            if "QUIZ" in raw_type or doc.get("source") == "AI_QUIZ" or "quiz_percentage" in doc:
+                score_type = "PERCENTAGE"
+            elif "ADAPTIVE" in raw_type or "CAPABILITY_ASSESSMENT" in raw_type or doc.get("source") == "adaptive_capability_assessment":
+                score_type = "IRT_THETA"
+            else:
+                score_type = "PROFICIENCY_LEVEL"
+
         try:
             val = float(raw_score)
-            # If stored as percentage (e.g., 60.0 or 85.0), scale to 1.0 - 5.0
-            if val > 5.0:
-                normalized_score = round(min(5.0, max(1.0, (val / 100.0) * 5.0)), 1)
+            if score_type == "PERCENTAGE":
+                normalized_level = round(min(5.0, max(1.0, (val / 100.0) * 5.0)), 1)
+            elif score_type in ("IRT_THETA", "PROFICIENCY_LEVEL"):
+                normalized_level = round(min(5.0, max(1.0, val)), 1)
             else:
-                normalized_score = round(min(5.0, max(1.0, val)), 1)
+                normalized_level = 3.0
         except (ValueError, TypeError):
-            normalized_score = 3.0
+            val = 3.0
+            normalized_level = 3.0
 
         results.append({
             "id": str(doc.get("_id", ObjectId())),
@@ -108,7 +122,10 @@ def get_my_evidence(
             "competency_code": comp_code,
             "competency_name": comp_name,
             "confidence": conf,
-            "score": normalized_score,
+            "score_type": score_type,
+            "raw_score": val,
+            "score": normalized_level,
+            "normalized_level": normalized_level,
             "date": doc.get("created_at", doc.get("timestamp", datetime.now(UTC))),
             "notes": doc.get("notes", "Immutable cryptographic capability audit record."),
         })

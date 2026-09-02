@@ -238,8 +238,11 @@ class QuizService:
             "source": "AI_QUIZ",
             "quiz_id": ObjectId(quiz_id),
             "attempt_id": ObjectId(attempt_id),
+            "score_type": "PERCENTAGE",
+            "raw_score": percentage,
             "quiz_percentage": percentage,
-            "score": percentage,  # Normalized 0-100
+            "score": percentage,  # Native percentage
+            "normalized_level": round(min(5.0, max(1.0, (percentage / 100.0) * 5.0)), 1),
             "weight": 1.0,  # Quiz evidence weight (can be configured)
             "created_at": now,
             "metadata": {

@@ -70,10 +70,18 @@ export function OfficialProgress({ onNavigate }: OfficialProgressProps) {
     (a) => a.status === "completed"
   ).length;
 
-  const normalizeScore = (score: any): number => {
-    const val = Number(score);
+  const normalizeScore = (rawScore: any, scoreType?: string): number => {
+    const val = Number(rawScore);
     if (isNaN(val)) return 3.0;
-    if (val > 5.0) return Math.min(5.0, Math.max(1.0, Math.round((val / 20.0) * 10) / 10));
+    if (scoreType === "PERCENTAGE") {
+      return Math.min(5.0, Math.max(1.0, Math.round((val / 100.0) * 5.0 * 10) / 10));
+    }
+    if (scoreType === "IRT_THETA" || scoreType === "PROFICIENCY_LEVEL") {
+      return Math.min(5.0, Math.max(1.0, Math.round(val * 10) / 10));
+    }
+    if (val > 5.0) {
+      return Math.min(5.0, Math.max(1.0, Math.round((val / 100.0) * 5.0 * 10) / 10));
+    }
     return Math.min(5.0, Math.max(1.0, Math.round(val * 10) / 10));
   };
 
@@ -84,14 +92,17 @@ export function OfficialProgress({ onNavigate }: OfficialProgressProps) {
   adaptiveHistory.forEach((item) => {
     const id = item.session_id || item.competency_code;
     seenIds.add(id);
+    const norm = normalizeScore(item.final_score, "IRT_THETA");
     allAuthoritativeItems.push({
       id,
       type: "AUTHORITATIVE",
+      score_type: "IRT_THETA",
+      raw_score: item.final_score,
       competency_code: item.competency_code,
       competency_name: item.competency_name,
       title: `Adaptive Assessment: ${item.competency_name || item.competency_code}`,
       source: "Standardized IRT Adaptive Examination",
-      score: normalizeScore(item.final_score),
+      score: norm,
       confidence: 0.85,
       date: item.completed_at,
     });
@@ -99,9 +110,14 @@ export function OfficialProgress({ onNavigate }: OfficialProgressProps) {
 
   evidenceList.forEach((ev) => {
     if (!seenIds.has(ev.id) && !seenIds.has(ev.session_id)) {
+      const sType = ev.score_type || (ev.source === "AI_QUIZ" ? "PERCENTAGE" : "PROFICIENCY_LEVEL");
+      const raw = ev.raw_score !== undefined ? ev.raw_score : ev.score;
+      const norm = ev.normalized_level !== undefined ? ev.normalized_level : normalizeScore(raw, sType);
       allAuthoritativeItems.push({
         ...ev,
-        score: normalizeScore(ev.score ?? ev.level ?? 3.0),
+        score_type: sType,
+        raw_score: raw,
+        score: norm,
       });
     }
   });
@@ -220,8 +236,14 @@ export function OfficialProgress({ onNavigate }: OfficialProgressProps) {
           <div className="space-y-3">
             {allAuthoritativeItems.map((ev, idx) => {
               const isAuthoritative = ev.type === "AUTHORITATIVE" || (ev.confidence && ev.confidence >= 0.7);
-              const scoreVal = normalizeScore(ev.score ?? ev.level ?? 3.0).toFixed(1);
+              const scoreVal = normalizeScore(ev.score ?? ev.raw_score ?? 3.0, ev.score_type).toFixed(1);
               const dateStr = ev.date ? new Date(ev.date).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" }) : "Recent";
+              const rawLabel =
+                ev.score_type === "PERCENTAGE" && ev.raw_score != null
+                  ? `${Number(ev.raw_score).toFixed(0)}% quiz score`
+                  : ev.raw_score != null
+                  ? `Theta ${Number(ev.raw_score).toFixed(1)}`
+                  : null;
 
               return (
                 <div
@@ -247,6 +269,12 @@ export function OfficialProgress({ onNavigate }: OfficialProgressProps) {
                         <span>Recorded on {dateStr}</span>
                         <span>·</span>
                         <span className="font-semibold text-slate-500">{ev.source || "System Verification"}</span>
+                        {rawLabel && (
+                          <>
+                            <span>·</span>
+                            <span className="text-slate-400 font-medium">{rawLabel}</span>
+                          </>
+                        )}
                       </div>
                     </div>
                   </div>
