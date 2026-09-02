@@ -126,24 +126,17 @@ export function OfficialProgress({ onNavigate }: OfficialProgressProps) {
     (e) => e.type === "AUTHORITATIVE" || (e.confidence && e.confidence >= 0.7)
   ).length;
 
+  // ─── CANONICAL SOURCE OF TRUTH: competency_profiles ───────────────────────────
+  // Current capability level is derived strictly from the official's active role profiles,
+  // matching Dashboard and Skill Gaps. Historical evidence remains an immutable audit log.
   const assessedGaps = (skillGaps?.gaps || []).filter((g) => g.current_level != null);
-  let averageLevel = "—";
-  if (assessedGaps.length > 0) {
-    const sum = assessedGaps.reduce((acc, g) => acc + (g.current_level || 0), 0);
-    averageLevel = (sum / assessedGaps.length).toFixed(1);
-  } else if (allAuthoritativeItems.length > 0) {
-    const compScores = new Map<string, number>();
-    allAuthoritativeItems.forEach((item) => {
-      const code = item.competency_code || "GENERAL";
-      if (!compScores.has(code)) {
-        compScores.set(code, normalizeScore(item.score));
-      }
-    });
-    const values: number[] = [];
-    compScores.forEach((v) => values.push(v));
-    const sum = values.reduce((acc, s) => acc + s, 0);
-    averageLevel = (sum / Math.max(values.length, 1)).toFixed(1);
-  }
+  const averageLevel =
+    assessedGaps.length > 0
+      ? (
+          assessedGaps.reduce((acc, g) => acc + (g.current_level || 0), 0) /
+          assessedGaps.length
+        ).toFixed(1)
+      : "—";
 
   return (
     <div className="space-y-6 animate-fadeIn max-w-4xl mx-auto">
