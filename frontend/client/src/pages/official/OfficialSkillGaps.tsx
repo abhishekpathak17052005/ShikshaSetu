@@ -8,6 +8,7 @@ import {
   CheckCircle2,
   RefreshCw,
   BookOpen,
+  ClipboardCheck,
 } from "lucide-react";
 import { api, SkillGapResponse } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
@@ -48,7 +49,12 @@ export function OfficialSkillGaps({ onNavigate }: OfficialSkillGapsProps) {
   const summary = skillGaps?.summary;
   const gaps = skillGaps?.gaps || [];
 
-  const overallStatus = summary?.critical_gaps
+  const assessedCount = gaps.filter((g) => g.current_level != null).length;
+  const isUnassessed = assessedCount === 0;
+
+  const overallStatus = isUnassessed
+    ? "Assessment Required"
+    : summary?.critical_gaps
     ? "Needs Attention"
     : summary?.high_gaps
     ? "High Priority"
@@ -81,13 +87,44 @@ export function OfficialSkillGaps({ onNavigate }: OfficialSkillGapsProps) {
             Refresh
           </button>
           <button
-            onClick={() => onNavigate("Recommendations")}
+            onClick={() => onNavigate(isUnassessed ? "Assessments" : "Recommendations")}
             className="flex items-center gap-2 rounded-xl bg-[#ef7e37] px-4 py-2 text-xs font-bold text-white shadow hover:bg-[#d96a27] transition-all"
           >
-            <BookOpen size={14} /> View All Recommendations
+            {isUnassessed ? (
+              <>
+                <ClipboardCheck size={14} /> Start Assessment
+              </>
+            ) : (
+              <>
+                <BookOpen size={14} /> View Recommendations
+              </>
+            )}
           </button>
         </div>
       </div>
+
+      {/* Unassessed Prompt Banner */}
+      {isUnassessed && (
+        <div className="rounded-2xl border border-amber-200 bg-amber-50/70 p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3.5">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-amber-800 font-bold">
+              <ClipboardCheck size={20} />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-amber-900">Capability Assessment Required</h3>
+              <p className="text-xs text-amber-700 mt-0.5">
+                Complete your role capability assessment to establish verified proficiency benchmarks and identify active skill gaps.
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => onNavigate("Assessments")}
+            className="shrink-0 rounded-xl bg-amber-600 px-4 py-2 text-xs font-bold text-white shadow hover:bg-amber-700 transition-colors"
+          >
+            Take Assessment
+          </button>
+        </div>
+      )}
 
       {/* Role Requirement Summary Card */}
       <div className="rounded-2xl border border-[#dfe7f0] bg-white p-6 shadow-sm">
@@ -101,7 +138,11 @@ export function OfficialSkillGaps({ onNavigate }: OfficialSkillGapsProps) {
             </h2>
           </div>
 
-          <span className="rounded-full bg-[#fff0e6] px-3.5 py-1.5 text-xs font-bold text-[#d96b27]">
+          <span className={`rounded-full px-3.5 py-1.5 text-xs font-bold ${
+            isUnassessed
+              ? "bg-amber-100 text-amber-800 border border-amber-200"
+              : "bg-[#fff0e6] text-[#d96b27]"
+          }`}>
             {overallStatus}
           </span>
         </div>
@@ -110,37 +151,37 @@ export function OfficialSkillGaps({ onNavigate }: OfficialSkillGapsProps) {
         <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
           <div className="rounded-xl bg-[#f8fafc] p-4 border border-slate-100">
             <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-              Total Skill Gaps
+              Skill Gaps
             </div>
-            <div className="mt-2 text-2xl font-black text-[#ef7e37]">
-              {summary?.total_gaps ?? gaps.length}
+            <div className={`mt-2 font-black ${isUnassessed ? "text-lg text-amber-600" : "text-2xl text-[#ef7e37]"}`}>
+              {isUnassessed ? "Assessment Required" : (summary?.total_gaps ?? gaps.length)}
             </div>
           </div>
 
           <div className="rounded-xl bg-[#f8fafc] p-4 border border-slate-100">
             <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-              High Priority Gaps
+              Priority Gaps
             </div>
             <div className="mt-2 text-2xl font-black text-rose-600">
-              {(summary?.high_gaps || 0) + (summary?.critical_gaps || 0)}
+              {isUnassessed ? "—" : (summary?.high_gaps || 0) + (summary?.critical_gaps || 0)}
             </div>
           </div>
 
           <div className="rounded-xl bg-[#f8fafc] p-4 border border-slate-100">
             <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-              Moderate Gaps
+              Assessed Competencies
             </div>
-            <div className="mt-2 text-2xl font-black text-amber-600">
-              {summary?.medium_gaps || 0}
+            <div className="mt-2 text-2xl font-black text-teal-700">
+              {assessedCount} / {gaps.length}
             </div>
           </div>
 
           <div className="rounded-xl bg-[#f8fafc] p-4 border border-slate-100">
             <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-              Low / On Track
+              Role Baseline
             </div>
-            <div className="mt-2 text-2xl font-black text-[#087f76]">
-              {summary?.low_gaps ?? (summary?.met_count || 0)}
+            <div className="mt-2 text-2xl font-black text-[#123057]">
+              {gaps.length} Active
             </div>
           </div>
         </div>

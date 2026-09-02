@@ -165,14 +165,14 @@ export function OfficialDashboard({ onNavigate }: OfficialDashboardProps) {
             </div>
           </div>
           <div className="mt-4 flex items-baseline gap-2">
-            <span className="text-3xl font-black text-[#123057]">
-              {averageLevel != null ? `${averageLevel.toFixed(1)} / 5.0` : "—"}
+            <span className={`font-black ${averageLevel != null ? "text-3xl text-[#123057]" : "text-xl text-amber-600"}`}>
+              {averageLevel != null ? `${averageLevel.toFixed(1)} / 5.0` : "Not assessed"}
             </span>
           </div>
           <div className="mt-2 text-[11px] text-slate-400 font-semibold">
             {averageConfidence != null
               ? `${Math.round(averageConfidence * 100)}% evidence confidence`
-              : "Awaiting initial assessment"}
+              : "Complete capability assessment"}
           </div>
         </div>
 
@@ -204,23 +204,31 @@ export function OfficialDashboard({ onNavigate }: OfficialDashboardProps) {
         <div className="rounded-2xl border border-[#dfe7f0] bg-white p-5 shadow-sm hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
-              Priority Skill Gaps
+              Skill Gaps
             </span>
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-orange-50 text-orange-600">
               <Target size={18} />
             </div>
           </div>
           <div className="mt-4 flex items-baseline gap-2">
-            <span className="text-3xl font-black text-[#ef7e37]">
-              {priorityGaps.length}
-            </span>
-            <span className="text-xs font-semibold text-slate-400">areas for growth</span>
+            {averageLevel == null ? (
+              <span className="text-xl font-black text-amber-600">
+                Assessment required
+              </span>
+            ) : (
+              <>
+                <span className="text-3xl font-black text-[#ef7e37]">
+                  {priorityGaps.length}
+                </span>
+                <span className="text-xs font-semibold text-slate-400">priority gaps</span>
+              </>
+            )}
           </div>
           <button
-            onClick={() => onNavigate("Skill Gaps")}
+            onClick={() => onNavigate(averageLevel == null ? "Assessments" : "Skill Gaps")}
             className="mt-3 flex items-center gap-1 text-xs font-bold text-[#ef7e37] hover:underline"
           >
-            View gap analysis <ArrowRight size={12} />
+            {averageLevel == null ? "Take assessment" : "View gap analysis"} <ArrowRight size={12} />
           </button>
         </div>
 
