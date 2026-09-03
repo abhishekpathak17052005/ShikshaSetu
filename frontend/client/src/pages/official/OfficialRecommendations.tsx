@@ -12,7 +12,7 @@ import {
   RefreshCw,
   Play,
 } from "lucide-react";
-import { api, RecommendationResponse, Recommendation } from "@/lib/api";
+import { api, clearApiCache, RecommendationResponse, Recommendation } from "@/lib/api";
 import { toast } from "sonner";
 
 interface OfficialRecommendationsProps {
@@ -35,6 +35,7 @@ export function OfficialRecommendations({
   const [startingResource, setStartingResource] = useState<string | null>(null);
 
   const fetchRecommendations = async () => {
+    clearApiCache();
     try {
       setLoading(true);
       const res = await api.recommendations.me();

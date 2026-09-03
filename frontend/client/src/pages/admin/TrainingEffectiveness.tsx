@@ -9,7 +9,7 @@ import {
   ShieldCheck,
   TrendingUp,
 } from "lucide-react";
-import { api, TrainingEffectivenessResponse } from "@/lib/api";
+import { api, clearApiCache, TrainingEffectivenessResponse } from "@/lib/api";
 import { toast } from "sonner";
 
 interface TrainingEffectivenessProps {
@@ -21,6 +21,7 @@ export function TrainingEffectiveness({ onNavigate }: TrainingEffectivenessProps
   const [loading, setLoading] = useState(true);
 
   const fetchTraining = async () => {
+    clearApiCache();
     try {
       setLoading(true);
       const res = await api.admin.trainingEffectiveness();

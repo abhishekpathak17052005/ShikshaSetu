@@ -9,7 +9,7 @@ import {
   TrendingUp,
   Users,
 } from "lucide-react";
-import { api, CapacityPlanningResponse, CapacityInterventionItem } from "@/lib/api";
+import { api, clearApiCache, CapacityPlanningResponse, CapacityInterventionItem } from "@/lib/api";
 import { toast } from "sonner";
 
 interface CapacityPlanningProps {
@@ -21,6 +21,7 @@ export function CapacityPlanning({ onNavigate }: CapacityPlanningProps) {
   const [loading, setLoading] = useState(true);
 
   const fetchCapacity = async () => {
+    clearApiCache();
     try {
       setLoading(true);
       const res = await api.admin.capacityPlanning();

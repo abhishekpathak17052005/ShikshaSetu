@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import {
   api,
+  clearApiCache,
   SkillGapResponse,
   LearningActivityListResponse,
 } from "@/lib/api";
@@ -31,6 +32,7 @@ export function OfficialProgress({ onNavigate }: OfficialProgressProps) {
   const [loading, setLoading] = useState(true);
 
   const fetchProgress = async () => {
+    clearApiCache();
     try {
       setLoading(true);
       const [gapsRes, actsRes, evRes, adaptRes] = await Promise.allSettled([

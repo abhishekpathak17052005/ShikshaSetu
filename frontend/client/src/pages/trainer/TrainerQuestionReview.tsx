@@ -16,7 +16,7 @@ import {
   Check,
   AlertTriangle,
 } from "lucide-react";
-import { api, TrainerQuestion, QuestionReviewStatus, LearningMaterial } from "@/lib/api";
+import { api, clearApiCache, TrainerQuestion, QuestionReviewStatus, LearningMaterial } from "@/lib/api";
 import { toast } from "sonner";
 
 interface TrainerQuestionReviewProps {
@@ -55,6 +55,7 @@ export function TrainerQuestionReview({
   const [submittingReject, setSubmittingReject] = useState(false);
 
   const fetchQuestionsAndMaterials = async () => {
+    clearApiCache();
     try {
       setLoading(true);
       const mats = await api.trainer.materials.list();

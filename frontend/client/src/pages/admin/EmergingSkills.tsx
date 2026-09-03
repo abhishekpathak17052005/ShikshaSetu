@@ -8,7 +8,7 @@ import {
   Zap,
   ArrowRight,
 } from "lucide-react";
-import { api, EmergingSkillsResponse, EmergingSkillItem } from "@/lib/api";
+import { api, clearApiCache, EmergingSkillsResponse, EmergingSkillItem } from "@/lib/api";
 import { toast } from "sonner";
 
 interface EmergingSkillsProps {
@@ -20,6 +20,7 @@ export function EmergingSkills({ onNavigate }: EmergingSkillsProps) {
   const [loading, setLoading] = useState(true);
 
   const fetchEmerging = async () => {
+    clearApiCache();
     try {
       setLoading(true);
       const res = await api.admin.emergingSkills();

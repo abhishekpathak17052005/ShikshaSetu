@@ -8,7 +8,7 @@ import {
   UserCheck,
   Users,
 } from "lucide-react";
-import { api, AdminUserListResponse, AdminUserItem } from "@/lib/api";
+import { api, clearApiCache, AdminUserListResponse, AdminUserItem } from "@/lib/api";
 import { toast } from "sonner";
 
 interface AdminUsersProps {
@@ -22,6 +22,7 @@ export function AdminUsers({ onNavigate }: AdminUsersProps) {
   const [selectedRole, setSelectedRole] = useState("ALL");
 
   const fetchUsers = async () => {
+    clearApiCache();
     try {
       setLoading(true);
       const res = await api.admin.users();

@@ -7,7 +7,7 @@ import {
   ShieldCheck,
   Table,
 } from "lucide-react";
-import { api, AdminReportsResponse } from "@/lib/api";
+import { api, clearApiCache, AdminReportsResponse } from "@/lib/api";
 import { toast } from "sonner";
 
 interface AdminReportsProps {
@@ -19,6 +19,7 @@ export function AdminReports({ onNavigate }: AdminReportsProps) {
   const [loading, setLoading] = useState(true);
 
   const fetchReports = async () => {
+    clearApiCache();
     try {
       setLoading(true);
       const res = await api.admin.reports();

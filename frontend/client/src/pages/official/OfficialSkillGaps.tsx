@@ -10,7 +10,7 @@ import {
   BookOpen,
   ClipboardCheck,
 } from "lucide-react";
-import { api, SkillGapResponse } from "@/lib/api";
+import { api, clearApiCache, SkillGapResponse } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { PageSkeleton } from "@/components/PageSkeleton";
 import { toast } from "sonner";
@@ -26,6 +26,7 @@ export function OfficialSkillGaps({ onNavigate }: OfficialSkillGapsProps) {
   const [error, setError] = useState<string | null>(null);
 
   const fetchSkillGaps = async () => {
+    clearApiCache();
     try {
       setLoading(true);
       setError(null);

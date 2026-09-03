@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import {
   api,
+  clearApiCache,
   TrainerQuiz,
   TrainerQuestion,
   User,
@@ -69,6 +70,7 @@ export function TrainerQuizStudio({ onNavigate }: TrainerQuizStudioProps) {
   const [submittingAssign, setSubmittingAssign] = useState(false);
 
   const fetchStudioData = async () => {
+    clearApiCache();
     try {
       setLoading(true);
       const [quizList, mats, learnerList, compList] = await Promise.all([
