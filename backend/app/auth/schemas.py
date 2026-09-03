@@ -64,16 +64,48 @@ class UserResponse(BaseModel):
     status: str
     access_role: AccessRole
 
+    # Extended profile fields (optional, present only if set)
+    organization: str | None = None
+    current_assignment: str | None = None
+    years_experience: int | None = None
+    service_year: int | None = None
+    highest_qualification: str | None = None
+    field_of_study: str | None = None
+    institution: str | None = None
+    graduation_year: int | None = None
+    total_experience_summary: str | None = None
+    key_responsibilities: str | None = None
+
 
 class UserProfileUpdate(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
+    # Core identity fields
     full_name: str | None = Field(default=None, min_length=1, max_length=200)
     designation: str | None = Field(default=None, min_length=1, max_length=200)
     department: str | None = Field(default=None, min_length=1, max_length=200)
     employee_id: str | None = Field(default=None, min_length=1, max_length=100)
 
-    @field_validator("full_name", "designation", "department", "employee_id")
+    # Employment details
+    organization: str | None = Field(default=None, max_length=300)
+    current_assignment: str | None = Field(default=None, max_length=300)
+    years_experience: int | None = Field(default=None, ge=0, le=50)
+    service_year: int | None = Field(default=None, ge=1950, le=2030)
+
+    # Education
+    highest_qualification: str | None = Field(default=None, max_length=200)
+    field_of_study: str | None = Field(default=None, max_length=200)
+    institution: str | None = Field(default=None, max_length=300)
+    graduation_year: int | None = Field(default=None, ge=1950, le=2030)
+
+    # Professional summary
+    total_experience_summary: str | None = Field(default=None, max_length=1000)
+    key_responsibilities: str | None = Field(default=None, max_length=1000)
+
+    @field_validator("full_name", "designation", "department", "employee_id",
+                     "organization", "current_assignment", "highest_qualification",
+                     "field_of_study", "institution", "total_experience_summary",
+                     "key_responsibilities")
     @classmethod
     def strip_text(cls, value: str | None) -> str | None:
         return value.strip() if value is not None else None
