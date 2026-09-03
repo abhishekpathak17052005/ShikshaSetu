@@ -108,8 +108,8 @@ function LoadingScreen() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-[#eef4f8]">
       <div className="text-center animate-fadeIn">
-        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#123057] text-white text-2xl font-extrabold shadow-md">
-          S
+        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center">
+          <img src="/shikshasetu-icon.svg" alt="ShikshaSetu" className="h-16 w-16" />
         </div>
         <div className="text-sm font-bold text-[#123057]">Loading ShikshaSetu…</div>
         <div className="mt-2 text-xs text-slate-400">Optimizing capability intelligence</div>

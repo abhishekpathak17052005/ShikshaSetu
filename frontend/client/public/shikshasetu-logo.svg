@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 64" fill="none" role="img" aria-label="ShikshaSetu logo">
+  <!-- Icon mark: Bridge over open book -->
+  <g>
+    <!-- Book pages -->
+    <rect x="4" y="34" width="16" height="20" rx="2" fill="#0f9f92"/>
+    <rect x="4" y="34" width="8" height="20" rx="2" fill="#087f76"/>
+    <rect x="20" y="34" width="16" height="20" rx="2" fill="#0f9f92"/>
+    <!-- Book spine -->
+    <rect x="19" y="32" width="2" height="24" rx="1" fill="#123057"/>
+    <!-- Bridge arch over book -->
+    <path d="M2 42 Q20 18 38 42" stroke="#123057" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+    <!-- Bridge pillars -->
+    <rect x="6" y="36" width="3" height="8" rx="1" fill="#123057" opacity="0.6"/>
+    <rect x="31" y="36" width="3" height="8" rx="1" fill="#123057" opacity="0.6"/>
+  </g>
+
+  <!-- Wordmark -->
+  <text x="48" y="32" font-family="'Segoe UI', 'Inter', 'Arial', sans-serif" font-size="22" font-weight="800" fill="#123057" letter-spacing="-0.5">ShikshaSetu</text>
+
+  <!-- Tagline -->
+  <text x="49" y="48" font-family="'Segoe UI', 'Inter', 'Arial', sans-serif" font-size="8.5" font-weight="700" fill="#6b7e99" letter-spacing="1.8">COMPETENCY · LEARNING · PROGRESS</text>
+</svg>

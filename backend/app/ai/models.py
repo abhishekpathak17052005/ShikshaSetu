@@ -46,23 +46,53 @@ class LearningMaterial(BaseModel):
 class DocumentChunk(BaseModel):
     """
     Document chunk model for persistence.
-    
-    Represents a chunk of text extracted from a learning material.
+
+    Represents a chunk of text extracted from a learning material, with full
+    metadata for filtered retrieval and embedding lifecycle management.
     """
 
     id: Optional[str] = Field(default=None, alias="_id")
     material_id: str = Field(..., description="Reference to LearningMaterial")
     sequence: int = Field(..., description="Sequential chunk number within the material")
     text: str = Field(..., description="Chunk text content")
-    
-    # Source metadata for traceability
+
+    # Source provenance — preserved from extractor
     source_page: Optional[int] = Field(default=None, description="Page number (PDF/DOCX)")
     source_slide: Optional[int] = Field(default=None, description="Slide number (PPTX)")
     source_section: Optional[str] = Field(default=None, description="Section/heading")
-    
-    # Embedding
-    embedding: Optional[list] = Field(default=None, description="Vector embedding (if embedded)")
-    
+
+    # Extended metadata for filtered retrieval (P0 upgrade)
+    competency_code: Optional[str] = Field(
+        default=None,
+        description="Competency this chunk is associated with (set at generation time or upload)"
+    )
+    domain: Optional[str] = Field(
+        default=None,
+        description="Competency domain: STATISTICAL / TECHNICAL / GOVERNANCE / BEHAVIORAL"
+    )
+    document_type: Optional[str] = Field(
+        default=None,
+        description="Type of source document: CURRICULUM / IGOT_COURSE / NSSTA_PROGRAMME / POLICY"
+    )
+    language: Optional[str] = Field(
+        default="en",
+        description="ISO 639-1 language code of the chunk text"
+    )
+
+    # Embedding lifecycle (P0 upgrade — replaces silent SHA-256 fallback)
+    embedding: Optional[list] = Field(
+        default=None,
+        description="Vector embedding stored as float list (excluded from DB writes via repo layer)"
+    )
+    embedding_status: str = Field(
+        default="PENDING",
+        description="PENDING | EMBEDDED | FAILED — tracks real embedding state"
+    )
+    embedding_model: Optional[str] = Field(
+        default=None,
+        description="Model name used to generate the embedding"
+    )
+
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
     class Config:

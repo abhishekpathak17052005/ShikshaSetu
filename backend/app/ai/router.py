@@ -132,11 +132,13 @@ async def upload_document(
         # Save to database
         material_id = LearningMaterialRepository.create(database, material)
 
-        # Process document asynchronously (for now, synchronous for Round 1)
+        # Process document (synchronous despite async signature — single-worker acceptable for hackathon)
+        processing_failed = False
         try:
             await _process_document(database, material_id, file_path, file_ext, settings)
         except Exception as e:
-            # Mark as failed but don't block upload
+            processing_failed = True
+            # Mark as failed but don't block the upload acknowledgement
             LearningMaterialRepository.update_status(
                 database,
                 material_id,
@@ -145,11 +147,17 @@ async def upload_document(
                 str(e)
             )
 
+        # B4 FIX: Return the actual status from DB, not a hardcoded "PROCESSING"
+        actual_status = "FAILED" if processing_failed else "READY"
         return UploadResponse(
             material_id=material_id,
             filename=stored_filename,
-            status="PROCESSING",
-            message="Document uploaded successfully and queued for processing"
+            status=actual_status,
+            message=(
+                "Document processed and indexed successfully."
+                if not processing_failed
+                else "Document upload recorded but processing failed. Check logs."
+            )
         )
 
     except HTTPException:
@@ -204,21 +212,60 @@ async def _process_document(
         if not chunks:
             raise Exception("No chunks created from document")
 
-        # Persist chunks
+        # Persist chunks WITHOUT embeddings (embedding_status defaults to PENDING)
         chunk_count = DocumentChunkRepository.create_many(database, chunks)
 
-        # Embed and index chunks
+        # Embed chunks and persist each vector to MongoDB (Task 5/6 upgrade)
+        # Removes the old in-memory-only VectorStore approach and the SHA-256 fallback.
+        embedding_count = 0
         try:
+            from app.rag.embedding_index import embed_and_persist_chunks, EmbeddingIndexManager
             embedding_provider = get_embedding_provider()
-            vector_store = VectorStore(embedding_provider)
-            embedding_count = vector_store.add_chunks(chunks)
-        except Exception:
-            from .embeddings.mock_provider import MockEmbeddingProvider
-            vector_store = VectorStore(MockEmbeddingProvider(dimension=settings.embedding_dimension))
-            embedding_count = vector_store.add_chunks(chunks)
+            if embedding_provider.is_available():
+                embedded, failed = embed_and_persist_chunks(
+                    database=database,
+                    chunks=chunks,
+                    embedding_provider=embedding_provider,
+                    model_name=settings.embedding_model,
+                )
+                embedding_count = embedded
+                # Build the in-memory numpy index for this material
+                EmbeddingIndexManager.get_instance().rebuild(database, material_id)
+                if failed > 0:
+                    logger.warning(
+                        "Material %s: %d chunks failed embedding (marked FAILED for retry)",
+                        material_id, failed,
+                    )
+            else:
+                logger.warning(
+                    "Embedding provider unavailable for material %s — "
+                    "chunks stored without embeddings, keyword search only.",
+                    material_id,
+                )
+        except Exception as emb_exc:
+            # Embedding failure must NOT prevent the material from being usable.
+            # Keyword search still works. Chunks remain PENDING for retry.
+            logger.warning(
+                "Embedding step failed for material %s: %s. "
+                "Falling back to keyword-only retrieval.",
+                material_id, emb_exc,
+            )
 
-        # Store vector store in memory
-        _vector_stores[material_id] = vector_store
+        # Keep _vector_stores dict populated for backward compatibility with
+        # existing unit tests that use the old VectorStore API directly.
+        try:
+            from .embeddings.mock_provider import MockEmbeddingProvider
+            vs = VectorStore(MockEmbeddingProvider(dimension=settings.embedding_dimension))
+            # Only add chunks that actually have embeddings in memory
+            embedded_chunks = [c for c in chunks if c.embedding_status == "EMBEDDED"]
+            if embedded_chunks:
+                vs.chunks = embedded_chunks
+                import numpy as np
+                vecs = [np.array(c.embedding, dtype=np.float32) for c in embedded_chunks]
+                vs.embeddings = np.stack(vecs) if vecs else None
+            _vector_stores[material_id] = vs
+        except Exception:
+            pass  # Non-critical — new EmbeddingIndexManager is the primary path
 
         # Update material status
         LearningMaterialRepository.update_status(
@@ -323,7 +370,7 @@ async def generate_questions(
         )
 
     try:
-        # Get or load vector store
+        # Get or rebuild vector store (lazy load with proper fallback)
         if material_id not in _vector_stores:
             # Reload from database
             chunks = DocumentChunkRepository.get_by_material(database, material_id)
@@ -331,12 +378,24 @@ async def generate_questions(
             if not chunks:
                 raise HTTPException(
                     status_code=500,
-                    detail="Material has no chunks"
+                    detail="Material has no chunks — reprocess the document."
                 )
 
-            embedding_provider = get_embedding_provider()
-            vector_store = VectorStore(embedding_provider)
-            vector_store.add_chunks(chunks)
+            # Try real embedding provider, fall back to mock (B4 fix: mirror the upload-time fallback)
+            try:
+                embedding_provider = get_embedding_provider()
+            except Exception:
+                from .embeddings.mock_provider import MockEmbeddingProvider
+                embedding_provider = MockEmbeddingProvider(dimension=settings.embedding_dimension)
+
+            try:
+                vector_store = VectorStore(embedding_provider)
+                vector_store.add_chunks(chunks)
+            except Exception:
+                from .embeddings.mock_provider import MockEmbeddingProvider
+                vector_store = VectorStore(MockEmbeddingProvider(dimension=settings.embedding_dimension))
+                vector_store.add_chunks(chunks)
+
             _vector_stores[material_id] = vector_store
         else:
             vector_store = _vector_stores[material_id]

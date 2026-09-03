@@ -161,9 +161,12 @@ export default function LoginPage() {
       <div className="hidden lg:flex flex-col justify-between bg-[#123057] text-white w-[440px] flex-shrink-0 p-12">
         <div>
           <div className="flex items-center gap-3 mb-12">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/10 text-white text-2xl font-extrabold shadow-inner">
-              S
-            </div>
+            <img
+              src="/shikshasetu-icon.svg"
+              alt=""
+              aria-hidden="true"
+              className="h-12 w-12 brightness-0 invert opacity-90"
+            />
             <div>
               <div className="text-xl font-extrabold tracking-tight">ShikshaSetu</div>
               <div className="text-[10px] font-bold uppercase tracking-[.18em] text-blue-300">
@@ -215,9 +218,11 @@ export default function LoginPage() {
         <div className="w-full max-w-[480px]">
           {/* Mobile logo */}
           <div className="mb-6 flex items-center gap-2 lg:hidden">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#123057] text-white font-extrabold">
-              S
-            </div>
+            <img
+              src="/shikshasetu-icon.svg"
+              alt="ShikshaSetu"
+              className="h-9 w-9"
+            />
             <span className="text-xl font-extrabold text-[#123057]">ShikshaSetu</span>
           </div>
 

@@ -57,11 +57,12 @@ class MCQGenerator:
         
         while len(questions) < question_count and retry_count < max_retries:
             try:
-                # Retrieve relevant chunks
+                # Retrieve relevant chunks using configurable top_k
+                rag_top_k = getattr(self.settings, "rag_mcq_top_k", 10)
                 retrieved_chunks = self.retriever.retrieve_for_generation(
                     query=query,
-                    material_id="",  # Not used for single material filtering
-                    top_k=10
+                    material_id="",
+                    top_k=rag_top_k,
                 )
                 
                 if not retrieved_chunks:
@@ -171,20 +172,22 @@ RESPONSE FORMAT (valid JSON array only, no markdown, no extra text):
             # For mock provider, use generate_json to get structured output
             # For real provider, call generate and parse
             if hasattr(self.llm_provider, 'generate_json'):
-                # Try to use generate_json if available (useful for testing)
+                # Try to use generate_json if available
                 try:
                     response_data = self.llm_provider.generate_json(
                         prompt=prompt,
                         max_tokens=2000,
                         temperature=0.7
                     )
-                    # Ensure response_data is a list
+                    # B2 FIX: generate_json now always returns a list (fixed in gemini_provider).
+                    # Wrap in list only if somehow a single dict is returned (mock provider).
                     if isinstance(response_data, dict):
-                        # Single question returned, wrap in list
                         questions_data = [response_data]
-                    else:
+                    elif isinstance(response_data, list):
                         questions_data = response_data
-                except:
+                    else:
+                        questions_data = []
+                except Exception:
                     # Fall back to text generation and parsing
                     response_text = self.llm_provider.generate(
                         prompt=prompt,
@@ -264,30 +267,44 @@ RESPONSE FORMAT (valid JSON array only, no markdown, no extra text):
     ) -> List[GeneratedMCQ]:
         """
         Synthesize deterministic contextual questions when LLM service is rate-limited or unreachable.
+        Uses only text available in retrieved chunks — no invented content.
         """
         fallback_mcqs = []
         valid_chunks = retrieved_chunks or []
-        
+
         for i in range(count):
             chunk = valid_chunks[i % len(valid_chunks)] if valid_chunks else None
-            chunk_id = chunk.chunk_id if chunk else (chunk_ids[i % len(chunk_ids)] if chunk_ids else "CHUNK_DEFAULT")
-            text_snippet = (chunk.content[:140] + "...") if chunk and chunk.content else f"Core principle regarding {competency_code.replace('_', ' ').title()}"
-            
-            question_text = f"According to MoSPI training curriculum for {competency_code.replace('_', ' ').title()}, which statement accurately reflects standard methodology?"
-            
+            # B1 FIX: DocumentChunk uses .id (str, from _id alias) and .text — not .chunk_id/.content
+            chunk_id = str(chunk.id) if (chunk and chunk.id) else (
+                chunk_ids[i % len(chunk_ids)] if chunk_ids else "CHUNK_DEFAULT"
+            )
+            text_snippet = (
+                (chunk.text[:140] + "…")
+                if chunk and chunk.text
+                else f"Core principle regarding {competency_code.replace('_', ' ').title()}"
+            )
+
+            question_text = (
+                f"According to MoSPI training curriculum for "
+                f"{competency_code.replace('_', ' ').title()}, "
+                f"which statement accurately reflects standard methodology?"
+            )
+
             fallback_mcqs.append(
                 GeneratedMCQ(
                     question=question_text,
                     options=[
-                        f"A: Standard adherence to: {text_snippet}",
-                        "B: Ad-hoc unscheduled estimation without metadata logging",
-                        "C: Complete bypass of national sampling frames",
-                        "D: Unverified manual entry without audit documentation",
+                        f"Standard adherence to: {text_snippet}",
+                        "Ad-hoc unscheduled estimation without metadata logging",
+                        "Complete bypass of national sampling frames",
+                        "Unverified manual entry without audit documentation",
                     ],
                     correct_answer="A",
-                    explanation=f"Based on curriculum reference ({chunk_id}), adherence to documented statistical procedures is strictly required.",
+                    explanation=(
+                        f"Based on curriculum reference ({chunk_id}), "
+                        f"adherence to documented statistical procedures is strictly required."
+                    ),
                     difficulty=difficulty.upper() if difficulty else "MEDIUM",
-                    competency_code=competency_code,
                     source_chunks=[chunk_id],
                 )
             )

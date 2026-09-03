@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" fill="none" role="img" aria-label="ShikshaSetu icon">
+  <!-- Book pages -->
+  <rect x="2" y="22" width="13" height="14" rx="2" fill="#0f9f92"/>
+  <rect x="2" y="22" width="6.5" height="14" rx="2" fill="#087f76"/>
+  <rect x="15" y="22" width="13" height="14" rx="2" fill="#0f9f92"/>
+  <!-- Book spine -->
+  <rect x="14" y="20" width="2" height="17" rx="1" fill="#123057"/>
+  <!-- Bridge arch -->
+  <path d="M1 27 Q15 8 29 27" stroke="#123057" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <!-- Bridge pillars -->
+  <rect x="4" y="24" width="2.5" height="6" rx="1" fill="#123057" opacity="0.55"/>
+  <rect x="23.5" y="24" width="2.5" height="6" rx="1" fill="#123057" opacity="0.55"/>
+</svg>
