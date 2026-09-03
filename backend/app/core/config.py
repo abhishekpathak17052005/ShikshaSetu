@@ -29,6 +29,16 @@ class Settings(BaseSettings):
     chunk_overlap: int = Field(default=100, validation_alias="CHUNK_OVERLAP")
     max_questions_per_generation: int = Field(default=5, validation_alias="MAX_QUESTIONS_PER_GENERATION")
     generation_retry_count: int = Field(default=3, validation_alias="GENERATION_RETRY_COUNT")
+
+    # RAG tuning — P0 upgrade
+    embedding_api_key: str = Field(default="", validation_alias="EMBEDDING_API_KEY")
+    rag_top_k_keyword: int = Field(default=15, validation_alias="RAG_TOP_K_KEYWORD")
+    rag_top_k_vector: int = Field(default=15, validation_alias="RAG_TOP_K_VECTOR")
+    rag_rerank_top_k: int = Field(default=6, validation_alias="RAG_RERANK_TOP_K")
+    rag_groundedness_threshold: float = Field(default=0.25, validation_alias="RAG_GROUNDEDNESS_THRESHOLD")
+    rag_enable_query_rewrite: bool = Field(default=False, validation_alias="RAG_ENABLE_QUERY_REWRITE")
+    rag_mmr_lambda: float = Field(default=0.6, validation_alias="RAG_MMR_LAMBDA")
+    rag_mcq_top_k: int = Field(default=10, validation_alias="RAG_MCQ_TOP_K")
     # Phase 3A: iGOT Karmayogi Ecosystem Integration
     igot_integration_mode: str = Field(default="prototype", validation_alias="IGOT_INTEGRATION_MODE")
     igot_api_base_url: str = Field(default="", validation_alias="IGOT_API_BASE_URL")
