@@ -47,6 +47,15 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             app.state.database_client = client
             app.state.database = database
             logger.info("MongoDB client initialized")
+
+            # Build in-memory embedding indexes for all READY materials (P0 upgrade)
+            try:
+                from app.rag.embedding_index import EmbeddingIndexManager
+                indexed = EmbeddingIndexManager.get_instance().load_all_ready_materials(database)
+                logger.info("RAG embedding index: loaded %d material(s)", indexed)
+            except Exception:
+                logger.exception("RAG embedding index startup load failed (non-fatal)")
+
         except Exception:
             logger.exception("MongoDB client initialization failed")
             close_database(client)
