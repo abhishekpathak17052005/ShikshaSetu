@@ -19,26 +19,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useTranslation } from "@/i18n";
 import { LanguageToggle } from "@/components/LanguageToggle";
 
-// Capability pathway steps shown at the bottom of the sidebar
-const PATHWAY_STEPS = [
-  { id: "role", labelEn: "Role", labelHi: "पद" },
-  { id: "assess", labelEn: "Assess", labelHi: "आकलन" },
-  { id: "gap", labelEn: "Gap", labelHi: "अंतराल" },
-  { id: "learn", labelEn: "Learn", labelHi: "अध्ययन" },
-  { id: "practice", labelEn: "Practice", labelHi: "अभ्यास" },
-  { id: "validate", labelEn: "Validate", labelHi: "सत्यापन" },
-];
-
-// Map active page → current pathway step
-function getPathwayStep(activePage: string): string {
-  if (activePage === "Assessments") return "assess";
-  if (activePage === "Skill Gaps") return "gap";
-  if (activePage === "My Learning" || activePage === "Recommendations") return "learn";
-  if (activePage === "Quizzes") return "practice";
-  if (activePage === "Evidence" || activePage === "Progress") return "validate";
-  return "role";
-}
-
 // ─── Props ────────────────────────────────────────────────────────────────────
 
 interface OfficialLayoutProps {
@@ -67,8 +47,6 @@ export function OfficialLayout({ children, activePage, onNavigate }: OfficialLay
     { id: "Profile", label: t("nav.profile"), icon: UserRound },
   ];
 
-  const currentStep = getPathwayStep(activePage);
-
   const handleNav = (page: string) => {
     onNavigate(page);
     setSidebarOpen(false);
@@ -83,25 +61,28 @@ export function OfficialLayout({ children, activePage, onNavigate }: OfficialLay
         }`}
       >
         {/* Logo */}
-        <div className="flex items-center gap-3 px-5 py-6">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#123057] text-white text-lg font-extrabold select-none">
-            S
-          </div>
-          <div>
-            <div className="text-[17px] font-extrabold text-[#123057]">ShikshaSetu</div>
-            <div className="text-[9px] font-bold uppercase tracking-[.18em] text-slate-400">
-              Capability Intelligence
+        <div className="flex items-center gap-3 px-5 py-5 border-b border-[#dfe7f0]">
+          <img
+            src="/shikshasetu-icon.svg"
+            alt="ShikshaSetu"
+            className="h-9 w-9 flex-shrink-0"
+            aria-hidden="true"
+          />
+          <div className="min-w-0">
+            <div className="text-[17px] font-extrabold text-[#123057] leading-tight">ShikshaSetu</div>
+            <div className="text-[9px] font-bold uppercase tracking-[.18em] text-slate-400 mt-0.5">
+              {isHindi ? "क्षमता इंटेलिजेंस" : "Capability Intelligence"}
             </div>
           </div>
         </div>
 
         {/* Section label */}
-        <div className="px-7 mb-2 text-[10px] font-bold uppercase tracking-[.14em] text-slate-400">
-          Learner workspace
+        <div className="px-7 pt-5 pb-2 text-[10px] font-bold uppercase tracking-[.14em] text-slate-400">
+          {isHindi ? "शिक्षार्थी कार्यक्षेत्र" : "Learner workspace"}
         </div>
 
         {/* Nav items */}
-        <nav className="flex-1 px-4 overflow-y-auto">
+        <nav className="flex-1 px-4 overflow-y-auto pb-4">
           {navItems.map(({ id, label, icon: Icon }) => (
             <button
               key={id}
@@ -111,8 +92,9 @@ export function OfficialLayout({ children, activePage, onNavigate }: OfficialLay
                   ? "bg-[#e8f5f3] text-[#087f76]"
                   : "text-slate-500 hover:bg-slate-50 hover:text-[#123057]"
               }`}
+              aria-current={activePage === id ? "page" : undefined}
             >
-              <Icon size={17} />
+              <Icon size={17} aria-hidden="true" />
               {label}
             </button>
           ))}
@@ -120,7 +102,7 @@ export function OfficialLayout({ children, activePage, onNavigate }: OfficialLay
 
         {/* User footer */}
         <div className="border-t border-[#dfe7f0] px-5 py-4">
-          <div className="mb-1 text-sm font-bold text-[#123057] truncate">
+          <div className="mb-0.5 text-sm font-bold text-[#123057] truncate">
             {user?.full_name ?? "—"}
           </div>
           <div className="text-xs text-slate-400 truncate mb-3">
@@ -130,34 +112,9 @@ export function OfficialLayout({ children, activePage, onNavigate }: OfficialLay
             onClick={logout}
             className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-slate-500 hover:bg-slate-50 transition-colors"
           >
-            <LogOut size={16} />
+            <LogOut size={16} aria-hidden="true" />
             {t("common.logout")}
           </button>
-        </div>
-
-        {/* Capability pathway strip */}
-        <div className="border-t border-[#dfe7f0] px-4 py-3 bg-[#f8fafc]">
-          <div className="text-[9px] font-bold uppercase tracking-wider text-slate-400 mb-2">
-            {isHindi ? "क्षमता विकास पथ" : "Capability pathway"}
-          </div>
-          <div className="flex flex-wrap gap-1">
-            {PATHWAY_STEPS.map((step, idx) => (
-              <React.Fragment key={step.id}>
-                <span
-                  className={`text-[9px] font-bold px-2 py-0.5 rounded-md transition-colors ${
-                    currentStep === step.id
-                      ? "bg-[#0f9f92] text-white"
-                      : "bg-[#e8f5f3] text-[#0f9f92]"
-                  }`}
-                >
-                  {isHindi ? step.labelHi : step.labelEn}
-                </span>
-                {idx < PATHWAY_STEPS.length - 1 && (
-                  <span className="text-[9px] text-slate-300 self-center">→</span>
-                )}
-              </React.Fragment>
-            ))}
-          </div>
         </div>
       </aside>
 
@@ -166,6 +123,7 @@ export function OfficialLayout({ children, activePage, onNavigate }: OfficialLay
         <div
           className="fixed inset-0 z-30 bg-black/20 lg:hidden"
           onClick={() => setSidebarOpen(false)}
+          aria-hidden="true"
         />
       )}
 
@@ -173,7 +131,7 @@ export function OfficialLayout({ children, activePage, onNavigate }: OfficialLay
       <button
         className="fixed left-4 top-4 z-50 rounded-lg bg-white p-2 shadow border border-[#dfe7f0] lg:hidden"
         onClick={() => setSidebarOpen(!sidebarOpen)}
-        aria-label="Toggle sidebar"
+        aria-label={sidebarOpen ? "Close sidebar" : "Open sidebar"}
       >
         {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
       </button>

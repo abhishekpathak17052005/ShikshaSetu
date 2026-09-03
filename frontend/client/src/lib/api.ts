@@ -51,6 +51,17 @@ export type User = {
   employee_id: string;
   status: string;
   access_role: "OFFICIAL" | "TRAINER" | "ADMIN" | "EMPLOYEE";
+  // Extended profile fields
+  organization?: string | null;
+  current_assignment?: string | null;
+  years_experience?: number | null;
+  service_year?: number | null;
+  highest_qualification?: string | null;
+  field_of_study?: string | null;
+  institution?: string | null;
+  graduation_year?: number | null;
+  total_experience_summary?: string | null;
+  key_responsibilities?: string | null;
 };
 
 export type Role = {
