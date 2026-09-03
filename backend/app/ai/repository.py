@@ -63,6 +63,18 @@ class LearningMaterialRepository:
         return LearningMaterial(**doc)
 
     @staticmethod
+    def get_by_status(database: Database, status: str, limit: int = 200) -> List[LearningMaterial]:
+        """Get all learning materials with a given status (e.g. READY)."""
+        collection = database["learning_materials"]
+        cursor = collection.find({"status": status}).sort("created_at", -1).limit(limit)
+        materials = []
+        for doc in cursor:
+            doc["id"] = str(doc["_id"])
+            doc["_id"] = str(doc["_id"])
+            materials.append(LearningMaterial(**doc))
+        return materials
+
+    @staticmethod
     def get_by_user(database: Database, user_id: str, limit: int = 100) -> List[LearningMaterial]:
         """
         Get all learning materials for a user.
@@ -205,27 +217,30 @@ class LearningMaterialRepository:
 class DocumentChunkRepository:
     """Repository for DocumentChunk documents (synchronous)."""
 
+    # Fields that must never be written to MongoDB (raw vectors stored separately)
+    _EXCLUDE_FROM_DB = {"id", "embedding"}
+
     @staticmethod
     def create_many(database: Database, chunks: List[DocumentChunk]) -> int:
         """
-        Create multiple document chunks.
-
-        Args:
-            database: MongoDB database instance.
-            chunks: List of DocumentChunk instances.
-
-        Returns:
-            Number of chunks inserted.
+        Create multiple document chunks WITHOUT embedding vectors.
+        Embeddings are written separately via update_embedding() to avoid
+        storing large float arrays inside every document on initial insert.
         """
         collection = database["document_chunks"]
-        
+
         if not chunks:
             return 0
-        
-        result = collection.insert_many(
-            [chunk.model_dump(by_alias=True, exclude={"id"}) for chunk in chunks]
-        )
-        
+
+        # Exclude embedding vectors from initial insert — written later via update_embedding()
+        docs = [
+            chunk.model_dump(by_alias=True, exclude={"id", "embedding"})
+            for chunk in chunks
+        ]
+        result = collection.insert_many(docs)
+        # Backfill the string ID onto each chunk object so callers can reference it
+        for chunk, inserted_id in zip(chunks, result.inserted_ids):
+            chunk.id = str(inserted_id)
         return len(result.inserted_ids)
 
     @staticmethod
@@ -310,4 +325,88 @@ class DocumentChunkRepository:
             doc["id"] = str(doc["_id"])
             chunks.append(DocumentChunk(**doc))
         
+        return chunks
+
+    @staticmethod
+    def update_embedding(
+        database: Database,
+        chunk_id: str,
+        embedding: list,
+        embedding_model: str,
+    ) -> bool:
+        """
+        Persist a real semantic embedding vector for a chunk.
+        Called after successful embedding API call.
+
+        Args:
+            database: MongoDB database instance.
+            chunk_id: The _id of the chunk to update.
+            embedding: Float list from the embedding model.
+            embedding_model: Name of the model used (for provenance).
+
+        Returns:
+            True if updated.
+        """
+        obj_id = ObjectId(chunk_id) if ObjectId.is_valid(chunk_id) else None
+        if not obj_id:
+            return False
+        result = database["document_chunks"].update_one(
+            {"_id": obj_id},
+            {"$set": {
+                "embedding": embedding,
+                "embedding_status": "EMBEDDED",
+                "embedding_model": embedding_model,
+            }},
+        )
+        return result.modified_count > 0
+
+    @staticmethod
+    def mark_embedding_failed(database: Database, chunk_id: str) -> bool:
+        """Mark a chunk's embedding as FAILED so it can be retried later."""
+        obj_id = ObjectId(chunk_id) if ObjectId.is_valid(chunk_id) else None
+        if not obj_id:
+            return False
+        result = database["document_chunks"].update_one(
+            {"_id": obj_id},
+            {"$set": {"embedding_status": "FAILED"}},
+        )
+        return result.modified_count > 0
+
+    @staticmethod
+    def get_chunks_with_embeddings(
+        database: Database,
+        material_id: str,
+        limit: int = 2000,
+    ) -> List[DocumentChunk]:
+        """
+        Retrieve chunks that have a real semantic embedding (embedding_status == EMBEDDED).
+        Used by EmbeddingIndexManager to rebuild the numpy index on startup.
+        """
+        collection = database["document_chunks"]
+        cursor = collection.find(
+            {"material_id": material_id, "embedding_status": "EMBEDDED"},
+            # Include embedding field for index rebuild
+        ).sort("sequence", 1).limit(limit)
+        chunks = []
+        for doc in cursor:
+            doc["_id"] = str(doc["_id"])
+            doc["id"] = str(doc["_id"])
+            chunks.append(DocumentChunk(**doc))
+        return chunks
+
+    @staticmethod
+    def get_chunks_needing_embedding(
+        database: Database,
+        material_id: str,
+    ) -> List[DocumentChunk]:
+        """Return chunks with embedding_status PENDING or FAILED for retry."""
+        collection = database["document_chunks"]
+        cursor = collection.find(
+            {"material_id": material_id, "embedding_status": {"$in": ["PENDING", "FAILED"]}},
+        ).sort("sequence", 1)
+        chunks = []
+        for doc in cursor:
+            doc["_id"] = str(doc["_id"])
+            doc["id"] = str(doc["_id"])
+            chunks.append(DocumentChunk(**doc))
         return chunks
