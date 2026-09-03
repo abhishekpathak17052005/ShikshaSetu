@@ -1,4 +1,12 @@
-"""Mock Embedding Provider for testing without real API calls."""
+"""Mock Embedding Provider for testing without real API calls.
+
+WARNING: These are hash-derived vectors with NO semantic meaning.
+They are structurally valid floats but cosine similarity between them
+reflects hash collisions, not topic similarity.
+
+Use ONLY in unit tests where you need a fast, offline, deterministic
+provider. NEVER use in production or for real semantic retrieval.
+"""
 import hashlib
 from typing import List
 
@@ -7,19 +15,13 @@ from .base import EmbeddingProvider
 
 class MockEmbeddingProvider(EmbeddingProvider):
     """
-    Mock embedding provider for testing.
-    
-    Generates deterministic embeddings based on text content.
-    No API calls, suitable for unit tests.
+    Test-only mock embedding provider.
+
+    Generates deterministic hash-based vectors for structural tests.
+    Not semantically meaningful — results of similarity search are arbitrary.
     """
 
     def __init__(self, dimension: int = 384):
-        """
-        Initialize mock embedding provider.
-
-        Args:
-            dimension: Dimension of embedding vectors (default 384).
-        """
         self.dimension = dimension
 
     def embed_text(self, text: str) -> List[float]:

@@ -140,13 +140,15 @@ class GeminiLLMProvider(LLMProvider):
                     text = text[:-3]  # Remove trailing ```
                 text = text.strip()
             
-            # Parse JSON
+            # Parse JSON — return list or dict as-is (callers handle both)
             try:
                 result = json.loads(text)
-                if isinstance(result, list):
-                    return {"questions": result}
-                if not isinstance(result, dict):
-                    raise Exception(f"Expected JSON object, got {type(result).__name__}")
+                # B2 FIX: Return list directly; do NOT wrap in {"questions": [...]}
+                # MCQGenerator._generate_batch expects a list of question dicts.
+                # If LLM returned a dict like {"questions": [...]}, unwrap it here.
+                if isinstance(result, dict) and "questions" in result and isinstance(result["questions"], list):
+                    return result["questions"]
+                # Return whatever was parsed (list or dict) — caller handles both
                 return result
             except json.JSONDecodeError as e:
                 logger.error(f"Failed to parse Gemini JSON response: {text}")

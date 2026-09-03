@@ -60,81 +60,60 @@ class GeminiEmbeddingProvider(EmbeddingProvider):
         except Exception as e:
             raise Exception(f"Embedding model test failed: {str(e)}")
 
-    def _fallback_embedding(self, text: str) -> List[float]:
-        """Generate a deterministic fallback embedding vector when API is unavailable or quota is exceeded."""
-        import hashlib
-        import math
-        vec = []
-        salt = text.strip()
-        for i in range(self._dimension):
-            h = hashlib.sha256(f"{salt}_{i}".encode("utf-8")).hexdigest()
-            # Convert first 8 hex chars to float between -1 and 1
-            val = (int(h[:8], 16) / 0xFFFFFFFF) * 2.0 - 1.0
-            vec.append(val)
-        # Normalize vector
-        norm = math.sqrt(sum(x * x for x in vec)) or 1.0
-        return [round(x / norm, 6) for x in vec]
+    # REMOVED: _fallback_embedding (SHA-256 hash vectors)
+    # Hash-derived vectors have no semantic meaning and produce random cosine
+    # similarities. Callers must handle EmbeddingUnavailableError and mark the
+    # chunk as embedding_status=FAILED for honest retry instead of silently
+    # substituting meaningless vectors.
 
     def embed_text(self, text: str) -> List[float]:
         """
-        Generate embedding for a single text.
+        Generate a real semantic embedding for text.
 
-        Args:
-            text: The text to embed.
-
-        Returns:
-            List of floats representing the embedding vector.
+        Raises:
+            Exception: If the API call fails. Callers should catch this and
+                       set embedding_status=FAILED on the affected chunk rather
+                       than using a hash-based fallback.
         """
         if not text or not text.strip():
             return [0.0] * self._dimension
 
         if not self._available or self.client is None:
-            return self._fallback_embedding(text)
-
-        try:
-            response = self.client.models.embed_content(
-                model=self.model_name,
-                contents=text.strip(),
+            raise Exception(
+                "Gemini embedding provider is not available "
+                "(API key missing or initialization failed). "
+                "Chunk will be marked FAILED for retry."
             )
-            
-            if not response or not response.embeddings:
-                return self._fallback_embedding(text)
-            
-            first_embedding = response.embeddings[0]
-            values = first_embedding.values if hasattr(first_embedding, "values") else first_embedding
-            
-            if not isinstance(values, (list, tuple)):
-                return self._fallback_embedding(text)
-            
-            # Convert to float
-            return [float(x) for x in values]
-        
-        except Exception as e:
-            logger.warning(f"Gemini embedding failed, using resilient fallback vector: {e}")
-            return self._fallback_embedding(text)
+
+        response = self.client.models.embed_content(
+            model=self.model_name,
+            contents=text.strip(),
+        )
+
+        if not response or not response.embeddings:
+            raise Exception("Gemini returned empty embedding response")
+
+        first_embedding = response.embeddings[0]
+        values = (
+            first_embedding.values
+            if hasattr(first_embedding, "values")
+            else first_embedding
+        )
+
+        if not isinstance(values, (list, tuple)):
+            raise Exception(f"Unexpected embedding format: {type(values)}")
+
+        return [float(x) for x in values]
 
     def embed_texts(self, texts: List[str]) -> List[List[float]]:
         """
         Generate embeddings for multiple texts.
-
-        Args:
-            texts: List of texts to embed.
-
-        Returns:
-            List of embedding vectors.
+        Raises on any individual failure — callers should iterate and handle
+        per-chunk failures via embed_and_persist_chunks() in rag/embedding_index.py.
         """
         if not texts:
             return []
-
-        embeddings = []
-        for text in texts:
-            if text and text.strip():
-                embedding = self.embed_text(text)
-                embeddings.append(embedding)
-            else:
-                embeddings.append([0.0] * self._dimension)
-        
-        return embeddings
+        return [self.embed_text(t) for t in texts]
 
     def get_dimension(self) -> int:
         """
