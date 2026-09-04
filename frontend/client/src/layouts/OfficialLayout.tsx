@@ -27,12 +27,22 @@ interface OfficialLayoutProps {
   onNavigate: (page: string) => void;
 }
 
+const PATHWAY_STEPS = [
+  { id: "Assessments", labelEn: "Assess", labelHi: "मूल्यांकन" },
+  { id: "Skill Gaps", labelEn: "Gaps", labelHi: "कमियां" },
+  { id: "Recommendations", labelEn: "Plan", labelHi: "योजना" },
+  { id: "My Learning", labelEn: "Learn", labelHi: "सीखें" },
+  { id: "Quizzes", labelEn: "Practice", labelHi: "अभ्यास" },
+  { id: "Evidence", labelEn: "Evidence", labelHi: "प्रमाण" },
+];
+
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export function OfficialLayout({ children, activePage, onNavigate }: OfficialLayoutProps) {
   const { user, logout } = useAuth();
   const { t, isHindi } = useTranslation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const currentStep = activePage;
 
   const navItems = [
     { id: "Dashboard", label: t("nav.dashboard"), icon: LayoutDashboard },
