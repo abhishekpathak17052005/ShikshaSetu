@@ -207,6 +207,26 @@ export function OfficialProfile() {
   const [totalExperienceSummary, setTotalExperienceSummary] = useState(user?.total_experience_summary || "");
   const [keyResponsibilities, setKeyResponsibilities] = useState(user?.key_responsibilities || "");
 
+  // Sync form fields whenever the authenticated user object changes
+  // (handles async session restore and post-save updates)
+  useEffect(() => {
+    if (!user) return;
+    setFullName(user.full_name || "");
+    setEmployeeId(user.employee_id || "");
+    setDesignation(user.designation || "");
+    setDepartment(user.department || "");
+    setOrganization(user.organization || "");
+    setCurrentAssignment(user.current_assignment || "");
+    setYearsExperience(user.years_experience != null ? String(user.years_experience) : "");
+    setServiceYear(user.service_year != null ? String(user.service_year) : "");
+    setHighestQualification(user.highest_qualification || "");
+    setFieldOfStudy(user.field_of_study || "");
+    setInstitution(user.institution || "");
+    setGraduationYear(user.graduation_year != null ? String(user.graduation_year) : "");
+    setTotalExperienceSummary(user.total_experience_summary || "");
+    setKeyResponsibilities(user.key_responsibilities || "");
+  }, [user?.id]); // re-sync when the user ID changes (role switch or session restore)
+
   // System-generated data
   const [skillGaps, setSkillGaps] = useState<SkillGapResponse | null>(null);
   const [activities, setActivities] = useState<LearningActivityListResponse | null>(null);
@@ -330,13 +350,11 @@ export function OfficialProfile() {
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
               <span className="rounded-full bg-teal-100 px-3 py-0.5 text-xs font-extrabold text-teal-900">
-                OFFICIAL · LEARNER
+                {user?.access_role === "EMPLOYEE" ? "OFFICIAL · LEARNER" : (user?.access_role ?? "OFFICIAL")}
               </span>
-              {user?.access_role === "OFFICIAL" && (
-                <span className="rounded-full bg-blue-100 px-3 py-0.5 text-xs font-bold text-blue-800">
-                  Civil Services
-                </span>
-              )}
+              <span className="rounded-full bg-blue-100 px-3 py-0.5 text-xs font-bold text-blue-800">
+                Civil Services
+              </span>
             </div>
             <h2 className="text-xl font-extrabold text-[#123057] mt-1 truncate">
               {user?.full_name}

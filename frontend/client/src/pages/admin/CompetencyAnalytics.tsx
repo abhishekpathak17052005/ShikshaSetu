@@ -9,7 +9,7 @@ import {
   TrendingUp,
   AlertCircle,
 } from "lucide-react";
-import { api, CompetencyAnalyticsResponse, CompetencyAnalyticsItem } from "@/lib/api";
+import { api, clearApiCache, CompetencyAnalyticsResponse, CompetencyAnalyticsItem } from "@/lib/api";
 import { toast } from "sonner";
 
 interface CompetencyAnalyticsProps {
@@ -23,6 +23,7 @@ export function CompetencyAnalytics({ onNavigate }: CompetencyAnalyticsProps) {
   const [searchQuery, setSearchQuery] = useState("");
 
   const fetchCompetencies = async () => {
+    clearApiCache();
     try {
       setLoading(true);
       const res = await api.admin.competencies();

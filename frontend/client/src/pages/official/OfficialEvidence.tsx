@@ -12,7 +12,7 @@ import {
   TrendingUp,
   Clock,
 } from "lucide-react";
-import { api, CompetencyEvidence, LearningActivity } from "@/lib/api";
+import { api, clearApiCache, CompetencyEvidence, LearningActivity } from "@/lib/api";
 import { toast } from "sonner";
 
 interface OfficialEvidenceProps {
@@ -25,6 +25,7 @@ export function OfficialEvidence({ onNavigate }: OfficialEvidenceProps) {
   const [filterType, setFilterType] = useState<"ALL" | "AUTHORITATIVE" | "SUPPORTING">("ALL");
 
   const fetchEvidence = async () => {
+    clearApiCache();
     try {
       setLoading(true);
       const [evidenceRes, activitiesRes, assessmentsRes] = await Promise.allSettled([

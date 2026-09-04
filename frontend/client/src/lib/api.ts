@@ -425,17 +425,96 @@ export type QuizAssignment = {
   assigned_at?: string;
 };
 
+// ─── Quiz (learner/official side) ────────────────────────────────────────────
+
+/**
+ * Shape returned by GET /quizzes/assigned — matches backend QuizResponse schema.
+ * The backend uses _id as the quiz identifier.
+ */
 export type AssignedQuiz = {
-  quiz_id: string;
-  id?: string;
-  _id?: string;
+  _id: string;           // primary ID from backend
+  quiz_id?: string;      // legacy alias (may not be present)
   title: string;
-  description: string;
-  competency_code?: string;
+  competency_code: string;
   question_count: number;
-  status: "NOT_STARTED" | "IN_PROGRESS" | "COMPLETED" | string;
-  assigned_at: string;
-  trainer_name: string;
+  status: "PUBLISHED" | "ASSIGNED" | "SUBMITTED" | string;
+  created_at: string;
+  // Optional fields (present in some seeded quizzes)
+  description?: string | null;
+  trainer_name?: string | null;
+  assigned_at?: string | null;
+};
+
+/** A single question returned by GET /quizzes/{id} — correct_answer is HIDDEN. */
+export type QuizQuestion = {
+  question_id: string;
+  question: string;
+  options: string[];
+  difficulty: string;
+  source_chunks?: string[];
+};
+
+/** Full quiz returned by GET /quizzes/{id}. */
+export type QuizDetail = {
+  _id: string;
+  title: string;
+  competency_code: string;
+  question_count: number;
+  status: string;
+  questions: QuizQuestion[];
+  created_at: string;
+};
+
+/** Per-question explanation in submit result. */
+export type QuizQuestionExplanation = {
+  question_id: string;
+  question: string;
+  options: string[];
+  your_answer: string;
+  correct_answer: string;
+  explanation: string;
+  difficulty: string;
+  source_chunks?: string[];
+  is_correct: boolean;
+};
+
+/** Competency impact block returned by submit. */
+export type QuizCompetencyResult = {
+  competency_code: string;
+  competency_level_before: number;
+  competency_level_after: number;
+  confidence_before: number;
+  confidence_after: number;
+  improvement: number;
+};
+
+/** Skill gap impact block returned by submit. */
+export type QuizSkillGapResult = {
+  competency_code: string;
+  current_level: number;
+  required_level: number;
+  gap_before: number;
+  gap_after: number;
+};
+
+/**
+ * Shape returned by POST /quizzes/{id}/submit — matches backend QuizResultResponse.
+ * Backend uses _id as the attempt ID alias.
+ */
+export type QuizAttemptResult = {
+  _id?: string;           // attempt_id alias (backend sends _id)
+  attempt_id?: string;    // may also be present
+  quiz_id: string;
+  score: number;
+  correct_count: number;
+  total_questions: number;
+  percentage: number;
+  submitted_at: string;
+  competency: QuizCompetencyResult;
+  skill_gap: QuizSkillGapResult;
+  explanations: QuizQuestionExplanation[];
+  // Legacy alias kept for backward compat — will be undefined on new responses
+  questions_with_feedback?: QuizQuestionExplanation[];
 };
 
 
@@ -463,23 +542,9 @@ export type TrainerLearnerAttempt = {
   } | null;
 };
 
-export type QuizAttemptResult = {
-  attempt_id: string;
-  quiz_id: string;
-  score: number;
-  correct_count: number;
-  total_questions: number;
-  percentage: number;
-  completed_at: string;
-  questions_with_feedback: {
-    question_id: string;
-    question: string;
-    selected_answer: string;
-    correct_answer: string;
-    is_correct: boolean;
-    explanation: string;
-  }[];
-};
+// Kept for legacy references — the real type is now QuizAttemptResult above.
+// This empty re-export avoids import errors in files that still import QuizAttemptResult.
+
 
 // ─── Admin Types ─────────────────────────────────────────────────────────────
 
@@ -1014,7 +1079,7 @@ export const api = {
   // Quizzes (official/learner side)
   quizzes: {
     assigned: () => request<AssignedQuiz[]>("/quizzes/assigned"),
-    get: (quizId: string) => request<TrainerQuiz>(`/quizzes/${quizId}`),
+    get: (quizId: string) => request<QuizDetail>(`/quizzes/${quizId}`),
     submit: (
       quizId: string,
       answers: { question_id: string; selected_answer: string }[]
@@ -1260,7 +1325,7 @@ export const api = {
       body: JSON.stringify(payload),
     }),
   /** @deprecated use api.quizzes.get */
-  quiz: (quizId: string) => request<TrainerQuiz>(`/quizzes/${quizId}`),
+  quiz: (quizId: string) => request<QuizDetail>(`/quizzes/${quizId}`),
   /** @deprecated use api.quizzes.submit */
   submitQuiz: (
     quizId: string,

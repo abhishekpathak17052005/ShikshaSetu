@@ -14,7 +14,7 @@ import {
   RefreshCw,
   Layers,
 } from "lucide-react";
-import { api, LearningMaterial } from "@/lib/api";
+import { api, clearApiCache, LearningMaterial } from "@/lib/api";
 import { toast } from "sonner";
 
 interface TrainerMaterialsProps {
@@ -31,6 +31,7 @@ export function TrainerMaterials({ onNavigate }: TrainerMaterialsProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const fetchMaterials = async () => {
+    clearApiCache();
     try {
       setLoading(true);
       const list = await api.trainer.materials.list();

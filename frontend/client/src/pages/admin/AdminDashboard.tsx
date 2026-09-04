@@ -14,7 +14,7 @@ import {
   ArrowRight,
   Award,
 } from "lucide-react";
-import { api, AdminDashboardResponse } from "@/lib/api";
+import { api, clearApiCache, AdminDashboardResponse } from "@/lib/api";
 import { DEPARTMENT_TAXONOMY } from "@/lib/departments";
 import { toast } from "sonner";
 
@@ -28,6 +28,7 @@ export function AdminDashboard({ onNavigate }: AdminDashboardProps) {
   const [selectedDepartment, setSelectedDepartment] = useState<string>("ALL");
 
   const fetchDashboard = async (dept?: string) => {
+    clearApiCache();
     try {
       setLoading(true);
       const targetDept = dept !== undefined ? dept : selectedDepartment;

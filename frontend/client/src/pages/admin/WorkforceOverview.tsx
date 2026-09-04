@@ -9,7 +9,7 @@ import {
   UserCheck,
   Users,
 } from "lucide-react";
-import { api, WorkforceOverviewResponse, WorkforceEmployeeItem } from "@/lib/api";
+import { api, clearApiCache, WorkforceOverviewResponse, WorkforceEmployeeItem } from "@/lib/api";
 import { toast } from "sonner";
 
 interface WorkforceOverviewProps {
@@ -24,6 +24,7 @@ export function WorkforceOverview({ onNavigate }: WorkforceOverviewProps) {
   const [selectedRole, setSelectedRole] = useState("ALL");
 
   const fetchWorkforce = async () => {
+    clearApiCache();
     try {
       setLoading(true);
       const res = await api.admin.workforce();

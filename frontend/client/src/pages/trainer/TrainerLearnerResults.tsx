@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import {
   api,
+  clearApiCache,
   TrainerQuiz,
   TrainerLearnerAttempt,
 } from "@/lib/api";
@@ -51,6 +52,7 @@ export function TrainerLearnerResults({
   const [submittingFeedback, setSubmittingFeedback] = useState(false);
 
   const fetchResults = async () => {
+    clearApiCache();
     try {
       setLoading(true);
       const quizList = await api.trainer.quizzes.list();

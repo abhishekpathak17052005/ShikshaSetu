@@ -9,7 +9,7 @@ import {
   TrendingDown,
   TrendingUp,
 } from "lucide-react";
-import { api, SkillGapAnalyticsResponse, OrganizationGapItem } from "@/lib/api";
+import { api, clearApiCache, SkillGapAnalyticsResponse, OrganizationGapItem } from "@/lib/api";
 import { DEPARTMENT_TAXONOMY } from "@/lib/departments";
 import { toast } from "sonner";
 
@@ -24,6 +24,7 @@ export function SkillGapAnalytics({ onNavigate }: SkillGapAnalyticsProps) {
   const [selectedDepartment, setSelectedDepartment] = useState("ALL");
 
   const fetchGaps = async (dept?: string) => {
+    clearApiCache();
     try {
       setLoading(true);
       const targetDept = dept !== undefined ? dept : selectedDepartment;

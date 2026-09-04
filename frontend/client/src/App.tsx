@@ -34,6 +34,9 @@ const TrainerQuizStudio = lazy(() =>
 const TrainerLearnerResults = lazy(() =>
   import("./pages/trainer/TrainerLearnerResults").then((m) => ({ default: m.TrainerLearnerResults }))
 );
+const TrainerProfile = lazy(() =>
+  import("./pages/trainer/TrainerProfile").then((m) => ({ default: m.TrainerProfile }))
+);
 
 // Admin Pages
 const AdminDashboard = lazy(() =>
@@ -123,7 +126,6 @@ function LoadingScreen() {
 function TrainerApp() {
   const [activePage, setActivePage] = useState("Dashboard");
   const [navContext, setNavContext] = useState<{ materialId?: string; quizId?: string }>({});
-  const { user } = useAuth();
 
   const handleNavigate = (page: string, context?: { materialId?: string; quizId?: string }) => {
     setActivePage(page);
@@ -164,62 +166,7 @@ function TrainerApp() {
           />
         );
       case "Profile":
-        return (
-          <div className="max-w-2xl mx-auto rounded-3xl border border-[#f0ddd0] bg-white p-8 shadow-sm space-y-6 animate-fadeIn">
-            <div className="flex items-center gap-4 border-b border-slate-100 pb-6">
-              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[#ef7e37] text-white text-2xl font-black">
-                {user?.full_name?.charAt(0) || "T"}
-              </div>
-              <div>
-                <span className="rounded-full bg-orange-100 px-3 py-0.5 text-xs font-bold text-[#c2510e]">
-                  TRAINER
-                </span>
-                <h2 className="text-xl font-extrabold text-slate-800 mt-1">
-                  {user?.full_name}
-                </h2>
-                <p className="text-xs text-slate-400">{user?.email}</p>
-              </div>
-            </div>
-
-            <div className="grid gap-4 sm:grid-cols-2 text-xs">
-              <div className="rounded-2xl bg-slate-50 p-4 border border-slate-100">
-                <div className="font-bold text-slate-400 uppercase tracking-wider text-[10px]">
-                  Designation
-                </div>
-                <div className="text-sm font-black text-slate-800 mt-1">
-                  {user?.designation || "Senior Curriculum Trainer"}
-                </div>
-              </div>
-
-              <div className="rounded-2xl bg-slate-50 p-4 border border-slate-100">
-                <div className="font-bold text-slate-400 uppercase tracking-wider text-[10px]">
-                  Department
-                </div>
-                <div className="text-sm font-black text-slate-800 mt-1">
-                  {user?.department || "Ministry of Statistics & PI"}
-                </div>
-              </div>
-
-              <div className="rounded-2xl bg-slate-50 p-4 border border-slate-100">
-                <div className="font-bold text-slate-400 uppercase tracking-wider text-[10px]">
-                  Employee ID
-                </div>
-                <div className="text-sm font-black text-slate-800 mt-1">
-                  {user?.employee_id || "TRN-001"}
-                </div>
-              </div>
-
-              <div className="rounded-2xl bg-slate-50 p-4 border border-slate-100">
-                <div className="font-bold text-slate-400 uppercase tracking-wider text-[10px]">
-                  Access Role
-                </div>
-                <div className="text-sm font-black text-emerald-700 mt-1">
-                  Verified Content Creator & Evaluator
-                </div>
-              </div>
-            </div>
-          </div>
-        );
+        return <TrainerProfile />;
       default:
         return <TrainerDashboard onNavigate={handleNavigate} />;
     }

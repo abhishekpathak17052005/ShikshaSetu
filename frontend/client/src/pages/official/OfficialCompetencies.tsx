@@ -12,7 +12,7 @@ import {
   RefreshCw,
   X,
 } from "lucide-react";
-import { api, UserApplicableCompetency, SkillGapResponse } from "@/lib/api";
+import { api, clearApiCache, UserApplicableCompetency, SkillGapResponse } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTranslation } from "@/i18n";
 import { toast } from "sonner";
@@ -34,6 +34,7 @@ export function OfficialCompetencies({ onNavigate }: OfficialCompetenciesProps) 
   const [selectedStatus, setSelectedStatus] = useState("ALL");
 
   const fetchData = async () => {
+    clearApiCache();
     try {
       setLoading(true);
       const [comps, gaps] = await Promise.all([
