@@ -845,6 +845,20 @@ export type AdaptiveFinalizeResponse = {
   status: string;
 };
 
+export type AdaptiveSessionStatus = {
+  session_id: string;
+  status: string;
+  competency_code: string;
+  competency_name: string;
+  estimated_level: number;
+  difficulty: string;
+  proficiency_tier: string;
+  questions_completed: number;
+  total_questions_planned: number;
+  current_question_number: number;
+  current_question: AdaptiveQuestionItem | null;
+};
+
 // ─── High-Speed In-Memory Request Cache ─────────────────────────────────────
 
 const requestCache = new Map<string, { data: unknown; expiresAt: number }>();
@@ -1258,7 +1272,7 @@ export const api = {
       request<AdaptiveStartResponse>("/adaptive-assessments/start", {
         method: "POST",
         body: JSON.stringify({ competency_code, max_questions }),
-      }),
+      }, { skipCache: true }),
     answer: (session_id: string, question_id: string, selected_answer: string) =>
       request<AdaptiveAnswerResponse>(`/adaptive-assessments/${session_id}/answer`, {
         method: "POST",
@@ -1268,6 +1282,8 @@ export const api = {
       request<AdaptiveFinalizeResponse>(`/adaptive-assessments/${session_id}/finalize`, {
         method: "POST",
       }),
+    sessionStatus: (session_id: string) =>
+      request<AdaptiveSessionStatus>(`/adaptive-assessments/${session_id}/status`, {}, { skipCache: true }),
     history: () =>
       request<{
         session_id: string;
@@ -1277,7 +1293,7 @@ export const api = {
         accuracy_pct: number;
         completed_at: string;
         status: string;
-      }[]>("/adaptive-assessments/history"),
+      }[]>("/adaptive-assessments/history", {}, { skipCache: true }),
   },
 
   // ── Legacy flat aliases kept for backwards-compat with LiveHome.tsx ──────

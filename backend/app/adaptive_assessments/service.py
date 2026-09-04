@@ -119,7 +119,15 @@ class AdaptiveAssessmentService:
             )
 
         # Validate that competency is applicable to the user's assigned role
+        # We allow assessment even for non-role-mapped competencies (advisory warning only,
+        # not a hard block) — professionals may choose to assess cross-domain skills.
+        # Hard block only applies to OFFICIAL users trying to assess competencies from
+        # a completely different framework domain (e.g. admin-only competencies).
         user = self.db.users.find_one({"_id": user_oid})
+
+        # Role-awareness: OFFICIAL/EMPLOYEE users are soft-checked against role requirements.
+        # Block only if: user has an assigned role WITH requirements AND the competency
+        # is NOT among them. Trainers and Admins bypass this check.
         if user and user.get("access_role") in ("OFFICIAL", "EMPLOYEE"):
             role_id = user.get("role_id")
             if role_id:
@@ -128,12 +136,30 @@ class AdaptiveAssessmentService:
                 if req_comp_ids and str(competency_oid) not in req_comp_ids:
                     raise HTTPException(
                         status_code=status.HTTP_403_FORBIDDEN,
-                        detail=f"Competency '{request.competency_code}' is not applicable to your department/role.",
+                        detail=(
+                            f"Competency '{request.competency_code}' is not applicable "
+                            f"to your current department/role. Contact your training "
+                            f"coordinator to update your competency framework mapping."
+                        ),
                     )
 
         initial_theta = DEFAULT_INITIAL_THETA
         initial_diff = "MEDIUM"
 
+        # Verify that questions actually exist for this competency before creating session
+        question_count = self.db.question_bank.count_documents(
+            {"competency_code": request.competency_code.upper(), "status": "ACTIVE"}
+        )
+        if question_count == 0:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail=(
+                    f"No assessment questions are available for competency "
+                    f"'{request.competency_code}'. This competency is not yet "
+                    f"configured for adaptive evaluation. Please contact your "
+                    f"department training coordinator."
+                ),
+            )
 
         # Select initial item
         first_q = self._select_next_question(
@@ -148,6 +174,12 @@ class AdaptiveAssessmentService:
             qid = str(first_q.get("question_id") or first_q.get("_id"))
             asked_ids.append(qid)
             q_item = self._format_question_item(first_q)
+        else:
+            # This should not happen given the count check above, but guard anyway
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail=f"Could not load a question for competency '{request.competency_code}'. Please try again.",
+            )
 
         session_oid = ObjectId()
         session_doc = {

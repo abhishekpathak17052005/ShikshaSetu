@@ -90,6 +90,55 @@ def get_adaptive_assessment_history(
     return results
 
 
+@router.get("/{session_id}/status")
+def get_session_status(
+    session_id: str,
+    current_user: dict = Depends(get_current_user),
+    service: AdaptiveAssessmentService = Depends(get_service),
+) -> dict:
+    """
+    Returns the current status of an assessment session.
+    Used for resume-on-refresh support.
+    """
+    from bson import ObjectId
+    user_id = str(current_user["_id"])
+    db = service.db
+    user_oid = ObjectId(user_id) if ObjectId.is_valid(user_id) else None
+    sess_oid = ObjectId(session_id) if ObjectId.is_valid(session_id) else None
+    if not user_oid or not sess_oid:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid IDs")
+
+    session = db.adaptive_assessment_sessions.find_one(
+        {"_id": sess_oid, "user_id": user_oid}
+    )
+    if not session:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Session not found")
+
+    current_q = session.get("current_question")
+    q_item = None
+    if current_q and session.get("status") == "IN_PROGRESS":
+        from .service import AdaptiveAssessmentService as S
+        svc = service
+        q_item = svc._format_question_item(current_q)
+
+    from .calibration import map_theta_to_difficulty, map_theta_to_level_label
+    theta = session.get("current_estimated_level", 2.5)
+    return {
+        "session_id": str(session["_id"]),
+        "status": session.get("status", "IN_PROGRESS"),
+        "competency_code": session.get("competency_code", ""),
+        "competency_name": session.get("competency_name", ""),
+        "estimated_level": theta,
+        "difficulty": map_theta_to_difficulty(theta),
+        "proficiency_tier": map_theta_to_level_label(theta),
+        "questions_completed": session.get("questions_attempted", 0),
+        "total_questions_planned": session.get("max_questions", 5),
+        "current_question_number": session.get("questions_attempted", 0) + 1,
+        "current_question": q_item.model_dump() if q_item else None,
+    }
+
+
+
 @router.post("/{session_id}/finalize", response_model=AdaptiveFinalizeResponse)
 def finalize_adaptive_assessment(
     session_id: str,
