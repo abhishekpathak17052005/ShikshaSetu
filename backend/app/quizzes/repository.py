@@ -36,23 +36,21 @@ def get_quiz_by_id(database: Database, quiz_id: str, user_id: str) -> dict | Non
     """Get a quiz by ID, verifying user ownership or assigned/published access."""
     quiz_oid = object_id(quiz_id)
     user_oid = object_id(user_id)
-    if quiz_oid is None or user_oid is None:
-        return None
-
-    # 1. Direct owner match
-    direct = database.quizzes.find_one({"_id": quiz_oid, "user_id": user_oid})
-    if direct:
-        return direct
-
-    # 2. Check trainer / assigned / published quiz
     user_id_str = str(user_id)
-    quiz = database.quizzes.find_one({"_id": quiz_oid})
+
+    # Query quiz by ObjectId or string ID
+    query_quiz = {"$or": [{"_id": quiz_oid}, {"_id": str(quiz_id)}]} if quiz_oid else {"_id": str(quiz_id)}
+    quiz = database.quizzes.find_one(query_quiz)
     if not quiz:
         return None
 
+    # 1. Direct owner match
     if str(quiz.get("user_id", "")) == user_id_str or str(quiz.get("trainer_id", "")) == user_id_str:
         return quiz
+    if user_oid and quiz.get("user_id") == user_oid:
+        return quiz
 
+    # 2. Check trainer / assigned / published quiz
     if quiz.get("status") in ("PUBLISHED", "ASSIGNED"):
         assigned = quiz.get("assigned_to")
         if not assigned or user_id_str in [str(x) for x in assigned]:

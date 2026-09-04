@@ -238,11 +238,11 @@ export function TrainerQuestionReview({
   });
 
   return (
-    <div className="space-y-6 animate-fadeIn">
+    <div className="space-y-6 anim-page-enter">
       {/* Top Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between anim-fade-up">
         <div>
-          <h1 className="text-2xl font-black text-slate-800">Question Review Studio</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-800">Question Review Studio</h1>
           <p className="text-sm text-slate-500 mt-1">
             Audit AI-generated MCQs, edit inaccuracies, and approve questions for authorized assessments.
           </p>
@@ -251,7 +251,7 @@ export function TrainerQuestionReview({
         <div className="flex items-center gap-3">
           <button
             onClick={fetchQuestionsAndMaterials}
-            className="flex items-center gap-1.5 rounded-xl border border-[#f0ddd0] bg-white px-3.5 py-2.5 text-xs font-bold text-slate-600 hover:bg-orange-50 transition-colors"
+            className="flex items-center gap-1.5 rounded-xl border border-[#f0ddd0] bg-white px-3.5 py-2.5 text-xs font-semibold text-slate-600 hover:bg-orange-50 btn-interactive"
           >
             <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
             Refresh Pool
@@ -259,7 +259,7 @@ export function TrainerQuestionReview({
 
           <button
             onClick={() => onNavigate("Quiz Studio")}
-            className="flex items-center gap-2 rounded-xl bg-[#ef7e37] px-4 py-2.5 text-xs font-bold text-white shadow hover:bg-[#d96a27] transition-all"
+            className="flex items-center gap-2 rounded-xl bg-[#ef7e37] px-4 py-2.5 text-xs font-semibold text-white shadow hover:bg-[#d96a27] btn-interactive"
           >
             Open Quiz Studio <ArrowRight size={14} />
           </button>
@@ -267,7 +267,7 @@ export function TrainerQuestionReview({
       </div>
 
       {/* Filter Toolbar */}
-      <div className="flex flex-col gap-3 rounded-2xl border border-[#f0ddd0] bg-white p-4 shadow-sm md:flex-row md:items-center md:justify-between">
+      <div className="flex flex-col gap-3 rounded-2xl border border-[#f0ddd0] bg-white p-4 shadow-sm md:flex-row md:items-center md:justify-between anim-fade-up">
         {/* Search */}
         <div className="flex flex-1 items-center gap-2 rounded-xl border border-slate-200 px-3 py-2">
           <Search size={16} className="text-slate-400" />
@@ -279,7 +279,7 @@ export function TrainerQuestionReview({
             className="w-full bg-transparent text-xs text-slate-800 placeholder-slate-400 focus:outline-none"
           />
           {searchQuery && (
-            <button onClick={() => setSearchQuery("")} className="text-xs text-slate-400 hover:text-slate-600">
+            <button onClick={() => setSearchQuery("")} className="text-xs text-slate-400 hover:text-slate-600 btn-interactive">
               <X size={14} />
             </button>
           )}
@@ -308,7 +308,7 @@ export function TrainerQuestionReview({
             <button
               key={st}
               onClick={() => setStatusFilter(st)}
-              className={`rounded-lg px-2.5 py-1 text-[11px] font-bold uppercase transition-all whitespace-nowrap ${
+              className={`rounded-lg px-2.5 py-1 text-[11px] font-bold uppercase transition-all whitespace-nowrap btn-interactive ${
                 statusFilter === st
                   ? "bg-white text-slate-800 shadow-sm"
                   : "text-slate-500 hover:text-slate-800"
@@ -328,7 +328,7 @@ export function TrainerQuestionReview({
           ))}
         </div>
       ) : filteredQuestions.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-[#f0ddd0] bg-white p-12 text-center">
+        <div className="rounded-2xl border border-dashed border-[#f0ddd0] bg-white p-12 text-center anim-fade-up">
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-orange-50 text-[#ef7e37]">
             <HelpCircle size={24} />
           </div>
@@ -340,7 +340,7 @@ export function TrainerQuestionReview({
           </p>
           <button
             onClick={() => onNavigate("AI Question Generator")}
-            className="mt-5 inline-flex items-center gap-2 rounded-xl bg-[#ef7e37] px-4 py-2.5 text-xs font-bold text-white hover:bg-[#d96a27] transition-colors"
+            className="mt-5 inline-flex items-center gap-2 rounded-xl bg-[#ef7e37] px-4 py-2.5 text-xs font-bold text-white hover:bg-[#d96a27] btn-interactive"
           >
             <Sparkles size={14} /> Generate Questions
           </button>
@@ -353,11 +353,12 @@ export function TrainerQuestionReview({
             const isRejected = q.status === "REJECTED";
             const isEdited = q.status === "EDITED";
             const isGenerated = q.status === "GENERATED";
+            const staggerCls = `stagger-${Math.min((idx % 6) + 1, 8)}`;
 
             return (
               <div
                 key={qid || idx}
-                className={`rounded-2xl border bg-white p-6 shadow-sm transition-all hover:shadow-md ${
+                className={`rounded-2xl border bg-white p-6 shadow-sm transition-all hover:shadow-md anim-card-enter ${staggerCls} ${
                   isApproved
                     ? "border-emerald-200 bg-emerald-50/10"
                     : isRejected
@@ -370,14 +371,14 @@ export function TrainerQuestionReview({
                 {/* Header row */}
                 <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-3">
                   <div className="flex items-center gap-2.5">
-                    <span className="rounded-lg bg-slate-100 px-2 py-0.5 text-xs font-black text-slate-600">
+                    <span className="rounded-lg bg-slate-100 px-2 py-0.5 text-xs font-bold text-slate-600">
                       #{idx + 1}
                     </span>
-                    <span className="rounded-md bg-orange-50 px-2 py-0.5 text-[11px] font-bold text-[#c2510e]">
+                    <span className="rounded-md bg-orange-50 px-2 py-0.5 font-mono text-[11px] font-medium tracking-tight text-[#c2510e]">
                       {q.competency_code}
                     </span>
                     {q.difficulty && (
-                      <span className="text-[11px] font-semibold text-slate-400">
+                      <span className="text-[11px] font-medium text-slate-400">
                         · {q.difficulty}
                       </span>
                     )}
@@ -386,19 +387,19 @@ export function TrainerQuestionReview({
                   {/* Status Badge */}
                   <div>
                     {isApproved ? (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-800">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-800 anim-badge-pop">
                         <CheckCircle2 size={13} /> APPROVED
                       </span>
                     ) : isEdited ? (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-3 py-1 text-xs font-bold text-blue-800">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-3 py-1 text-xs font-bold text-blue-800 anim-badge-pop">
                         <Edit3 size={13} /> EDITED
                       </span>
                     ) : isRejected ? (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-rose-100 px-3 py-1 text-xs font-bold text-rose-800">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-rose-100 px-3 py-1 text-xs font-bold text-rose-800 anim-badge-pop">
                         <XCircle size={13} /> REJECTED
                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-800">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-800 anim-badge-pop">
                         <Clock size={13} /> GENERATED
                       </span>
                     )}
@@ -437,7 +438,7 @@ export function TrainerQuestionReview({
                           </span>
                           <span className="flex-1">{opt}</span>
                           {isCorrect && (
-                            <span className="text-[10px] font-extrabold uppercase text-emerald-700">
+                            <span className="text-[10px] font-extrabold uppercase text-emerald-700 anim-badge-pop">
                               Correct Key
                             </span>
                           )}
@@ -456,7 +457,7 @@ export function TrainerQuestionReview({
 
                 {/* Rejection Notes (if any) */}
                 {isRejected && q.review_notes && (
-                  <div className="mt-3 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-800 flex items-start gap-2">
+                  <div className="mt-3 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-800 flex items-start gap-2 anim-fade-up">
                     <AlertTriangle size={15} className="text-rose-600 mt-0.5 shrink-0" />
                     <div>
                       <strong>Reviewer Rejection Reason:</strong> {q.review_notes}
@@ -473,7 +474,7 @@ export function TrainerQuestionReview({
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => openEditModal(q)}
-                      className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors"
+                      className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50 btn-interactive"
                     >
                       <Edit3 size={13} /> Edit Question
                     </button>
@@ -481,7 +482,7 @@ export function TrainerQuestionReview({
                     {!isRejected && (
                       <button
                         onClick={() => openRejectModal(q)}
-                        className="inline-flex items-center gap-1.5 rounded-xl border border-rose-200 bg-white px-3 py-1.5 text-xs font-bold text-rose-700 hover:bg-rose-50 transition-colors"
+                        className="inline-flex items-center gap-1.5 rounded-xl border border-rose-200 bg-white px-3 py-1.5 text-xs font-bold text-rose-700 hover:bg-rose-50 btn-interactive"
                       >
                         <XCircle size={13} /> Reject
                       </button>
@@ -490,7 +491,7 @@ export function TrainerQuestionReview({
                     {!isApproved && (
                       <button
                         onClick={() => handleApprove(q)}
-                        className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-1.5 text-xs font-bold text-white shadow hover:bg-emerald-700 transition-all active:scale-95"
+                        className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-1.5 text-xs font-bold text-white shadow hover:bg-emerald-700 btn-interactive"
                       >
                         <CheckCircle2 size={13} /> Approve Question
                       </button>
@@ -505,8 +506,8 @@ export function TrainerQuestionReview({
 
       {/* ── Edit Modal ── */}
       {editModalOpen && editingQuestion && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm animate-fadeIn">
-          <div className="relative w-full max-w-2xl rounded-3xl bg-white p-6 shadow-2xl border border-[#f0ddd0] max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
+          <div className="relative w-full max-w-2xl rounded-3xl bg-white p-6 shadow-2xl border border-[#f0ddd0] max-h-[90vh] overflow-y-auto anim-scale-in">
             <div className="flex items-center justify-between border-b border-slate-100 pb-4">
               <div>
                 <h3 className="text-lg font-extrabold text-slate-800">
@@ -630,8 +631,8 @@ export function TrainerQuestionReview({
 
       {/* ── Reject Modal ── */}
       {rejectModalOpen && rejectingQuestion && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm animate-fadeIn">
-          <div className="relative w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl border border-rose-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
+          <div className="relative w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl border border-rose-200 anim-scale-in">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <h3 className="text-base font-extrabold text-rose-800 flex items-center gap-2">
                 <XCircle size={18} /> Reject Question
@@ -667,14 +668,14 @@ export function TrainerQuestionReview({
                 <button
                   type="button"
                   onClick={() => setRejectModalOpen(false)}
-                  className="rounded-xl border border-slate-200 px-3.5 py-1.5 text-xs font-bold text-slate-600"
+                  className="rounded-xl border border-slate-200 px-3.5 py-1.5 text-xs font-bold text-slate-600 btn-interactive"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={submittingReject}
-                  className="rounded-xl bg-rose-600 px-4 py-1.5 text-xs font-bold text-white shadow hover:bg-rose-700 disabled:opacity-50"
+                  className="rounded-xl bg-rose-600 px-4 py-1.5 text-xs font-bold text-white shadow hover:bg-rose-700 disabled:opacity-50 btn-interactive"
                 >
                   {submittingReject ? "Rejecting..." : "Confirm Rejection"}
                 </button>

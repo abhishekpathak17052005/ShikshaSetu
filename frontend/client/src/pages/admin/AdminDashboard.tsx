@@ -17,6 +17,7 @@ import {
 import { api, clearApiCache, AdminDashboardResponse } from "@/lib/api";
 import { DEPARTMENT_TAXONOMY } from "@/lib/departments";
 import { toast } from "sonner";
+import { NumberReveal, ProgressBarFill } from "@/components/motion/MotionUtils";
 
 interface AdminDashboardProps {
   onNavigate: (page: string) => void;
@@ -46,14 +47,14 @@ export function AdminDashboard({ onNavigate }: AdminDashboardProps) {
   }, [selectedDepartment]);
 
   return (
-    <div className="space-y-8 animate-fadeIn max-w-6xl mx-auto">
+    <div className="space-y-8 anim-page-enter max-w-6xl mx-auto">
       {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between anim-fade-up">
         <div>
-          <div className="inline-flex items-center gap-1.5 rounded-full bg-purple-100 px-3 py-1 text-xs font-extrabold uppercase tracking-wider text-[#4b36a8]">
+          <div className="inline-flex items-center gap-1.5 rounded-full bg-purple-100 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-[#4b36a8] anim-badge-pop">
             <ShieldCheck size={13} /> Civil Services Capability Intelligence Console
           </div>
-          <h1 className="mt-2 text-2xl sm:text-3xl font-black text-[#123057]">
+          <h1 className="mt-2 text-2xl sm:text-3xl font-bold tracking-tight text-[#123057]">
             National Workforce Governance
           </h1>
           <p className="text-sm text-slate-500 mt-1">
@@ -63,11 +64,11 @@ export function AdminDashboard({ onNavigate }: AdminDashboardProps) {
 
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
-            <label className="text-xs font-bold text-slate-500 whitespace-nowrap">Department:</label>
+            <label className="text-xs font-semibold text-slate-500 whitespace-nowrap">Department:</label>
             <select
               value={selectedDepartment}
               onChange={(e) => setSelectedDepartment(e.target.value)}
-              className="rounded-xl border border-purple-200 bg-white px-3 py-2 text-xs font-bold text-[#4b36a8] focus:border-[#4b36a8] focus:outline-none shadow-sm"
+              className="rounded-xl border border-purple-200 bg-white px-3 py-2 text-xs font-semibold text-[#4b36a8] focus:border-[#4b36a8] focus:outline-none shadow-sm"
             >
               <option value="ALL">All Ministries & Departments</option>
               {DEPARTMENT_TAXONOMY.map((d) => (
@@ -80,7 +81,7 @@ export function AdminDashboard({ onNavigate }: AdminDashboardProps) {
 
           <button
             onClick={() => fetchDashboard()}
-            className="flex items-center gap-1.5 rounded-xl border border-[#e0daef] bg-white px-4 py-2.5 text-xs font-bold text-[#4b36a8] shadow-sm hover:bg-purple-50 transition-all"
+            className="flex items-center gap-1.5 rounded-xl border border-[#e0daef] bg-white px-4 py-2.5 text-xs font-semibold text-[#4b36a8] shadow-sm hover:bg-purple-50 btn-interactive"
           >
             <RefreshCw size={14} className={loading ? "animate-spin" : ""} /> Refresh
           </button>
@@ -89,15 +90,15 @@ export function AdminDashboard({ onNavigate }: AdminDashboardProps) {
 
 
       {/* iGOT Karmayogi Ecosystem Integration Boundary Card */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 rounded-2xl border border-blue-100 bg-gradient-to-r from-blue-50/90 to-purple-50/80 p-4 text-xs">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 rounded-2xl border border-blue-100 bg-gradient-to-r from-blue-50/90 to-purple-50/80 p-4 text-xs anim-fade-up">
         <div className="flex items-start gap-3">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-blue-700 font-black">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-blue-700 font-bold anim-badge-pop">
             iGOT
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="font-bold text-[#123057]">iGOT Karmayogi National Competency Gateway</span>
-              <span className="rounded-md bg-blue-200/90 px-2 py-0.5 text-[10px] font-bold text-blue-900">
+              <span className="font-semibold text-[#123057]">iGOT Karmayogi National Competency Gateway</span>
+              <span className="rounded-md bg-blue-200/90 px-2 py-0.5 text-[10px] font-semibold text-blue-900 anim-badge-pop tracking-wider">
                 Curated Catalog Active
               </span>
             </div>
@@ -107,7 +108,7 @@ export function AdminDashboard({ onNavigate }: AdminDashboardProps) {
           </div>
         </div>
         <div className="shrink-0 flex items-center gap-2">
-          <span className="inline-flex items-center gap-1 rounded-lg bg-emerald-100 px-2.5 py-1 text-[11px] font-bold text-emerald-800">
+          <span className="inline-flex items-center gap-1 rounded-lg bg-emerald-100 px-2.5 py-1 text-[11px] font-semibold text-emerald-800 anim-badge-pop">
             <CheckCircle2 size={12} /> Adapter Healthy
           </span>
         </div>
@@ -115,54 +116,58 @@ export function AdminDashboard({ onNavigate }: AdminDashboardProps) {
 
       {/* 4-KPI Primary Metrics */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <div className="rounded-2xl border border-[#e0daef] bg-white p-5 shadow-sm hover:shadow-md transition-all">
+        <div className="rounded-2xl border border-[#e0daef] bg-white p-5 shadow-sm card-interactive anim-card-enter stagger-1">
           <div className="flex items-center justify-between text-slate-400">
-            <span className="text-xs font-bold uppercase tracking-wider">Total Officials</span>
+            <span className="text-xs font-semibold uppercase tracking-wider">Total Officials</span>
             <Users size={18} className="text-[#6d5bc3]" />
           </div>
-          <div className="mt-3 text-3xl font-black text-[#123057]">
-            {data?.total_officials ?? "—"}
+          <div className="mt-3 text-3xl font-extrabold tracking-tight text-[#123057]">
+            {data?.total_officials != null ? <NumberReveal value={data.total_officials} /> : "—"}
           </div>
-          <div className="mt-1 text-[11px] text-slate-400 font-semibold">
+          <div className="mt-1 text-[11px] text-slate-400 font-medium">
             Across {data?.departments_count ?? 1} ministries/departments
           </div>
         </div>
 
-        <div className="rounded-2xl border border-[#e0daef] bg-white p-5 shadow-sm hover:shadow-md transition-all">
+        <div className="rounded-2xl border border-[#e0daef] bg-white p-5 shadow-sm card-interactive anim-card-enter stagger-2">
           <div className="flex items-center justify-between text-slate-400">
-            <span className="text-xs font-bold uppercase tracking-wider">Avg Proficiency</span>
+            <span className="text-xs font-semibold uppercase tracking-wider">Avg Proficiency</span>
             <TrendingUp size={18} className="text-[#087f76]" />
           </div>
-          <div className="mt-3 text-3xl font-black text-[#087f76]">
-            {data?.average_capability_level != null ? `${data.average_capability_level} / 5.0` : "3.2 / 5.0"}
+          <div className="mt-3 text-3xl font-extrabold tracking-tight text-[#087f76]">
+            {data?.average_capability_level != null ? (
+              <NumberReveal value={data.average_capability_level} decimals={1} suffix=" / 5.0" />
+            ) : (
+              "3.2 / 5.0"
+            )}
           </div>
-          <div className="mt-1 text-[11px] text-slate-400 font-semibold">
+          <div className="mt-1 text-[11px] text-slate-400 font-medium">
             {data?.assessment_coverage_pct ?? 75}% assessment coverage
           </div>
         </div>
 
-        <div className="rounded-2xl border border-[#e0daef] bg-white p-5 shadow-sm hover:shadow-md transition-all">
+        <div className="rounded-2xl border border-[#e0daef] bg-white p-5 shadow-sm card-interactive anim-card-enter stagger-3">
           <div className="flex items-center justify-between text-slate-400">
-            <span className="text-xs font-bold uppercase tracking-wider">Critical Gaps</span>
+            <span className="text-xs font-semibold uppercase tracking-wider">Critical Gaps</span>
             <AlertTriangle size={18} className="text-rose-600" />
           </div>
-          <div className="mt-3 text-3xl font-black text-rose-600">
-            {data?.total_critical_gaps ?? 0}
+          <div className="mt-3 text-3xl font-extrabold tracking-tight text-rose-600">
+            <NumberReveal value={data?.total_critical_gaps ?? 0} />
           </div>
-          <div className="mt-1 text-[11px] text-slate-400 font-semibold">
+          <div className="mt-1 text-[11px] text-slate-400 font-medium">
             Deficits ≥ 1.5 proficiency points
           </div>
         </div>
 
-        <div className="rounded-2xl border border-[#e0daef] bg-white p-5 shadow-sm hover:shadow-md transition-all">
+        <div className="rounded-2xl border border-[#e0daef] bg-white p-5 shadow-sm card-interactive anim-card-enter stagger-4">
           <div className="flex items-center justify-between text-slate-400">
-            <span className="text-xs font-bold uppercase tracking-wider">Training Hours</span>
+            <span className="text-xs font-semibold uppercase tracking-wider">Training Hours</span>
             <Clock size={18} className="text-[#ef7e37]" />
           </div>
-          <div className="mt-3 text-3xl font-black text-[#ef7e37]">
-            {data?.total_learning_hours ?? 0} hrs
+          <div className="mt-3 text-3xl font-extrabold tracking-tight text-[#ef7e37]">
+            <NumberReveal value={data?.total_learning_hours ?? 0} suffix=" hrs" />
           </div>
-          <div className="mt-1 text-[11px] text-slate-400 font-semibold">
+          <div className="mt-1 text-[11px] text-slate-400 font-medium">
             Supporting evidence recorded
           </div>
         </div>
@@ -171,7 +176,7 @@ export function AdminDashboard({ onNavigate }: AdminDashboardProps) {
       {/* Domain Proficiency & Department Breakdown */}
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Domain Capability Matrix */}
-        <div className="rounded-3xl border border-[#e0daef] bg-white p-6 shadow-sm">
+        <div className="rounded-3xl border border-[#e0daef] bg-white p-6 shadow-sm anim-card-enter stagger-5">
           <div className="flex items-center justify-between border-b border-slate-100 pb-4">
             <div>
               <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
@@ -183,7 +188,7 @@ export function AdminDashboard({ onNavigate }: AdminDashboardProps) {
             </div>
             <button
               onClick={() => onNavigate("Competency Analytics")}
-              className="text-xs font-bold text-[#6d5bc3] hover:underline inline-flex items-center gap-1"
+              className="text-xs font-bold text-[#6d5bc3] hover:underline inline-flex items-center gap-1 btn-interactive"
             >
               View All <ArrowRight size={12} />
             </button>
@@ -204,12 +209,7 @@ export function AdminDashboard({ onNavigate }: AdminDashboardProps) {
                       Level {d.average_level} / 5.0 ({d.count} mapped)
                     </span>
                   </div>
-                  <div className="h-2.5 w-full overflow-hidden rounded-full bg-slate-100">
-                    <div
-                      className="h-full rounded-full bg-[#6d5bc3] transition-all duration-500"
-                      style={{ width: `${pct}%` }}
-                    />
-                  </div>
+                  <ProgressBarFill percentage={pct} colorClass="bg-[#6d5bc3]" heightClass="h-2.5" />
                 </div>
               );
             })}
@@ -217,7 +217,7 @@ export function AdminDashboard({ onNavigate }: AdminDashboardProps) {
         </div>
 
         {/* Department Workforce Matrix */}
-        <div className="rounded-3xl border border-[#e0daef] bg-white p-6 shadow-sm">
+        <div className="rounded-3xl border border-[#e0daef] bg-white p-6 shadow-sm anim-card-enter stagger-6">
           <div className="flex items-center justify-between border-b border-slate-100 pb-4">
             <div>
               <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
@@ -229,7 +229,7 @@ export function AdminDashboard({ onNavigate }: AdminDashboardProps) {
             </div>
             <button
               onClick={() => onNavigate("Workforce Overview")}
-              className="text-xs font-bold text-[#6d5bc3] hover:underline inline-flex items-center gap-1"
+              className="text-xs font-bold text-[#6d5bc3] hover:underline inline-flex items-center gap-1 btn-interactive"
             >
               Details <ArrowRight size={12} />
             </button>
@@ -240,29 +240,32 @@ export function AdminDashboard({ onNavigate }: AdminDashboardProps) {
               { department: "Ministry of Statistics & PI", count: 8 },
               { department: "Capacity Building Commission", count: 4 },
               { department: "DoPT", count: 3 },
-            ]).map((dept) => (
-              <div
-                key={dept.department}
-                className="flex items-center justify-between rounded-xl bg-slate-50 p-3 text-xs"
-              >
-                <div className="flex items-center gap-2.5">
-                  <Building2 size={15} className="text-[#6d5bc3]" />
-                  <span className="font-bold text-[#123057]">{dept.department}</span>
+            ]).map((dept, dIdx) => {
+              const dStagger = `stagger-${Math.min((dIdx % 4) + 1, 8)}`;
+              return (
+                <div
+                  key={dept.department}
+                  className={`flex items-center justify-between rounded-xl bg-slate-50 p-3 text-xs anim-card-enter ${dStagger}`}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <Building2 size={15} className="text-[#6d5bc3]" />
+                    <span className="font-bold text-[#123057]">{dept.department}</span>
+                  </div>
+                  <span className="rounded-full bg-purple-100 px-2.5 py-0.5 font-bold text-[#4b36a8] anim-badge-pop">
+                    {dept.count} Officials
+                  </span>
                 </div>
-                <span className="rounded-full bg-purple-100 px-2.5 py-0.5 font-bold text-[#4b36a8]">
-                  {dept.count} Officials
-                </span>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </div>
 
       {/* Strategic Actions & Intelligence Pathways */}
-      <div className="rounded-3xl bg-gradient-to-br from-[#4b36a8] to-[#2d1b7a] p-8 text-white shadow-md">
+      <div className="rounded-3xl bg-gradient-to-br from-[#4b36a8] to-[#2d1b7a] p-8 text-white shadow-md anim-fade-up">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
           <div>
-            <span className="rounded-full bg-white/20 px-3 py-1 text-xs font-extrabold uppercase tracking-wider text-purple-200">
+            <span className="rounded-full bg-white/20 px-3 py-1 text-xs font-extrabold uppercase tracking-wider text-purple-200 anim-badge-pop">
               Administrative Decision Support
             </span>
             <h2 className="mt-3 text-2xl font-black">Capacity Planning & Strategic Interventions</h2>
@@ -274,13 +277,13 @@ export function AdminDashboard({ onNavigate }: AdminDashboardProps) {
           <div className="flex flex-wrap gap-3">
             <button
               onClick={() => onNavigate("Capacity Planning")}
-              className="rounded-xl bg-white px-5 py-2.5 text-xs font-black text-[#4b36a8] shadow hover:bg-purple-50 transition-all"
+              className="rounded-xl bg-white px-5 py-2.5 text-xs font-black text-[#4b36a8] shadow hover:bg-purple-50 btn-interactive"
             >
               Launch Capacity Planning →
             </button>
             <button
               onClick={() => onNavigate("Emerging Skills")}
-              className="rounded-xl bg-white/10 px-5 py-2.5 text-xs font-bold text-white border border-white/20 hover:bg-white/20 transition-all"
+              className="rounded-xl bg-white/10 px-5 py-2.5 text-xs font-bold text-white border border-white/20 hover:bg-white/20 btn-interactive"
             >
               Emerging Skills Matrix
             </button>

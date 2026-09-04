@@ -14,6 +14,7 @@ import { api, clearApiCache, SkillGapResponse } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { PageSkeleton } from "@/components/PageSkeleton";
 import { toast } from "sonner";
+import { NumberReveal, ProgressBarFill, AnimatedSignalBar, AnimatedSection } from "@/components/motion/MotionUtils";
 
 interface OfficialSkillGapsProps {
   onNavigate: (page: string, context?: { competencyCode?: string }) => void;
@@ -93,9 +94,9 @@ export function OfficialSkillGaps({ onNavigate }: OfficialSkillGapsProps) {
     (user?.designation ? `${user.designation} Framework` : "Role Capability Framework");
 
   return (
-    <div className="space-y-6 animate-fadeIn">
+    <div className="space-y-6 anim-page-enter">
       {/* Top Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between anim-fade-up">
         <div>
           <h1 className="text-2xl font-black text-[#123057]">Skill Gap Intelligence</h1>
           <p className="text-sm text-slate-500 mt-1">
@@ -106,14 +107,14 @@ export function OfficialSkillGaps({ onNavigate }: OfficialSkillGapsProps) {
         <div className="flex items-center gap-3">
           <button
             onClick={fetchSkillGaps}
-            className="flex items-center gap-1.5 rounded-xl border border-[#dfe7f0] bg-white px-3.5 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors"
+            className="flex items-center gap-1.5 rounded-xl border border-[#dfe7f0] bg-white px-3.5 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 btn-interactive"
           >
             <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
             Refresh
           </button>
           <button
             onClick={() => onNavigate(isUnassessed ? "Assessments" : "Recommendations")}
-            className="flex items-center gap-2 rounded-xl bg-[#ef7e37] px-4 py-2 text-xs font-bold text-white shadow hover:bg-[#d96a27] transition-all"
+            className="flex items-center gap-2 rounded-xl bg-[#ef7e37] px-4 py-2 text-xs font-bold text-white shadow hover:bg-[#d96a27] btn-interactive"
           >
             {isUnassessed ? (
               <>
@@ -130,9 +131,9 @@ export function OfficialSkillGaps({ onNavigate }: OfficialSkillGapsProps) {
 
       {/* Unassessed Prompt Banner */}
       {isUnassessed && (
-        <div className="rounded-2xl border border-amber-200 bg-amber-50/70 p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="rounded-2xl border border-amber-200 bg-amber-50/70 p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 anim-fade-in">
           <div className="flex items-center gap-3.5">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-amber-800 font-bold">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-amber-800 font-bold anim-scale-in">
               <ClipboardCheck size={20} />
             </div>
             <div>
@@ -144,7 +145,7 @@ export function OfficialSkillGaps({ onNavigate }: OfficialSkillGapsProps) {
           </div>
           <button
             onClick={() => onNavigate("Assessments")}
-            className="shrink-0 rounded-xl bg-amber-600 px-4 py-2 text-xs font-bold text-white shadow hover:bg-amber-700 transition-colors"
+            className="shrink-0 rounded-xl bg-amber-600 px-4 py-2 text-xs font-bold text-white shadow hover:bg-amber-700 btn-interactive"
           >
             Take Assessment
           </button>
@@ -152,7 +153,7 @@ export function OfficialSkillGaps({ onNavigate }: OfficialSkillGapsProps) {
       )}
 
       {/* Role Requirement Summary Card */}
-      <div className="rounded-2xl border border-[#dfe7f0] bg-white p-6 shadow-sm">
+      <AnimatedSection className="rounded-2xl border border-[#dfe7f0] bg-white p-6 shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-4">
           <div>
             <div className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
@@ -163,7 +164,7 @@ export function OfficialSkillGaps({ onNavigate }: OfficialSkillGapsProps) {
             </h2>
           </div>
 
-          <span className={`rounded-full px-3.5 py-1.5 text-xs font-bold ${
+          <span className={`rounded-full px-3.5 py-1.5 text-xs font-bold anim-badge-pop ${
             isUnassessed
               ? "bg-amber-100 text-amber-800 border border-amber-200"
               : "bg-[#fff0e6] text-[#d96b27]"
@@ -174,43 +175,47 @@ export function OfficialSkillGaps({ onNavigate }: OfficialSkillGapsProps) {
 
         {/* 4-Stat Metric Row */}
         <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <div className="rounded-xl bg-[#f8fafc] p-4 border border-slate-100">
-            <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+          <div className="rounded-xl bg-[#f8fafc] p-4 border border-slate-100 card-interactive">
+            <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
               Skill Gaps
             </div>
-            <div className={`mt-2 font-black ${isUnassessed ? "text-lg text-amber-600" : "text-2xl text-[#ef7e37]"}`}>
-              {isUnassessed ? "Assessment Required" : (summary?.total_gaps ?? gaps.length)}
+            <div className={`mt-2 font-bold tracking-tight ${isUnassessed ? "text-base text-amber-600 font-semibold" : "text-2xl text-[#ef7e37]"}`}>
+              {isUnassessed ? (
+                "Assessment Required"
+              ) : (
+                <NumberReveal value={summary?.total_gaps ?? gaps.length} />
+              )}
             </div>
           </div>
 
-          <div className="rounded-xl bg-[#f8fafc] p-4 border border-slate-100">
-            <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+          <div className="rounded-xl bg-[#f8fafc] p-4 border border-slate-100 card-interactive">
+            <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
               Priority Gaps
             </div>
-            <div className="mt-2 text-2xl font-black text-rose-600">
-              {isUnassessed ? "—" : (summary?.high_gaps || 0) + (summary?.critical_gaps || 0)}
+            <div className="mt-2 text-2xl font-bold tracking-tight text-rose-600">
+              {isUnassessed ? "—" : <NumberReveal value={(summary?.high_gaps || 0) + (summary?.critical_gaps || 0)} />}
             </div>
           </div>
 
-          <div className="rounded-xl bg-[#f8fafc] p-4 border border-slate-100">
-            <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+          <div className="rounded-xl bg-[#f8fafc] p-4 border border-slate-100 card-interactive">
+            <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
               Assessed Competencies
             </div>
-            <div className="mt-2 text-2xl font-black text-teal-700">
-              {assessedCount} / {gaps.length}
+            <div className="mt-2 text-2xl font-bold tracking-tight text-teal-700">
+              <NumberReveal value={assessedCount} /> / {gaps.length}
             </div>
           </div>
 
-          <div className="rounded-xl bg-[#f8fafc] p-4 border border-slate-100">
-            <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+          <div className="rounded-xl bg-[#f8fafc] p-4 border border-slate-100 card-interactive">
+            <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
               Role Baseline
             </div>
-            <div className="mt-2 text-2xl font-black text-[#123057]">
+            <div className="mt-2 text-2xl font-bold tracking-tight text-[#123057]">
               {gaps.length} Active
             </div>
           </div>
         </div>
-      </div>
+      </AnimatedSection>
 
       {/* Gap Cards List */}
       {loading ? (
@@ -220,76 +225,56 @@ export function OfficialSkillGaps({ onNavigate }: OfficialSkillGapsProps) {
           ))}
         </div>
       ) : gaps.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-[#dfe7f0] bg-white p-12 text-center">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-teal-50 text-teal-700">
+        <div className="rounded-2xl border border-dashed border-[#dfe7f0] bg-white p-12 text-center anim-fade-in">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 anim-badge-pop">
             <CheckCircle2 size={24} />
           </div>
-          <h3 className="mt-4 text-base font-bold text-[#123057]">
-            No skill gaps found in your profile
-          </h3>
-          <p className="mt-1 text-sm text-slate-500 max-w-md mx-auto">
-            Take a capability assessment to measure current levels and uncover tailored learning paths.
+          <h3 className="mt-4 text-base font-bold text-[#123057]">No skill gaps detected</h3>
+          <p className="mt-1 text-sm text-slate-500 max-w-md mx-auto font-normal">
+            You meet or exceed all capability proficiency levels required for your role.
           </p>
-          <button
-            onClick={() => onNavigate("Assessments")}
-            className="mt-5 inline-flex items-center gap-2 rounded-xl bg-[#ef7e37] px-4 py-2.5 text-xs font-bold text-white hover:bg-[#d96a27]"
-          >
-            Start Assessment
-          </button>
         </div>
       ) : (
         <div className="space-y-4">
-          {gaps.map((gap) => {
-            const current = gap.current_level || 0;
+          {gaps.map((gap, idx) => {
+            const hasAssessed = gap.current_level != null;
+            const current = gap.current_level;
             const required = gap.required_level || 4.0;
-            const pct = Math.min(100, Math.round((current / required) * 100));
+            const staggerClass = idx < 8 ? `stagger-${idx + 1}` : "";
 
             return (
-              <div
-                key={gap.competency_id}
-                className="rounded-2xl border border-[#dfe7f0] bg-white p-6 shadow-sm hover:border-orange-300 hover:shadow-md transition-all"
+              <AnimatedSection
+                key={gap.competency_id || idx}
+                className={`rounded-2xl border border-[#dfe7f0] bg-white p-6 shadow-sm hover:border-orange-300 card-interactive anim-card-enter ${staggerClass}`}
               >
                 <div className="flex flex-wrap items-start justify-between gap-3 border-b border-slate-100 pb-3">
                   <div>
-                    <div className="text-[10px] font-extrabold uppercase tracking-wider text-teal-800">
-                      {gap.competency_code} · {gap.competency_domain || gap.domain || "Domain"}
+                    <div className="flex items-center gap-2">
+                      <span className="rounded-md bg-slate-100 px-2 py-0.5 font-mono text-[11px] font-medium tracking-tight text-teal-800 uppercase">
+                        {gap.competency_code}
+                      </span>
+                      <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+                        {gap.competency_domain || gap.domain || "Domain"}
+                      </span>
                     </div>
-                    <h3 className="text-lg font-bold text-[#123057] mt-0.5">
+                    <h3 className="text-lg font-bold text-[#123057] mt-1">
                       {gap.competency_name}
                     </h3>
                   </div>
 
-                  <span className="rounded-full bg-[#fff0e6] px-3 py-1 text-xs font-bold text-[#d96b27]">
-                    {gap.gap_category}
+                  <span className="rounded-full bg-[#fff0e6] px-3 py-1 text-xs font-semibold text-[#d96b27] anim-badge-pop">
+                    {gap.gap_category || "PRIORITY"}
                   </span>
                 </div>
 
-                {/* Grid Comparison */}
-                <div className="mt-4 grid grid-cols-3 gap-4 rounded-xl bg-slate-50 p-4 text-center">
-                  <div>
-                    <div className="text-xs font-bold text-slate-400 uppercase">Required Level</div>
-                    <div className="mt-1 text-xl font-black text-[#123057]">{required.toFixed(1)}</div>
-                  </div>
-                  <div>
-                    <div className="text-xs font-bold text-slate-400 uppercase">Current Level</div>
-                    <div className="mt-1 text-xl font-black text-[#123057]">
-                      {gap.current_level != null ? gap.current_level.toFixed(1) : "Not Assessed"}
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-xs font-bold text-slate-400 uppercase">Deficit Gap</div>
-                    <div className="mt-1 text-xl font-black text-[#ef7e37]">{gap.gap.toFixed(1)}</div>
-                  </div>
-                </div>
-
-                {/* Signal Bar */}
+                {/* Animated Comparative Signal Bar Track */}
                 <div className="mt-4">
-                  <div className="h-2.5 w-full overflow-hidden rounded-full bg-slate-100">
-                    <div
-                      className="h-full rounded-full bg-[#087f76] transition-all duration-500"
-                      style={{ width: `${pct}%` }}
-                    />
-                  </div>
+                  <AnimatedSignalBar
+                    currentLevel={current}
+                    requiredLevel={required}
+                    maxLevel={5.0}
+                    showLabels={true}
+                  />
                 </div>
 
                 {/* Footer Action */}
@@ -300,12 +285,12 @@ export function OfficialSkillGaps({ onNavigate }: OfficialSkillGapsProps) {
 
                   <button
                     onClick={() => onNavigate("Recommendations", { competencyCode: gap.competency_code })}
-                    className="inline-flex items-center gap-1.5 rounded-xl bg-[#ef7e37] px-4 py-2 text-xs font-bold text-white shadow hover:bg-[#d96a27] transition-all"
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-[#ef7e37] px-4 py-2 text-xs font-bold text-white shadow hover:bg-[#d96a27] btn-interactive"
                   >
                     View Targeted Recommendations <ArrowRight size={13} />
                   </button>
                 </div>
-              </div>
+              </AnimatedSection>
             );
           })}
         </div>

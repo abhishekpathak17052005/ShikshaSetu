@@ -28,6 +28,7 @@ import {
   LearningMaterial,
 } from "@/lib/api";
 import { toast } from "sonner";
+import { StatusTransition, AnimatedSection } from "@/components/motion/MotionUtils";
 
 interface TrainerQuizStudioProps {
   onNavigate: (page: string, context?: { quizId?: string }) => void;
@@ -249,11 +250,11 @@ export function TrainerQuizStudio({ onNavigate }: TrainerQuizStudioProps) {
   });
 
   return (
-    <div className="space-y-6 animate-fadeIn">
+    <div className="space-y-6 anim-page-enter">
       {/* Top Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between anim-fade-up">
         <div>
-          <h1 className="text-2xl font-black text-slate-800">Quiz & Assessment Studio</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-800">Quiz & Assessment Studio</h1>
           <p className="text-sm text-slate-500 mt-1">
             Build formal competency quizzes exclusively from approved questions, publish, and assign to learner cohorts.
           </p>
@@ -263,20 +264,20 @@ export function TrainerQuizStudio({ onNavigate }: TrainerQuizStudioProps) {
         <div className="flex items-center gap-1 rounded-2xl border border-[#f0ddd0] bg-white p-1.5 shadow-sm">
           <button
             onClick={() => setActiveTab("LIST")}
-            className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition-all ${
+            className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-semibold transition-all btn-interactive ${
               activeTab === "LIST"
                 ? "bg-[#ef7e37] text-white shadow-sm"
-                : "text-slate-500 hover:text-slate-800"
+                : "text-slate-500 hover:text-slate-800 font-medium"
             }`}
           >
             <Layers size={14} /> All Assessments ({quizzes.length})
           </button>
           <button
             onClick={() => setActiveTab("CREATE")}
-            className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition-all ${
+            className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-semibold transition-all btn-interactive ${
               activeTab === "CREATE"
                 ? "bg-[#ef7e37] text-white shadow-sm"
-                : "text-slate-500 hover:text-slate-800"
+                : "text-slate-500 hover:text-slate-800 font-medium"
             }`}
           >
             <Plus size={14} /> Create Assessment
@@ -294,49 +295,46 @@ export function TrainerQuizStudio({ onNavigate }: TrainerQuizStudioProps) {
               ))}
             </div>
           ) : quizzes.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-[#f0ddd0] bg-white p-12 text-center">
+            <div className="rounded-2xl border border-dashed border-[#f0ddd0] bg-white p-12 text-center anim-fade-up">
               <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-orange-50 text-[#ef7e37]">
                 <PenTool size={24} />
               </div>
-              <h3 className="mt-4 text-base font-bold text-slate-800">No assessments created yet</h3>
+              <h3 className="mt-4 text-base font-bold text-slate-800 tracking-tight">No assessments created yet</h3>
               <p className="mt-1 text-sm text-slate-500 max-w-md mx-auto">
                 Assemble approved questions into standardized capability assessment quizzes for your department.
               </p>
               <button
                 onClick={() => setActiveTab("CREATE")}
-                className="mt-5 inline-flex items-center gap-2 rounded-xl bg-[#ef7e37] px-4 py-2.5 text-xs font-bold text-white hover:bg-[#d96a27] transition-colors"
+                className="mt-5 inline-flex items-center gap-2 rounded-xl bg-[#ef7e37] px-4 py-2.5 text-xs font-semibold text-white hover:bg-[#d96a27] btn-interactive"
               >
                 <Plus size={14} /> Create First Quiz
               </button>
             </div>
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {quizzes.map((q) => {
+              {quizzes.map((q, idx) => {
                 const qid = q.id || q.quiz_id || (q as any)._id;
                 const isPublished = q.status === "PUBLISHED" || q.status === "ASSIGNED";
                 const isDraft = q.status === "DRAFT";
+                const staggerCls = `stagger-${Math.min((idx % 6) + 1, 8)}`;
 
                 return (
                   <div
                     key={qid}
-                    className="flex flex-col justify-between rounded-2xl border border-[#f0ddd0] bg-white p-6 shadow-sm hover:border-orange-300 hover:shadow-md transition-all group"
+                    className={`flex flex-col justify-between rounded-2xl border border-[#f0ddd0] bg-white p-6 shadow-sm hover:border-orange-300 card-interactive anim-card-enter ${staggerCls} group`}
                   >
                     <div>
                       {/* Header Badge */}
                       <div className="flex items-center justify-between">
-                        <span className="rounded-md bg-orange-50 px-2.5 py-1 text-[11px] font-bold text-[#c2510e]">
+                        <span className="rounded-md bg-orange-50 px-2.5 py-1 font-mono text-[11px] font-medium tracking-tight text-[#c2510e]">
                           {q.competency_code}
                         </span>
 
-                        {isPublished ? (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-[11px] font-bold text-emerald-800">
-                            <CheckCircle2 size={12} /> PUBLISHED
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-0.5 text-[11px] font-bold text-amber-800">
-                            <Clock size={12} /> DRAFT
-                          </span>
-                        )}
+                        <StatusTransition
+                          status={isPublished ? "PUBLISHED" : "DRAFT"}
+                          variant={isPublished ? "emerald" : "amber"}
+                          icon={isPublished ? <CheckCircle2 size={12} /> : <Clock size={12} />}
+                        />
                       </div>
 
                       {/* Title */}
@@ -372,7 +370,7 @@ export function TrainerQuizStudio({ onNavigate }: TrainerQuizStudioProps) {
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => openPreviewModal(q)}
-                          className="flex-1 inline-flex items-center justify-center gap-1 rounded-xl border border-slate-200 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors"
+                          className="flex-1 inline-flex items-center justify-center gap-1 rounded-xl border border-slate-200 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 btn-interactive"
                         >
                           <Eye size={13} /> Preview
                         </button>
@@ -380,7 +378,7 @@ export function TrainerQuizStudio({ onNavigate }: TrainerQuizStudioProps) {
                         {isDraft && (
                           <button
                             onClick={() => handlePublishQuiz(qid)}
-                            className="flex-1 inline-flex items-center justify-center gap-1 rounded-xl bg-emerald-600 py-2 text-xs font-bold text-white shadow hover:bg-emerald-700 transition-all active:scale-95"
+                            className="flex-1 inline-flex items-center justify-center gap-1 rounded-xl bg-emerald-600 py-2 text-xs font-bold text-white shadow hover:bg-emerald-700 btn-interactive"
                           >
                             <Send size={13} /> Publish
                           </button>
@@ -391,13 +389,13 @@ export function TrainerQuizStudio({ onNavigate }: TrainerQuizStudioProps) {
                         <div className="flex items-center gap-2">
                           <button
                             onClick={() => openAssignModal(q)}
-                            className="flex-1 inline-flex items-center justify-center gap-1 rounded-xl bg-[#ef7e37] py-2 text-xs font-bold text-white shadow hover:bg-[#d96a27] transition-all active:scale-95"
+                            className="flex-1 inline-flex items-center justify-center gap-1 rounded-xl bg-[#ef7e37] py-2 text-xs font-bold text-white shadow hover:bg-[#d96a27] btn-interactive"
                           >
                             <Users size={13} /> Assign Learners
                           </button>
                           <button
                             onClick={() => onNavigate("Learner Results", { quizId: qid })}
-                            className="inline-flex items-center justify-center rounded-xl border border-orange-200 bg-orange-50 px-3 py-2 text-xs font-bold text-[#c2510e] hover:bg-orange-100 transition-colors"
+                            className="inline-flex items-center justify-center rounded-xl border border-orange-200 bg-orange-50 px-3 py-2 text-xs font-bold text-[#c2510e] hover:bg-orange-100 btn-interactive"
                             title="View learner submissions for this quiz"
                           >
                             <TrendingUp size={13} />
@@ -601,8 +599,8 @@ export function TrainerQuizStudio({ onNavigate }: TrainerQuizStudioProps) {
 
       {/* ── Assign Learners Modal ── */}
       {assignModalOpen && assigningQuiz && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm animate-fadeIn">
-          <div className="relative w-full max-w-xl rounded-3xl bg-white p-6 shadow-2xl border border-[#f0ddd0] max-h-[90vh] flex flex-col">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
+          <div className="relative w-full max-w-xl rounded-3xl bg-white p-6 shadow-2xl border border-[#f0ddd0] max-h-[90vh] flex flex-col anim-scale-in">
             <div className="flex items-center justify-between border-b border-slate-100 pb-4">
               <div>
                 <h3 className="text-lg font-extrabold text-slate-800">
@@ -638,7 +636,7 @@ export function TrainerQuizStudio({ onNavigate }: TrainerQuizStudioProps) {
                   <button
                     type="button"
                     onClick={handleSelectAllLearners}
-                    className="text-xs font-bold text-[#ef7e37] hover:underline whitespace-nowrap"
+                    className="text-xs font-bold text-[#ef7e37] hover:underline whitespace-nowrap btn-interactive"
                   >
                     {selectedLearnerIds.length === filteredLearners.length
                       ? "Deselect All"
@@ -704,14 +702,14 @@ export function TrainerQuizStudio({ onNavigate }: TrainerQuizStudioProps) {
                   <button
                     type="button"
                     onClick={() => setAssignModalOpen(false)}
-                    className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-bold text-slate-600"
+                    className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-bold text-slate-600 btn-interactive"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={submittingAssign || selectedLearnerIds.length === 0}
-                    className="rounded-xl bg-[#ef7e37] px-5 py-2 text-xs font-bold text-white shadow hover:bg-[#d96a27] disabled:opacity-50"
+                    className="rounded-xl bg-[#ef7e37] px-5 py-2 text-xs font-bold text-white shadow hover:bg-[#d96a27] disabled:opacity-50 btn-interactive"
                   >
                     {submittingAssign ? "Assigning..." : "Confirm Assignment"}
                   </button>
@@ -724,11 +722,11 @@ export function TrainerQuizStudio({ onNavigate }: TrainerQuizStudioProps) {
 
       {/* ── Preview Modal ── */}
       {previewModalOpen && previewingQuiz && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm animate-fadeIn">
-          <div className="relative w-full max-w-2xl rounded-3xl bg-white p-6 shadow-2xl border border-[#f0ddd0] max-h-[90vh] overflow-y-auto space-y-6">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
+          <div className="relative w-full max-w-2xl rounded-3xl bg-white p-6 shadow-2xl border border-[#f0ddd0] max-h-[90vh] overflow-y-auto space-y-6 anim-scale-in">
             <div className="flex items-center justify-between border-b border-slate-100 pb-4">
               <div>
-                <span className="rounded bg-orange-50 px-2 py-0.5 text-[10px] font-bold text-[#c2510e]">
+                <span className="rounded bg-orange-50 px-2 py-0.5 text-[10px] font-bold text-[#c2510e] anim-badge-pop">
                   {previewingQuiz.competency_code}
                 </span>
                 <h3 className="text-lg font-extrabold text-slate-800 mt-1">
@@ -747,7 +745,7 @@ export function TrainerQuizStudio({ onNavigate }: TrainerQuizStudioProps) {
             <div className="space-y-4">
               {previewingQuiz.questions && previewingQuiz.questions.length > 0 ? (
                 previewingQuiz.questions.map((q, idx) => (
-                  <div key={idx} className="rounded-2xl border border-slate-200 bg-slate-50/50 p-4 space-y-2">
+                  <div key={idx} className="rounded-2xl border border-slate-200 bg-slate-50/50 p-4 space-y-2 anim-card-enter">
                     <div className="text-xs font-bold text-slate-400 uppercase">
                       Question #{idx + 1}
                     </div>
@@ -783,7 +781,7 @@ export function TrainerQuizStudio({ onNavigate }: TrainerQuizStudioProps) {
             <div className="border-t border-slate-100 pt-4 flex justify-end">
               <button
                 onClick={() => setPreviewModalOpen(false)}
-                className="rounded-xl bg-slate-800 px-5 py-2 text-xs font-bold text-white"
+                className="rounded-xl bg-slate-800 px-5 py-2 text-xs font-bold text-white btn-interactive"
               >
                 Close Preview
               </button>

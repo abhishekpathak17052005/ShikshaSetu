@@ -307,11 +307,11 @@ export function OfficialProfile() {
   }, null);
 
   return (
-    <form onSubmit={handleSave} className="space-y-6 animate-fadeIn max-w-4xl mx-auto">
+    <form onSubmit={handleSave} className="space-y-6 anim-page-enter max-w-4xl mx-auto">
       {/* ── Page header ── */}
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="text-2xl font-black text-[#123057]">My Profile</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-[#123057]">My Profile</h1>
           <p className="text-sm text-slate-500 mt-1">
             Manage your professional profile. Competency data is system-generated and read-only.
           </p>
@@ -342,21 +342,21 @@ export function OfficialProfile() {
       <div className="rounded-2xl border border-[#dfe7f0] bg-white p-6 shadow-sm">
         <div className="flex items-center gap-5">
           <div
-            className="flex h-20 w-20 flex-shrink-0 items-center justify-center rounded-2xl bg-[#123057] text-white text-3xl font-black select-none"
+            className="flex h-20 w-20 flex-shrink-0 items-center justify-center rounded-2xl bg-[#123057] text-white text-3xl font-bold select-none"
             aria-hidden="true"
           >
             {user?.full_name?.charAt(0)?.toUpperCase() || "O"}
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="rounded-full bg-teal-100 px-3 py-0.5 text-xs font-extrabold text-teal-900">
+              <span className="rounded-full bg-teal-100 px-3 py-0.5 text-xs font-semibold text-teal-900 tracking-wider">
                 {user?.access_role === "EMPLOYEE" ? "OFFICIAL · LEARNER" : (user?.access_role ?? "OFFICIAL")}
               </span>
-              <span className="rounded-full bg-blue-100 px-3 py-0.5 text-xs font-bold text-blue-800">
+              <span className="rounded-full bg-blue-100 px-3 py-0.5 text-xs font-semibold text-blue-800 tracking-wider">
                 Civil Services
               </span>
             </div>
-            <h2 className="text-xl font-extrabold text-[#123057] mt-1 truncate">
+            <h2 className="text-xl font-bold tracking-tight text-[#123057] mt-1 truncate">
               {user?.full_name}
             </h2>
             <p className="text-xs text-slate-400 truncate">

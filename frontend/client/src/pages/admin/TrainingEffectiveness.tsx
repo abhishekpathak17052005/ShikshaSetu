@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { api, clearApiCache, TrainingEffectivenessResponse } from "@/lib/api";
 import { toast } from "sonner";
+import { NumberReveal, ProgressBarFill } from "@/components/motion/MotionUtils";
 
 interface TrainingEffectivenessProps {
   onNavigate: (page: string) => void;
@@ -38,11 +39,11 @@ export function TrainingEffectiveness({ onNavigate }: TrainingEffectivenessProps
   }, []);
 
   return (
-    <div className="space-y-8 animate-fadeIn max-w-6xl mx-auto">
+    <div className="space-y-8 anim-page-enter max-w-6xl mx-auto">
       {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between anim-fade-up">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-black text-[#123057]">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#123057]">
             Training Effectiveness & Evidence Ledger
           </h1>
           <p className="text-sm text-slate-500 mt-1">
@@ -52,7 +53,7 @@ export function TrainingEffectiveness({ onNavigate }: TrainingEffectivenessProps
 
         <button
           onClick={fetchTraining}
-          className="flex items-center gap-1.5 rounded-xl border border-[#e0daef] bg-white px-4 py-2 text-xs font-bold text-[#4b36a8] shadow-sm hover:bg-purple-50 transition-all"
+          className="flex items-center gap-1.5 rounded-xl border border-[#e0daef] bg-white px-4 py-2 text-xs font-semibold text-[#4b36a8] shadow-sm hover:bg-purple-50 transition-all btn-interactive"
         >
           <RefreshCw size={14} className={loading ? "animate-spin" : ""} /> Refresh Metrics
         </button>
@@ -60,59 +61,59 @@ export function TrainingEffectiveness({ onNavigate }: TrainingEffectivenessProps
 
       {/* Primary Training Metric Cards */}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <div className="rounded-2xl border border-[#e0daef] bg-white p-5 shadow-sm">
-          <div className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
+        <div className="rounded-2xl border border-[#e0daef] bg-white p-5 shadow-sm anim-card-enter stagger-1">
+          <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
             Completion Rate
           </div>
-          <div className="mt-2 text-3xl font-black text-[#087f76]">
-            {data?.overall_completion_rate_pct ?? 78.5}%
+          <div className="mt-2 text-3xl font-extrabold tracking-tight text-[#087f76]">
+            <NumberReveal value={data?.overall_completion_rate_pct ?? 78.5} suffix="%" decimals={1} />
           </div>
-          <div className="mt-1 text-xs text-slate-400 font-semibold">
+          <div className="mt-1 text-xs text-slate-400 font-medium">
             {data?.total_completed_activities ?? 0} of {data?.total_enrolled_activities ?? 0} finished
           </div>
         </div>
 
-        <div className="rounded-2xl border border-[#e0daef] bg-white p-5 shadow-sm">
-          <div className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
+        <div className="rounded-2xl border border-[#e0daef] bg-white p-5 shadow-sm anim-card-enter stagger-2">
+          <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
             Avg Quiz Performance
           </div>
-          <div className="mt-2 text-3xl font-black text-[#6d5bc3]">
-            {data?.average_quiz_score_pct ?? 82.5}%
+          <div className="mt-2 text-3xl font-extrabold tracking-tight text-[#6d5bc3]">
+            <NumberReveal value={data?.average_quiz_score_pct ?? 82.5} suffix="%" decimals={1} />
           </div>
-          <div className="mt-1 text-xs text-slate-400 font-semibold">
+          <div className="mt-1 text-xs text-slate-400 font-medium">
             Across {data?.total_quiz_submissions ?? 0} submissions
           </div>
         </div>
 
-        <div className="rounded-2xl border border-[#e0daef] bg-white p-5 shadow-sm">
-          <div className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
+        <div className="rounded-2xl border border-[#e0daef] bg-white p-5 shadow-sm anim-card-enter stagger-3">
+          <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
             Supporting Evidence
           </div>
-          <div className="mt-2 text-3xl font-black text-[#ef7e37]">
-            {data?.supporting_evidence_count ?? 0}
+          <div className="mt-2 text-3xl font-extrabold tracking-tight text-[#ef7e37]">
+            <NumberReveal value={data?.supporting_evidence_count ?? 0} />
           </div>
-          <div className="mt-1 text-xs text-slate-400 font-semibold">
+          <div className="mt-1 text-xs text-slate-400 font-medium">
             Courses & practice quizzes
           </div>
         </div>
 
-        <div className="rounded-2xl border border-[#e0daef] bg-white p-5 shadow-sm">
-          <div className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
+        <div className="rounded-2xl border border-[#e0daef] bg-white p-5 shadow-sm card-interactive anim-card-enter stagger-4">
+          <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
             Authoritative Evidence
           </div>
-          <div className="mt-2 text-3xl font-black text-[#123057]">
-            {data?.authoritative_evidence_count ?? 0}
+          <div className="mt-2 text-3xl font-extrabold tracking-tight text-[#123057]">
+            <NumberReveal value={data?.authoritative_evidence_count ?? 0} />
           </div>
-          <div className="mt-1 text-xs text-slate-400 font-semibold">
+          <div className="mt-1 text-xs text-slate-400 font-medium">
             Verified formal assessments
           </div>
         </div>
       </div>
 
       {/* Core Capability Architecture Note */}
-      <div className="rounded-2xl border border-[#e0daef] bg-[#f8f6fd] p-6">
+      <div className="rounded-2xl border border-[#e0daef] bg-[#f8f6fd] p-6 anim-card-enter stagger-3">
         <div className="flex items-start gap-4">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#6d5bc3] text-white">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#6d5bc3] text-white anim-badge-pop">
             <ShieldCheck size={20} />
           </div>
           <div>
@@ -127,7 +128,7 @@ export function TrainingEffectiveness({ onNavigate }: TrainingEffectivenessProps
       </div>
 
       {/* Department Completion Rates */}
-      <div className="rounded-3xl border border-[#e0daef] bg-white p-6 shadow-sm">
+      <div className="rounded-3xl border border-[#e0daef] bg-white p-6 shadow-sm anim-card-enter stagger-4">
         <h3 className="text-base font-bold text-[#123057] mb-4">
           Training Completion by Department
         </h3>
@@ -135,8 +136,8 @@ export function TrainingEffectiveness({ onNavigate }: TrainingEffectivenessProps
           {(data?.completion_by_department || [
             { department: "Ministry of Statistics & PI", enrolled: 14, completed: 11, rate_pct: 78.6 },
             { department: "Capacity Building Commission", enrolled: 8, completed: 7, rate_pct: 87.5 },
-          ]).map((dept) => (
-            <div key={dept.department} className="space-y-1.5">
+          ]).map((dept, idx) => (
+            <div key={dept.department} className={`space-y-1.5 anim-card-enter stagger-${Math.min(idx + 1, 6)}`}>
               <div className="flex justify-between text-xs font-bold">
                 <span className="text-[#123057]">{dept.department}</span>
                 <span className="text-slate-500">
@@ -144,9 +145,9 @@ export function TrainingEffectiveness({ onNavigate }: TrainingEffectivenessProps
                 </span>
               </div>
               <div className="h-2 w-full overflow-hidden rounded-full bg-slate-100">
-                <div
-                  className="h-full rounded-full bg-[#087f76] transition-all duration-500"
-                  style={{ width: `${dept.rate_pct}%` }}
+                <ProgressBarFill
+                  value={dept.rate_pct}
+                  className="h-full rounded-full bg-[#087f76]"
                 />
               </div>
             </div>

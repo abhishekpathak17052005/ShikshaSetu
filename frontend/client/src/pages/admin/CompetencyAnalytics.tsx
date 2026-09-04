@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { api, clearApiCache, CompetencyAnalyticsResponse, CompetencyAnalyticsItem } from "@/lib/api";
 import { toast } from "sonner";
+import { NumberReveal } from "@/components/motion/MotionUtils";
 
 interface CompetencyAnalyticsProps {
   onNavigate: (page: string) => void;
@@ -53,11 +54,11 @@ export function CompetencyAnalytics({ onNavigate }: CompetencyAnalyticsProps) {
   });
 
   return (
-    <div className="space-y-8 animate-fadeIn max-w-6xl mx-auto">
+    <div className="space-y-8 anim-page-enter max-w-6xl mx-auto">
       {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between anim-fade-up">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-black text-[#123057]">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#123057]">
             Competency Intelligence Matrix
           </h1>
           <p className="text-sm text-slate-500 mt-1">
@@ -67,7 +68,7 @@ export function CompetencyAnalytics({ onNavigate }: CompetencyAnalyticsProps) {
 
         <button
           onClick={fetchCompetencies}
-          className="flex items-center gap-1.5 rounded-xl border border-[#e0daef] bg-white px-4 py-2 text-xs font-bold text-[#4b36a8] shadow-sm hover:bg-purple-50 transition-all"
+          className="flex items-center gap-1.5 rounded-xl border border-[#e0daef] bg-white px-4 py-2 text-xs font-semibold text-[#4b36a8] shadow-sm hover:bg-purple-50 btn-interactive"
         >
           <RefreshCw size={14} className={loading ? "animate-spin" : ""} /> Refresh Matrix
         </button>
@@ -75,44 +76,44 @@ export function CompetencyAnalytics({ onNavigate }: CompetencyAnalyticsProps) {
 
       {/* Domain Breakdown Row */}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <div className="rounded-2xl border border-[#e0daef] bg-white p-5 shadow-sm">
-          <div className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
+        <div className="rounded-2xl border border-[#e0daef] bg-white p-5 shadow-sm card-interactive anim-card-enter stagger-1">
+          <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
             Total Framework Competencies
           </div>
-          <div className="mt-2 text-3xl font-black text-[#123057]">
-            {data?.total_competencies ?? 42}
+          <div className="mt-2 text-3xl font-extrabold tracking-tight text-[#123057]">
+            <NumberReveal value={data?.total_competencies ?? 42} />
           </div>
-          <div className="mt-1 text-xs text-slate-400 font-semibold">Standardized taxonomy</div>
+          <div className="mt-1 text-xs text-slate-400 font-medium">Standardized taxonomy</div>
         </div>
 
-        <div className="rounded-2xl border border-[#e0daef] bg-white p-5 shadow-sm">
-          <div className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
+        <div className="rounded-2xl border border-[#e0daef] bg-white p-5 shadow-sm card-interactive anim-card-enter stagger-2">
+          <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
             Core Domain
           </div>
-          <div className="mt-2 text-3xl font-black text-[#6d5bc3]">
-            {data?.domain_breakdown?.find((d) => d.domain === "CORE")?.count ?? 12}
+          <div className="mt-2 text-3xl font-extrabold tracking-tight text-[#6d5bc3]">
+            <NumberReveal value={data?.domain_breakdown?.find((d) => d.domain === "CORE")?.count ?? 12} />
           </div>
-          <div className="mt-1 text-xs text-slate-400 font-semibold">Foundational civil service skills</div>
+          <div className="mt-1 text-xs text-slate-400 font-medium">Foundational civil service skills</div>
         </div>
 
-        <div className="rounded-2xl border border-[#e0daef] bg-white p-5 shadow-sm">
-          <div className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
+        <div className="rounded-2xl border border-[#e0daef] bg-white p-5 shadow-sm card-interactive anim-card-enter stagger-3">
+          <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
             Domain-Specific
           </div>
-          <div className="mt-2 text-3xl font-black text-[#087f76]">
-            {data?.domain_breakdown?.find((d) => d.domain === "DOMAIN")?.count ?? 18}
+          <div className="mt-2 text-3xl font-extrabold tracking-tight text-[#087f76]">
+            <NumberReveal value={data?.domain_breakdown?.find((d) => d.domain === "DOMAIN")?.count ?? 18} />
           </div>
-          <div className="mt-1 text-xs text-slate-400 font-semibold">Technical & statistical capabilities</div>
+          <div className="mt-1 text-xs text-slate-400 font-medium">Technical & statistical capabilities</div>
         </div>
 
-        <div className="rounded-2xl border border-[#e0daef] bg-white p-5 shadow-sm">
-          <div className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
+        <div className="rounded-2xl border border-[#e0daef] bg-white p-5 shadow-sm card-interactive anim-card-enter stagger-4">
+          <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
             Behavioral
           </div>
-          <div className="mt-2 text-3xl font-black text-[#ef7e37]">
-            {data?.domain_breakdown?.find((d) => d.domain === "BEHAVIORAL")?.count ?? 12}
+          <div className="mt-2 text-3xl font-extrabold tracking-tight text-[#ef7e37]">
+            <NumberReveal value={data?.domain_breakdown?.find((d) => d.domain === "BEHAVIORAL")?.count ?? 12} />
           </div>
-          <div className="mt-1 text-xs text-slate-400 font-semibold">Leadership & public service</div>
+          <div className="mt-1 text-xs text-slate-400 font-medium">Leadership & public service</div>
         </div>
       </div>
 
@@ -134,32 +135,32 @@ export function CompetencyAnalytics({ onNavigate }: CompetencyAnalyticsProps) {
           <select
             value={selectedDomain}
             onChange={(e) => setSelectedDomain(e.target.value)}
-            className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700 focus:outline-none"
+            className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 focus:outline-none"
           >
             <option value="ALL">All Domains</option>
             {domains.map((d) => (
               <option key={d} value={d}>
-                {d} Domain
+                {d}
               </option>
             ))}
           </select>
         </div>
       </div>
 
-      {/* Competencies Table */}
+      {/* Table Container */}
       <div className="rounded-3xl border border-[#e0daef] bg-white shadow-sm overflow-hidden">
         <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
           <h3 className="text-sm font-bold text-[#123057]">
-            Organizational Competency Analytics ({filteredCompetencies.length})
+            Competency Performance Indicators ({filteredCompetencies.length})
           </h3>
-          <span className="text-xs text-slate-400 font-semibold">
-            Aggregated from verified assessments
+          <span className="text-xs text-slate-400 font-medium">
+            Aggregated official assessments
           </span>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-[#f8f6fd] text-[10px] font-extrabold uppercase tracking-wider text-slate-500 border-b border-[#e0daef]">
+            <thead className="bg-[#f8f6fd] text-[10px] font-semibold uppercase tracking-wider text-slate-500 border-b border-[#e0daef]">
               <tr>
                 <th className="px-6 py-3.5">Competency</th>
                 <th className="px-6 py-3.5">Domain</th>
@@ -171,44 +172,47 @@ export function CompetencyAnalytics({ onNavigate }: CompetencyAnalyticsProps) {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {filteredCompetencies.map((comp) => (
-                <tr key={comp.competency_id} className="hover:bg-purple-50/40 transition-colors">
-                  <td className="px-6 py-4">
-                    <div className="font-bold text-[#123057]">{comp.name}</div>
-                    <div className="text-[10px] font-extrabold text-slate-400 uppercase">{comp.code}</div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="rounded-md bg-purple-50 px-2 py-0.5 text-[10px] font-extrabold text-[#4b36a8]">
-                      {comp.domain}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 font-bold text-slate-700">
-                    {comp.average_required_level.toFixed(1)}
-                  </td>
-                  <td className="px-6 py-4 font-bold text-[#087f76]">
-                    {comp.average_current_level.toFixed(1)}
-                  </td>
-                  <td className="px-6 py-4 font-black text-[#ef7e37]">
-                    {comp.average_gap.toFixed(1)}
-                  </td>
-                  <td className="px-6 py-4 font-semibold text-slate-600">
-                    {comp.meeting_requirement_pct}%
-                  </td>
-                  <td className="px-6 py-4">
-                    <span
-                      className={`rounded-full px-2.5 py-0.5 text-[10px] font-extrabold ${
-                        comp.priority === "CRITICAL"
-                          ? "bg-rose-100 text-rose-800"
-                          : comp.priority === "HIGH"
-                          ? "bg-orange-100 text-orange-800"
-                          : "bg-teal-100 text-teal-800"
-                      }`}
-                    >
-                      {comp.priority}
-                    </span>
-                  </td>
-                </tr>
-              ))}
+              {filteredCompetencies.map((comp, cIdx) => {
+                const staggerCls = `stagger-${Math.min((cIdx % 6) + 1, 8)}`;
+                return (
+                  <tr key={comp.competency_id} className={`hover:bg-purple-50/40 transition-colors anim-card-enter ${staggerCls}`}>
+                    <td className="px-6 py-4">
+                      <div className="font-bold text-[#123057]">{comp.name}</div>
+                      <div className="font-mono text-[10px] font-medium tracking-tight text-slate-400 uppercase">{comp.code}</div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="rounded-md bg-purple-50 px-2 py-0.5 text-[10px] font-semibold text-[#4b36a8] anim-badge-pop tracking-wider">
+                        {comp.domain}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 font-semibold text-slate-700">
+                      {comp.average_required_level.toFixed(1)}
+                    </td>
+                    <td className="px-6 py-4 font-semibold text-[#087f76]">
+                      {comp.average_current_level.toFixed(1)}
+                    </td>
+                    <td className="px-6 py-4 font-bold text-[#ef7e37]">
+                      {comp.average_gap.toFixed(1)}
+                    </td>
+                    <td className="px-6 py-4 font-medium text-slate-600">
+                      {comp.meeting_requirement_pct}%
+                    </td>
+                    <td className="px-6 py-4">
+                      <span
+                        className={`rounded-full px-2.5 py-0.5 text-[10px] font-semibold anim-badge-pop tracking-wider ${
+                          comp.priority === "CRITICAL"
+                            ? "bg-rose-100 text-rose-800"
+                            : comp.priority === "HIGH"
+                            ? "bg-orange-100 text-orange-800"
+                            : "bg-teal-100 text-teal-800"
+                        }`}
+                      >
+                        {comp.priority}
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

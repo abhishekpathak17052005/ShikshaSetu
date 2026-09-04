@@ -60,53 +60,56 @@ export function TrainerLayout({ children, activePage, onNavigate }: TrainerLayou
       >
         {/* Logo */}
         <div className="flex items-center gap-3 px-5 py-6">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#ef7e37] text-white text-lg font-extrabold select-none">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#ef7e37] text-white text-lg font-bold select-none shadow-xs">
             T
           </div>
           <div>
-            <div className="text-[17px] font-extrabold text-[#c2510e]">ShikshaSetu</div>
-            <div className="text-[9px] font-bold uppercase tracking-[.18em] text-slate-400">
+            <div className="text-base font-bold text-[#c2510e] tracking-tight">ShikshaSetu</div>
+            <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
               Content Creator
             </div>
           </div>
         </div>
 
         {/* Section label */}
-        <div className="px-7 mb-2 text-[10px] font-bold uppercase tracking-[.14em] text-slate-400">
+        <div className="px-7 mb-2 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
           Trainer workspace
         </div>
 
         {/* Nav items */}
         <nav className="flex-1 px-4 overflow-y-auto">
-          {navItems.map(({ id, label, icon: Icon }) => (
-            <button
-              key={id}
-              onClick={() => handleNav(id)}
-              className={`mb-1 flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-semibold transition-colors ${
-                activePage === id
-                  ? "bg-[#fff2e8] text-[#ef7e37]"
-                  : "text-slate-500 hover:bg-orange-50 hover:text-[#c2510e]"
-              }`}
-            >
-              <Icon size={17} />
-              {label}
-            </button>
-          ))}
+          {navItems.map(({ id, label, icon: Icon }) => {
+            const isActive = activePage === id;
+            return (
+              <button
+                key={id}
+                onClick={() => handleNav(id)}
+                className={`mb-1 flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-left text-xs transition-all duration-180 active:scale-[0.98] group ${
+                  isActive
+                    ? "bg-[#fff2e8] text-[#ef7e37] shadow-xs font-semibold nav-pill-active"
+                    : "text-slate-600 font-medium hover:bg-orange-50 hover:text-[#c2510e]"
+                }`}
+              >
+                <Icon size={17} className={`transition-transform duration-160 ${isActive ? "scale-105 text-[#ef7e37]" : "text-slate-400 group-hover:scale-110 group-hover:text-[#c2510e]"}`} />
+                <span>{label}</span>
+              </button>
+            );
+          })}
         </nav>
 
         {/* User footer */}
         <div className="border-t border-[#f0ddd0] px-5 py-4">
-          <div className="mb-1 text-sm font-bold text-[#c2510e] truncate">
+          <div className="mb-0.5 text-xs font-semibold text-[#c2510e] truncate">
             {user?.full_name ?? "—"}
           </div>
-          <div className="text-xs text-slate-400 truncate mb-3">
+          <div className="text-[11px] font-normal text-slate-400 truncate mb-3">
             {user?.designation ?? user?.department ?? (isHindi ? "प्रशिक्षक" : "Trainer")}
           </div>
           <button
             onClick={logout}
-            className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-slate-500 hover:bg-orange-50 transition-colors"
+            className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium text-slate-600 hover:bg-orange-50 transition-colors btn-interactive"
           >
-            <LogOut size={16} />
+            <LogOut size={15} />
             {t("common.logout")}
           </button>
         </div>
@@ -115,14 +118,14 @@ export function TrainerLayout({ children, activePage, onNavigate }: TrainerLayou
       {/* ── Mobile overlay ── */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 z-30 bg-black/20 lg:hidden"
+          className="fixed inset-0 z-30 bg-black/20 lg:hidden backdrop-blur-xs transition-opacity"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
       {/* ── Hamburger ── */}
       <button
-        className="fixed left-4 top-4 z-50 rounded-lg bg-white p-2 shadow border border-[#f0ddd0] lg:hidden"
+        className="fixed left-4 top-4 z-50 rounded-lg bg-white p-2 shadow border border-[#f0ddd0] lg:hidden btn-interactive"
         onClick={() => setSidebarOpen(!sidebarOpen)}
         aria-label="Toggle sidebar"
       >
@@ -147,13 +150,13 @@ export function TrainerLayout({ children, activePage, onNavigate }: TrainerLayou
             </span>
             <button
               onClick={logout}
-              className="rounded-lg border border-[#f0ddd0] px-3 py-1.5 text-xs font-bold text-[#c2510e] hover:bg-orange-50 transition-colors"
+              className="rounded-lg border border-[#f0ddd0] px-3 py-1.5 text-xs font-bold text-[#c2510e] hover:bg-orange-50 transition-colors btn-interactive"
             >
               {t("common.logout")}
             </button>
           </div>
         </header>
-        <div className="mx-auto max-w-[1240px] p-6 lg:p-9">{children}</div>
+        <div className="mx-auto max-w-[1240px] p-6 lg:p-9 anim-page-enter">{children}</div>
       </main>
     </div>
   );

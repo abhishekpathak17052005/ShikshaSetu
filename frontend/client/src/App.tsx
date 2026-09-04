@@ -173,7 +173,7 @@ function TrainerApp() {
   };
 
   return (
-    <TrainerLayout activePage={activePage} onNavigate={setActivePage}>
+    <TrainerLayout activePage={activePage} onNavigate={handleNavigate}>
       <Suspense fallback={<PageSkeleton />}>
         {renderPage()}
       </Suspense>
@@ -230,9 +230,7 @@ function OfficialApp() {
 
   const handleNavigate = (page: string, context?: { competencyCode?: string; activityId?: string }) => {
     setActivePage(page);
-    if (context) {
-      setNavContext(context);
-    }
+    setNavContext(context || {});
   };
 
   const renderPage = () => {
@@ -283,7 +281,7 @@ function OfficialApp() {
   };
 
   return (
-    <OfficialLayout activePage={activePage} onNavigate={setActivePage}>
+    <OfficialLayout activePage={activePage} onNavigate={handleNavigate}>
       <Suspense fallback={<PageSkeleton />}>
         {renderPage()}
       </Suspense>

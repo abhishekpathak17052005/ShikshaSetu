@@ -23,6 +23,7 @@ import {
 } from "@/lib/api";
 import { useTranslation } from "@/i18n";
 import { toast } from "sonner";
+import { ThinkingIndicator } from "@/components/motion/MotionUtils";
 import { MarkdownRenderer } from "./MarkdownRenderer";
 
 interface Message {
@@ -160,7 +161,7 @@ export function CapabilityAssistant({
         <button
           id="karmayogi-copilot-trigger"
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-6 right-6 z-50 flex items-center gap-2.5 rounded-full bg-gradient-to-r from-[#123057] via-[#204e8a] to-[#087f76] px-5 py-3 text-white shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 border border-white/20 group"
+          className="fixed bottom-6 right-6 z-50 flex items-center gap-2.5 rounded-full bg-gradient-to-r from-[#123057] via-[#204e8a] to-[#087f76] px-5 py-3 text-white shadow-xl hover:shadow-2xl btn-interactive border border-white/20 group"
           title="Open Karmayogi AI Co-Pilot"
         >
           <div className="relative">
@@ -171,7 +172,7 @@ export function CapabilityAssistant({
             </span>
           </div>
           <span className="text-xs font-black tracking-wide">Karmayogi AI Co-Pilot</span>
-          <span className="rounded-full bg-white/20 px-2 py-0.5 text-[10px] font-bold text-teal-200">
+          <span className="rounded-full bg-white/20 px-2 py-0.5 text-[10px] font-bold text-teal-200 anim-badge-pop">
             Assistant
           </span>
         </button>
@@ -181,7 +182,7 @@ export function CapabilityAssistant({
       {isOpen && (
         <div
           id="karmayogi-copilot-modal"
-          className={`fixed z-50 flex flex-col bg-white shadow-2xl border border-slate-200 transition-all duration-300 ${
+          className={`fixed z-50 flex flex-col bg-white shadow-2xl border border-slate-200 anim-scale-in transition-all duration-300 ${
             isExpanded
               ? "inset-4 sm:inset-10 rounded-3xl"
               : "bottom-6 right-6 w-[95vw] sm:w-[460px] h-[640px] max-h-[88vh] rounded-3xl"
@@ -195,8 +196,8 @@ export function CapabilityAssistant({
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h3 className="text-sm font-black text-white">{t("assistant.title")}</h3>
-                  <span className="rounded-md bg-teal-500/20 px-2 py-0.5 text-[10px] font-bold text-teal-300 border border-teal-400/30">
+                  <h3 className="text-sm font-bold text-white tracking-tight">{t("assistant.title")}</h3>
+                  <span className="rounded-md bg-teal-500/20 px-2 py-0.5 text-[10px] font-semibold text-teal-300 border border-teal-400/30 tracking-wider">
                     Grounded RAG
                   </span>
                 </div>
@@ -240,12 +241,12 @@ export function CapabilityAssistant({
             {messages.map((msg) => (
               <div
                 key={msg.id}
-                className={`flex gap-3 ${
+                className={`flex gap-3 anim-fade-up ${
                   msg.sender === "user" ? "justify-end" : "justify-start"
                 }`}
               >
                 {msg.sender === "assistant" && (
-                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-teal-50 text-teal-800 border border-teal-100 text-xs font-bold mt-0.5">
+                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-teal-50 text-teal-800 border border-teal-100 text-xs font-bold mt-0.5 anim-badge-pop">
                     <Sparkles size={14} className="text-[#ef7e37]" />
                   </div>
                 )}
@@ -265,19 +266,19 @@ export function CapabilityAssistant({
 
                   {/* Sources / Citations */}
                   {msg.sources && msg.sources.length > 0 && (
-                    <div className="mt-3.5 pt-3 border-t border-slate-100 space-y-1.5">
-                      <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">
+                    <div className="mt-3.5 pt-3 border-t border-slate-100 space-y-1.5 anim-fade-up">
+                      <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 block">
                         Verified Sources & Curriculum:
                       </span>
                       <div className="flex flex-wrap gap-1.5">
                         {msg.sources.map((src, idx) => (
                           <span
                             key={idx}
-                            className="inline-flex items-center gap-1 rounded-md bg-slate-100 px-2 py-1 text-[10px] font-semibold text-slate-700 border border-slate-200/60 hover:bg-slate-200 transition-colors"
+                            className="inline-flex items-center gap-1 rounded-md bg-slate-100 px-2 py-1 font-mono text-[10px] font-medium tracking-tight text-slate-700 border border-slate-200/60 hover:bg-slate-200 transition-colors"
                             title={src.excerpt || src.title}
                           >
-                            <BookOpen size={10} className="text-teal-600" />
-                            {src.source_id}: {src.title.slice(0, 28)}
+                            <BookOpen size={10} className="text-teal-600 font-sans" />
+                            <span className="font-mono">{src.source_id}</span>: <span className="font-sans font-medium">{src.title.slice(0, 28)}</span>
                             {src.title.length > 28 ? "..." : ""}
                             {src.url && (
                               <a
@@ -297,12 +298,12 @@ export function CapabilityAssistant({
 
                   {/* Suggested Actions */}
                   {msg.suggested_actions && msg.suggested_actions.length > 0 && (
-                    <div className="mt-3 pt-2.5 border-t border-slate-100 flex flex-wrap gap-2">
+                    <div className="mt-3 pt-2.5 border-t border-slate-100 flex flex-wrap gap-2 anim-fade-up">
                       {msg.suggested_actions.map((action, aIdx) => (
                         <button
                           key={aIdx}
                           onClick={() => handleActionClick(action)}
-                          className="inline-flex items-center gap-1.5 rounded-xl bg-teal-50 px-3 py-1.5 text-[11px] font-bold text-teal-900 border border-teal-200 hover:bg-teal-100 transition-colors"
+                          className="inline-flex items-center gap-1.5 rounded-xl bg-teal-50 px-3 py-1.5 text-[11px] font-bold text-teal-900 border border-teal-200 hover:bg-teal-100 btn-interactive"
                         >
                           <span>{action.label}</span>
                           <ArrowRight size={11} />
@@ -321,7 +322,7 @@ export function CapabilityAssistant({
                 </div>
 
                 {msg.sender === "user" && (
-                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-blue-100 text-blue-900 border border-blue-200 text-xs font-bold mt-0.5">
+                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-blue-100 text-blue-900 border border-blue-200 text-xs font-bold mt-0.5 anim-badge-pop">
                     <UserIcon size={14} />
                   </div>
                 )}
@@ -329,9 +330,8 @@ export function CapabilityAssistant({
             ))}
 
             {loading && (
-              <div className="flex items-center gap-3 text-xs text-slate-500 bg-white p-3.5 rounded-2xl border border-slate-200 w-fit">
-                <RefreshCw size={14} className="animate-spin text-[#087f76]" />
-                <span>{t("assistant.thinking")}</span>
+              <div className="anim-fade-up">
+                <ThinkingIndicator label={t("assistant.thinking")} />
               </div>
             )}
 
@@ -340,7 +340,7 @@ export function CapabilityAssistant({
 
           {/* Quick Starter Chips */}
           {messages.length <= 2 && (
-            <div className="p-3 border-t border-slate-100 bg-white space-y-1.5">
+            <div className="p-3 border-t border-slate-100 bg-white space-y-1.5 anim-fade-up">
               <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
                 {t("assistant.suggestedPrompts")}
               </span>
@@ -349,7 +349,7 @@ export function CapabilityAssistant({
                   <button
                     key={pIdx}
                     onClick={() => handleSendMessage(prompt)}
-                    className="rounded-lg bg-slate-100 hover:bg-slate-200 px-2.5 py-1 text-[11px] font-medium text-slate-700 text-left transition-colors"
+                    className="rounded-lg bg-slate-100 hover:bg-slate-200 px-2.5 py-1 text-[11px] font-medium text-slate-700 text-left btn-interactive"
                   >
                     {prompt}
                   </button>

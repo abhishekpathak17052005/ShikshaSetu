@@ -49,11 +49,11 @@ export function AdminProfile() {
   const labelCls = "block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1.5";
 
   return (
-    <form onSubmit={handleSave} className="space-y-6 animate-fadeIn max-w-3xl mx-auto">
+    <form onSubmit={handleSave} className="space-y-6 max-w-3xl mx-auto anim-page-enter">
       {/* Header */}
-      <div className="flex items-start justify-between gap-4 flex-wrap">
+      <div className="flex items-start justify-between gap-4 flex-wrap anim-fade-up">
         <div>
-          <h1 className="text-2xl font-black text-[#123057]">Administrator Profile</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-[#123057]">Administrator Profile</h1>
           <p className="text-sm text-slate-500 mt-1">
             Manage your administrative credentials and organisational details.
           </p>
@@ -61,7 +61,7 @@ export function AdminProfile() {
         <button
           type="submit"
           disabled={saving}
-          className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-[#4b36a8] px-6 py-2.5 text-xs font-bold text-white shadow hover:bg-[#3d2a9a] disabled:opacity-50 transition-all active:scale-95"
+          className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-[#4b36a8] px-6 py-2.5 text-xs font-semibold text-white shadow hover:bg-[#3d2a9a] disabled:opacity-50 transition-all active:scale-95 btn-interactive"
         >
           {saving ? (
             <>
@@ -76,30 +76,30 @@ export function AdminProfile() {
       </div>
 
       {/* Avatar card */}
-      <div className="rounded-2xl border border-[#e0daef] bg-white p-6 shadow-sm">
+      <div className="rounded-3xl border border-[#e0daef] bg-white p-6 shadow-sm anim-card-enter stagger-1">
         <div className="flex items-center gap-5">
-          <div className="flex h-20 w-20 flex-shrink-0 items-center justify-center rounded-2xl bg-[#4b36a8] text-white text-3xl font-black select-none">
+          <div className="flex h-20 w-20 flex-shrink-0 items-center justify-center rounded-2xl bg-[#4b36a8] text-white text-3xl font-bold select-none anim-badge-pop">
             {user?.full_name?.charAt(0)?.toUpperCase() || "A"}
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="rounded-full bg-purple-100 px-3 py-0.5 text-xs font-extrabold text-[#4b36a8]">
+              <span className="rounded-full bg-purple-100 px-3 py-0.5 text-xs font-semibold text-[#4b36a8] anim-badge-pop tracking-wider">
                 ADMINISTRATOR
               </span>
             </div>
-            <h2 className="text-xl font-extrabold text-[#123057] mt-1 truncate">{user?.full_name}</h2>
+            <h2 className="text-xl font-bold tracking-tight text-[#123057] mt-1 truncate">{user?.full_name}</h2>
             <p className="text-xs text-slate-400 truncate">{user?.email}</p>
           </div>
         </div>
       </div>
 
       {/* Basic Information */}
-      <div className="rounded-2xl border border-[#dfe7f0] bg-white p-6 shadow-sm space-y-4">
+      <div className="rounded-3xl border border-[#dfe7f0] bg-white p-6 shadow-sm space-y-4 anim-card-enter stagger-2">
         <div className="flex items-center gap-2.5 pb-3 border-b border-slate-100">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-purple-50">
             <UserRound size={16} className="text-[#4b36a8]" />
           </div>
-          <h2 className="text-sm font-bold text-[#123057]">Basic Information</h2>
+          <h2 className="text-sm font-bold tracking-tight text-[#123057]">Basic Information</h2>
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
@@ -108,7 +108,7 @@ export function AdminProfile() {
           </div>
           <div>
             <label className={labelCls}>Employee ID</label>
-            <input className={inputCls} value={employeeId} onChange={e => setEmployeeId(e.target.value)} placeholder="e.g. ADM-2024-001" />
+            <input className={`${inputCls} font-mono`} value={employeeId} onChange={e => setEmployeeId(e.target.value)} placeholder="e.g. ADM-2024-001" />
           </div>
           <div>
             <label className={labelCls}>Official Email (Permanent)</label>

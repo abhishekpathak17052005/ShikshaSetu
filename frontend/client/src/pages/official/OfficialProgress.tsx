@@ -19,6 +19,7 @@ import {
 } from "@/lib/api";
 import { PageSkeleton } from "@/components/PageSkeleton";
 import { toast } from "sonner";
+import { NumberReveal } from "@/components/motion/MotionUtils";
 
 interface OfficialProgressProps {
   onNavigate: (page: string, context?: { competencyCode?: string }) => void;
@@ -141,11 +142,11 @@ export function OfficialProgress({ onNavigate }: OfficialProgressProps) {
       : "—";
 
   return (
-    <div className="space-y-6 animate-fadeIn max-w-4xl mx-auto">
+    <div className="space-y-6 anim-page-enter max-w-4xl mx-auto">
       {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between anim-fade-up">
         <div>
-          <h1 className="text-2xl font-black text-[#123057]">Progress & Capability Growth</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-[#123057]">Progress & Capability Growth</h1>
           <p className="text-sm text-slate-500 mt-1">
             Real longitudinal capability progress based on verified assessments and recorded learning time.
           </p>
@@ -153,7 +154,7 @@ export function OfficialProgress({ onNavigate }: OfficialProgressProps) {
 
         <button
           onClick={fetchProgress}
-          className="flex items-center gap-1.5 rounded-xl border border-[#dfe7f0] bg-white px-3.5 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors"
+          className="flex items-center gap-1.5 rounded-xl border border-[#dfe7f0] bg-white px-3.5 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 btn-interactive"
         >
           <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
           Refresh Progress
@@ -162,45 +163,57 @@ export function OfficialProgress({ onNavigate }: OfficialProgressProps) {
 
       {/* 4-Card Summary */}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <div className="rounded-2xl border border-[#dfe7f0] bg-white p-5 shadow-sm">
+        <div className="rounded-2xl border border-[#dfe7f0] bg-white p-5 shadow-sm card-interactive anim-card-enter stagger-1">
           <div className="flex items-center justify-between text-slate-400">
-            <span className="text-xs font-bold uppercase">Learning Hours</span>
+            <span className="text-xs font-semibold uppercase tracking-wider">Learning Hours</span>
             <Clock size={18} className="text-purple-600" />
           </div>
-          <div className="mt-3 text-3xl font-black text-[#123057]">{totalHours} hrs</div>
-          <div className="mt-1 text-[11px] text-slate-400 font-semibold">{totalMinutes} minutes logged</div>
+          <div className="mt-3 text-3xl font-extrabold tracking-tight text-[#123057]">
+            <NumberReveal value={parseFloat(totalHours)} decimals={1} suffix=" hrs" />
+          </div>
+          <div className="mt-1 text-[11px] text-slate-400 font-medium">{totalMinutes} minutes logged</div>
         </div>
 
-        <div className="rounded-2xl border border-[#dfe7f0] bg-white p-5 shadow-sm">
+        <div className="rounded-2xl border border-[#dfe7f0] bg-white p-5 shadow-sm card-interactive anim-card-enter stagger-2">
           <div className="flex items-center justify-between text-slate-400">
-            <span className="text-xs font-bold uppercase">Modules Completed</span>
+            <span className="text-xs font-semibold uppercase tracking-wider">Modules Completed</span>
             <BookOpen size={18} className="text-teal-600" />
           </div>
-          <div className="mt-3 text-3xl font-black text-[#123057]">{completedActivitiesCount}</div>
-          <div className="mt-1 text-[11px] text-slate-400 font-semibold">Supporting evidence logged</div>
+          <div className="mt-3 text-3xl font-extrabold tracking-tight text-[#123057]">
+            <NumberReveal value={completedActivitiesCount} />
+          </div>
+          <div className="mt-1 text-[11px] text-slate-400 font-medium">Supporting evidence logged</div>
         </div>
 
-        <div className="rounded-2xl border border-[#dfe7f0] bg-white p-5 shadow-sm">
+        <div className="rounded-2xl border border-[#dfe7f0] bg-white p-5 shadow-sm card-interactive anim-card-enter stagger-3">
           <div className="flex items-center justify-between text-slate-400">
-            <span className="text-xs font-bold uppercase">Assessments Taken</span>
+            <span className="text-xs font-semibold uppercase tracking-wider">Assessments Taken</span>
             <ClipboardCheck size={18} className="text-emerald-600" />
           </div>
-          <div className="mt-3 text-3xl font-black text-[#123057]">{authoritativeCount}</div>
-          <div className="mt-1 text-[11px] text-slate-400 font-semibold">Authoritative records</div>
+          <div className="mt-3 text-3xl font-extrabold tracking-tight text-[#123057]">
+            <NumberReveal value={authoritativeCount} />
+          </div>
+          <div className="mt-1 text-[11px] text-slate-400 font-medium">Authoritative records</div>
         </div>
 
-        <div className="rounded-2xl border border-[#dfe7f0] bg-white p-5 shadow-sm">
+        <div className="rounded-2xl border border-[#dfe7f0] bg-white p-5 shadow-sm card-interactive anim-card-enter stagger-4">
           <div className="flex items-center justify-between text-slate-400">
-            <span className="text-xs font-bold uppercase">Current Level</span>
+            <span className="text-xs font-semibold uppercase tracking-wider">Current Level</span>
             <Award size={18} className="text-[#ef7e37]" />
           </div>
-          <div className="mt-3 text-3xl font-black text-[#ef7e37]">{averageLevel} / 5.0</div>
-          <div className="mt-1 text-[11px] text-slate-400 font-semibold">Average capability index</div>
+          <div className="mt-3 text-3xl font-extrabold tracking-tight text-[#ef7e37]">
+            {averageLevel !== "—" ? (
+              <NumberReveal value={parseFloat(averageLevel)} decimals={1} suffix=" / 5.0" />
+            ) : (
+              <span className="text-slate-400 text-xl font-bold">Not assessed</span>
+            )}
+          </div>
+          <div className="mt-1 text-[11px] text-slate-400 font-medium">Average capability index</div>
         </div>
       </div>
 
       {/* Validated Evidence Timeline */}
-      <div className="rounded-3xl border border-[#dfe7f0] bg-white p-6 sm:p-8 shadow-sm space-y-6">
+      <div className="rounded-3xl border border-[#dfe7f0] bg-white p-6 sm:p-8 shadow-sm space-y-6 anim-card-enter stagger-2">
         <div className="border-b border-slate-100 pb-4 flex items-center justify-between">
           <div>
             <h2 className="text-lg font-bold text-[#123057]">Validated Assessment & Capability History</h2>
@@ -208,14 +221,14 @@ export function OfficialProgress({ onNavigate }: OfficialProgressProps) {
               Chronological audit of formal competency evaluations and validated learning milestones.
             </p>
           </div>
-          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">
+          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700 anim-badge-pop">
             <ShieldCheck size={14} /> Immutable Ledger
           </span>
         </div>
 
         {allAuthoritativeItems.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-[#dfe7f0] bg-slate-50/50 p-8 text-center">
-            <TrendingUp size={24} className="mx-auto text-slate-400" />
+          <div className="rounded-2xl border border-dashed border-[#dfe7f0] bg-slate-50/50 p-8 text-center anim-fade-in">
+            <TrendingUp size={24} className="mx-auto text-slate-400 anim-badge-pop" />
             <h3 className="mt-2 text-sm font-bold text-[#123057]">No historical assessment data</h3>
             <p className="mt-1 text-xs text-slate-500 max-w-sm mx-auto">
               Your capability progress timeline will populate automatically as you complete standardized capability assessments.
@@ -253,10 +266,10 @@ export function OfficialProgress({ onNavigate }: OfficialProgressProps) {
                     </div>
                     <div>
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className="rounded bg-slate-200/80 px-2 py-0.5 text-[10px] font-bold text-slate-800">
+                        <span className="rounded bg-slate-200/80 px-2 py-0.5 font-mono text-[10px] font-medium tracking-tight text-slate-800">
                           {ev.competency_code || "COMPETENCY"}
                         </span>
-                        <span className="text-xs font-bold text-[#123057]">
+                        <span className="text-xs font-semibold text-[#123057]">
                           {ev.title || ev.source || "Competency Verification"}
                         </span>
                       </div>

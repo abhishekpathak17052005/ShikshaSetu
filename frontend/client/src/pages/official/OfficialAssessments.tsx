@@ -24,6 +24,7 @@ import {
   AdaptiveFinalizeResponse,
 } from "@/lib/api";
 import { toast } from "sonner";
+import { NumberReveal, ProgressBarFill } from "@/components/motion/MotionUtils";
 
 interface OfficialAssessmentsProps {
   initialCompetencyCode?: string;
@@ -228,9 +229,9 @@ export function OfficialAssessments({
                 <button
                   onClick={() => startAdaptiveAssessment(userCompetencies[0].code)}
                   disabled={busy}
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#ef7e37] px-6 py-3.5 text-xs font-black text-white shadow-md hover:bg-[#d96a27] hover:scale-105 transition-all whitespace-nowrap"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#ef7e37] px-6 py-3.5 text-xs font-black text-white shadow-md hover:bg-[#d96a27] hover:scale-105 transition-all whitespace-nowrap btn-interactive"
                 >
-                  <Zap size={15} /> Launch {userCompetencies[0].name.split(" ")[0]} Assessment
+                  <Zap size={15} /> Launch {userCompetencies[0]?.name ? userCompetencies[0].name.split(" ")[0] : "Target"} Assessment
                 </button>
               )}
             </div>
@@ -256,23 +257,23 @@ export function OfficialAssessments({
                   >
                     <div>
                       <div className="flex items-center justify-between">
-                        <span className="rounded-md bg-slate-100 px-2 py-0.5 text-[10px] font-extrabold text-slate-700 uppercase">
+                        <span className="rounded-md bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-700 uppercase tracking-wider">
                           {item.domain}
                         </span>
-                        <span className="text-[10px] font-bold text-teal-700">
+                        <span className="font-mono text-[11px] font-medium tracking-tight text-teal-700">
                           {item.code}
                         </span>
                       </div>
-                      <h4 className="text-sm font-black text-[#123057] mt-2 group-hover:text-teal-800 transition-colors">
+                      <h4 className="text-sm font-bold text-[#123057] mt-2 group-hover:text-teal-800 transition-colors tracking-tight">
                         {item.name}
                       </h4>
                       <p className="text-xs text-slate-500 mt-1 leading-relaxed line-clamp-2">
                         {item.description || item.desc}
                       </p>
-                      <div className="mt-2 text-[11px] font-semibold text-slate-400">
-                        Required Level: <strong className="text-slate-700">Level {item.required_level || 4.0}</strong>
+                      <div className="mt-2 text-[11px] font-medium text-slate-400">
+                        Required Level: <strong className="font-semibold text-slate-700">Level {item.required_level || 4.0}</strong>
                         {item.current_level != null && (
-                          <span> · Current: <strong className="text-teal-700">Level {item.current_level.toFixed(1)}</strong></span>
+                          <span> · Current: <strong className="font-semibold text-teal-700">Level {item.current_level.toFixed(1)}</strong></span>
                         )}
                       </div>
                     </div>
@@ -306,12 +307,12 @@ export function OfficialAssessments({
 
       {/* ─── LIVE ADAPTIVE ASSESSMENT STUDIO ──────────────────────────────── */}
       {adaptiveSession && adaptiveCurrentQuestion && (
-        <div className="space-y-6 animate-fadeIn">
+        <div className="space-y-6 anim-page-enter">
           {/* Dynamic Capability Meter Card */}
-          <div className="rounded-3xl border border-teal-200 bg-white p-6 shadow-sm space-y-4">
+          <div className="rounded-3xl border border-teal-200 bg-white p-6 shadow-sm space-y-4 anim-fade-up">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div>
-                <span className="text-[10px] font-extrabold uppercase tracking-wider text-teal-800 bg-teal-50 px-2.5 py-1 rounded-md">
+                <span className="text-[10px] font-extrabold uppercase tracking-wider text-teal-800 bg-teal-50 px-2.5 py-1 rounded-md anim-badge-pop">
                   Adaptive Calibration • {adaptiveSession.competency_name}
                 </span>
                 <h3 className="text-base font-black text-[#123057] mt-1">
@@ -325,7 +326,7 @@ export function OfficialAssessments({
                     Target Difficulty
                   </div>
                   <span
-                    className={`inline-block rounded-lg px-2.5 py-0.5 text-xs font-black uppercase ${
+                    className={`inline-block rounded-lg px-2.5 py-0.5 text-xs font-black uppercase anim-badge-pop ${
                       adaptiveDifficulty === "HARD"
                         ? "bg-purple-100 text-purple-900"
                         : adaptiveDifficulty === "MEDIUM"
@@ -346,7 +347,7 @@ export function OfficialAssessments({
                     Demonstrated
                   </div>
                   <div className="text-lg font-black text-[#123057]">
-                    L {adaptiveTheta.toFixed(1)}
+                    L <NumberReveal value={adaptiveTheta} decimals={1} />
                   </div>
                 </div>
               </div>
@@ -361,12 +362,12 @@ export function OfficialAssessments({
                 <span>L4 Specialist</span>
                 <span>L5 Authority</span>
               </div>
-              <div className="relative h-3 w-full overflow-hidden rounded-full bg-slate-100">
-                <div
-                  className="h-full rounded-full bg-gradient-to-r from-emerald-400 via-teal-500 to-purple-600 transition-all duration-700"
-                  style={{ width: `${Math.min(100, Math.max(10, ((adaptiveTheta - 1.0) / 4.0) * 100))}%` }}
-                />
-              </div>
+              <ProgressBarFill
+                percent={Math.min(100, Math.max(10, ((adaptiveTheta - 1.0) / 4.0) * 100))}
+                className="relative h-3 w-full overflow-hidden rounded-full bg-slate-100"
+                fillClassName="h-full rounded-full bg-gradient-to-r from-emerald-400 via-teal-500 to-purple-600"
+                durationMs={600}
+              />
               <p className="text-[11px] text-slate-400 text-center italic">
                 Your assessment dynamically adapts difficulty based on your sequential answer performance.
               </p>
@@ -374,10 +375,10 @@ export function OfficialAssessments({
           </div>
 
           {/* Active Question Card */}
-          <div className="rounded-3xl border border-[#dfe7f0] bg-white p-6 sm:p-8 shadow-sm space-y-6">
+          <div key={adaptiveCurrentNumber} className="rounded-3xl border border-[#dfe7f0] bg-white p-6 sm:p-8 shadow-sm space-y-6 anim-slide-left">
             <div className="space-y-2">
               {adaptiveCurrentQuestion.scenario_context && (
-                <div className="rounded-xl bg-slate-50 p-4 border border-slate-100 text-xs text-slate-700 leading-relaxed font-medium">
+                <div className="rounded-xl bg-slate-50 p-4 border border-slate-100 text-xs text-slate-700 leading-relaxed font-medium anim-fade-in">
                   <strong>Scenario Context:</strong> {adaptiveCurrentQuestion.scenario_context}
                 </div>
               )}
@@ -399,17 +400,17 @@ export function OfficialAssessments({
                     type="button"
                     onClick={() => !adaptiveFeedback && setSelectedOption(optLetter)}
                     disabled={busy || adaptiveFeedback != null}
-                    className={`w-full text-left rounded-2xl p-4 text-xs font-semibold transition-all border flex items-center justify-between ${
+                    className={`w-full text-left rounded-2xl p-4 text-xs font-semibold transition-all duration-180 border flex items-center justify-between btn-interactive ${
                       isSelected
-                        ? "bg-teal-50/80 border-teal-500 text-teal-950 shadow-sm"
+                        ? "bg-teal-50/90 border-teal-500 text-teal-950 shadow-xs scale-[1.008]"
                         : "bg-white border-slate-200 hover:bg-slate-50 text-slate-800"
                     }`}
                   >
                     <div className="flex items-center gap-3">
                       <span
-                        className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-xl font-black text-xs ${
+                        className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-xl font-black text-xs transition-colors duration-160 ${
                           isSelected
-                            ? "bg-teal-600 text-white"
+                            ? "bg-teal-600 text-white shadow-xs"
                             : "bg-slate-100 text-slate-600"
                         }`}
                       >
@@ -419,7 +420,7 @@ export function OfficialAssessments({
                     </div>
 
                     {isSelected && (
-                      <CheckCircle2 size={16} className="text-teal-600 shrink-0" />
+                      <CheckCircle2 size={16} className="text-teal-600 shrink-0 anim-badge-pop" />
                     )}
                   </button>
                 );
@@ -429,10 +430,10 @@ export function OfficialAssessments({
             {/* Answer Feedback Alert */}
             {adaptiveFeedback && (
               <div
-                className={`rounded-2xl p-4 text-xs border flex items-start gap-3 animate-fadeIn ${
+                className={`rounded-2xl p-4 text-xs border flex items-start gap-3 ${
                   adaptiveFeedback.isCorrect
-                    ? "bg-emerald-50 border-emerald-200 text-emerald-900"
-                    : "bg-amber-50 border-amber-200 text-amber-900"
+                    ? "bg-emerald-50 border-emerald-200 text-emerald-900 anim-success-pulse"
+                    : "bg-amber-50 border-amber-200 text-amber-900 anim-shake-subtle"
                 }`}
               >
                 {adaptiveFeedback.isCorrect ? (
@@ -465,7 +466,7 @@ export function OfficialAssessments({
                 type="button"
                 onClick={handleAdaptiveAnswerSubmit}
                 disabled={!selectedOption || busy || adaptiveFeedback != null}
-                className="inline-flex items-center gap-2 rounded-xl bg-[#123057] px-6 py-3 text-xs font-bold text-white shadow hover:bg-[#087f76] transition-all disabled:opacity-40"
+                className="inline-flex items-center gap-2 rounded-xl bg-[#123057] px-6 py-3 text-xs font-bold text-white shadow hover:bg-[#087f76] btn-interactive disabled:opacity-40"
               >
                 {busy ? "Calibrating..." : "Submit Answer & Calibrate"} <ArrowRight size={13} />
               </button>
@@ -476,28 +477,28 @@ export function OfficialAssessments({
 
       {/* ─── PHASE 3C COMPLETION SCREEN ───────────────────────────────────── */}
       {adaptiveFinalResult && (
-        <div className="rounded-3xl border border-emerald-200 bg-white p-6 sm:p-8 shadow-sm space-y-6 animate-fadeIn">
+        <div className="rounded-3xl border border-emerald-200 bg-white p-6 sm:p-8 shadow-sm space-y-6 anim-fade-up">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-100 pb-6">
             <div>
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-900">
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-900 anim-badge-pop">
                 <CheckCircle2 size={14} /> Adaptive Capability Assessment Complete
               </div>
-              <h2 className="text-2xl font-black text-[#123057] mt-2">
+              <h2 className="text-2xl font-bold text-[#123057] mt-2 tracking-tight">
                 Official Competency Validated
               </h2>
               <p className="text-xs text-slate-500 mt-0.5">
-                Target Competency: <strong>{adaptiveFinalResult.competency_name}</strong> ({adaptiveFinalResult.competency_code})
+                Target Competency: <strong className="font-semibold text-slate-700">{adaptiveFinalResult.competency_name}</strong> (<span className="font-mono text-[11px] font-medium text-teal-700">{adaptiveFinalResult.competency_code}</span>)
               </p>
             </div>
 
-            <div className="rounded-2xl border border-emerald-200 bg-emerald-50/60 p-4 text-center min-w-[140px]">
-              <div className="text-[10px] font-bold text-emerald-800 uppercase tracking-wider">
+            <div className="rounded-2xl border border-emerald-200 bg-emerald-50/60 p-4 text-center min-w-[140px] anim-scale-in">
+              <div className="text-[10px] font-semibold text-emerald-800 uppercase tracking-wider">
                 Validated Level
               </div>
-              <div className="text-3xl font-black text-[#123057] mt-1">
-                L {adaptiveFinalResult.final_demonstrated_level.toFixed(1)}
+              <div className="text-3xl font-extrabold text-[#123057] mt-1 tracking-tight">
+                L <NumberReveal value={adaptiveFinalResult.final_demonstrated_level} decimals={1} />
               </div>
-              <div className="text-[10px] text-emerald-700 font-semibold mt-0.5">
+              <div className="text-[10px] text-emerald-700 font-medium mt-0.5">
                 Scale 1.0 – 5.0
               </div>
             </div>
@@ -505,29 +506,29 @@ export function OfficialAssessments({
 
           {/* Core Results Grid */}
           <div className="grid gap-4 sm:grid-cols-3">
-            <div className="rounded-2xl bg-slate-50 p-4 border border-slate-100 space-y-1">
-              <div className="text-[10px] font-bold uppercase text-slate-400">
+            <div className="rounded-2xl bg-slate-50 p-4 border border-slate-100 space-y-1 anim-card-enter stagger-1">
+              <div className="text-[10px] font-semibold uppercase text-slate-400 tracking-wider">
                 Competency Rating
               </div>
-              <div className="text-lg font-black text-[#123057]">
+              <div className="text-lg font-bold text-[#123057] tracking-tight">
                 Level {adaptiveFinalResult.previous_competency_level.toFixed(1)} ➔{" "}
                 <span className="text-emerald-700">
-                  {adaptiveFinalResult.updated_competency_level.toFixed(1)}
+                  <NumberReveal value={adaptiveFinalResult.updated_competency_level} decimals={1} prefix="L " />
                 </span>
               </div>
-              <p className="text-[11px] text-slate-500">
+              <p className="text-[11px] text-slate-500 font-medium">
                 {adaptiveFinalResult.proficiency_tier}
               </p>
             </div>
 
-            <div className="rounded-2xl bg-slate-50 p-4 border border-slate-100 space-y-1">
-              <div className="text-[10px] font-bold uppercase text-slate-400">
+            <div className="rounded-2xl bg-slate-50 p-4 border border-slate-100 space-y-1 anim-card-enter stagger-2">
+              <div className="text-[10px] font-semibold uppercase text-slate-400 tracking-wider">
                 Skill Gap Impact
               </div>
-              <div className="text-lg font-black text-[#123057]">
+              <div className="text-lg font-bold text-[#123057] tracking-tight">
                 {adaptiveFinalResult.previous_skill_gap.toFixed(1)} ➔{" "}
-                <span className="text-teal-700 font-black">
-                  {adaptiveFinalResult.updated_skill_gap.toFixed(1)} Deficit
+                <span className="text-teal-700 font-bold">
+                  <NumberReveal value={adaptiveFinalResult.updated_skill_gap} decimals={1} suffix=" Deficit" />
                 </span>
               </div>
               <p className="text-[11px] text-slate-500">
@@ -535,15 +536,15 @@ export function OfficialAssessments({
               </p>
             </div>
 
-            <div className="rounded-2xl bg-slate-50 p-4 border border-slate-100 space-y-1">
-              <div className="text-[10px] font-bold uppercase text-slate-400">
+            <div className="rounded-2xl bg-slate-50 p-4 border border-slate-100 space-y-1 anim-card-enter stagger-3">
+              <div className="text-[10px] font-semibold uppercase text-slate-400 tracking-wider">
                 Evidence Confidence
               </div>
-              <div className="text-lg font-black text-purple-900">
+              <div className="text-lg font-bold text-purple-900 tracking-tight">
                 85% (Authoritative)
               </div>
-              <p className="text-[11px] text-slate-500 truncate" title={adaptiveFinalResult.evidence_record_id}>
-                ID: {adaptiveFinalResult.evidence_record_id.slice(-8)}
+              <p className="text-[11px] text-slate-500 truncate font-mono text-[11px]" title={adaptiveFinalResult.evidence_record_id}>
+                REC: {adaptiveFinalResult.evidence_record_id.slice(-8)}
               </p>
             </div>
           </div>
@@ -552,19 +553,19 @@ export function OfficialAssessments({
           <div className="flex flex-wrap items-center gap-3 pt-4 border-t border-slate-100">
             <button
               onClick={() => onNavigate("Skill Gaps")}
-              className="inline-flex items-center gap-2 rounded-xl bg-[#ef7e37] px-5 py-2.5 text-xs font-bold text-white shadow hover:bg-[#d96a27] transition-all"
+              className="inline-flex items-center gap-2 rounded-xl bg-[#ef7e37] px-5 py-2.5 text-xs font-bold text-white shadow hover:bg-[#d96a27] btn-interactive"
             >
               View Updated Skill Gaps <ArrowRight size={14} />
             </button>
             <button
               onClick={() => onNavigate("Recommendations")}
-              className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-5 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors"
+              className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-5 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-50 btn-interactive"
             >
               Browse Updated Recommendations
             </button>
             <button
               onClick={() => setAdaptiveFinalResult(null)}
-              className="inline-flex items-center gap-1 text-xs font-bold text-slate-400 hover:text-slate-600 ml-auto"
+              className="inline-flex items-center gap-1 text-xs font-bold text-slate-400 hover:text-slate-600 ml-auto btn-interactive"
             >
               <RotateCcw size={13} /> Assess Another Competency
             </button>

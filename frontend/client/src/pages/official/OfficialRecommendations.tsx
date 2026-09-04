@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { api, clearApiCache, RecommendationResponse, Recommendation } from "@/lib/api";
 import { toast } from "sonner";
+import { NumberReveal, AnimatedSection } from "@/components/motion/MotionUtils";
 
 interface OfficialRecommendationsProps {
   initialCompetencyCode?: string;
@@ -100,9 +101,9 @@ export function OfficialRecommendations({
   });
 
   return (
-    <div className="space-y-6 animate-fadeIn">
+    <div className="space-y-6 anim-page-enter">
       {/* Top Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between anim-fade-up">
         <div>
           <h1 className="text-2xl font-black text-[#123057]">Personalized Recommendations</h1>
           <p className="text-sm text-slate-500 mt-1">
@@ -112,7 +113,7 @@ export function OfficialRecommendations({
 
         <button
           onClick={fetchRecommendations}
-          className="flex items-center gap-1.5 rounded-xl border border-[#dfe7f0] bg-white px-3.5 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors"
+          className="flex items-center gap-1.5 rounded-xl border border-[#dfe7f0] bg-white px-3.5 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 btn-interactive"
         >
           <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
           Refresh
@@ -120,12 +121,12 @@ export function OfficialRecommendations({
       </div>
 
       {/* iGOT Karmayogi Ecosystem Integration Notice */}
-      <div className="flex items-start gap-3 rounded-2xl border border-blue-100 bg-blue-50/70 p-4 text-xs text-blue-900">
+      <div className="flex items-start gap-3 rounded-2xl border border-blue-100 bg-blue-50/70 p-4 text-xs text-blue-900 anim-fade-up stagger-1">
         <Sparkles size={18} className="text-[#ef7e37] shrink-0 mt-0.5" />
         <div className="space-y-0.5">
           <div className="font-bold text-[#123057] flex items-center gap-2">
             <span>iGOT Karmayogi — Curated Catalog Connected</span>
-            <span className="rounded-md bg-blue-200/80 px-2 py-0.5 text-[10px] font-semibold text-blue-800">
+            <span className="rounded-md bg-blue-200/80 px-2 py-0.5 text-[10px] font-semibold text-blue-800 anim-badge-pop">
               Prototype Mode
             </span>
           </div>
@@ -137,14 +138,14 @@ export function OfficialRecommendations({
       </div>
 
       {/* Filter Toolbar */}
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#dfe7f0] bg-white p-4 shadow-sm">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#dfe7f0] bg-white p-4 shadow-sm anim-fade-up stagger-2">
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-xs font-bold text-slate-400">Provider:</span>
           {["ALL", "iGOT", "NSSTA"].map((p) => (
             <button
               key={p}
               onClick={() => setSelectedProvider(p)}
-              className={`rounded-xl px-3 py-1.5 text-xs font-bold transition-all ${
+              className={`rounded-xl px-3 py-1.5 text-xs font-bold transition-all btn-interactive ${
                 selectedProvider === p
                   ? "bg-teal-50 text-teal-900 border border-teal-200"
                   : "text-slate-500 hover:bg-slate-50 border border-transparent"
@@ -158,7 +159,7 @@ export function OfficialRecommendations({
 
           <button
             onClick={() => setSelectedPriority(selectedPriority === "ALL" ? "HIGH" : "ALL")}
-            className={`rounded-xl px-3 py-1.5 text-xs font-bold transition-all ${
+            className={`rounded-xl px-3 py-1.5 text-xs font-bold transition-all btn-interactive ${
               selectedPriority === "HIGH"
                 ? "bg-orange-50 text-[#d96b27] border border-orange-200"
                 : "text-slate-500 hover:bg-slate-50 border border-transparent"
@@ -170,12 +171,12 @@ export function OfficialRecommendations({
 
         {competencyCode && (
           <div className="flex items-center gap-2">
-            <span className="rounded-md bg-teal-50 px-2 py-1 text-xs font-bold text-teal-800">
+            <span className="rounded-md bg-teal-50 px-2 py-1 text-xs font-bold text-teal-800 anim-badge-pop">
               Filtering by: {competencyCode}
             </span>
             <button
               onClick={() => setCompetencyCode("")}
-              className="text-xs text-slate-400 hover:text-slate-600 font-bold"
+              className="text-xs text-slate-400 hover:text-slate-600 font-bold btn-interactive"
             >
               Clear filter
             </button>
@@ -191,8 +192,8 @@ export function OfficialRecommendations({
           ))}
         </div>
       ) : recommendations.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-[#dfe7f0] bg-white p-12 text-center">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-teal-50 text-teal-700">
+        <div className="rounded-2xl border border-dashed border-[#dfe7f0] bg-white p-12 text-center anim-fade-in">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-teal-50 text-teal-700 anim-badge-pop">
             <BookOpen size={24} />
           </div>
           <h3 className="mt-4 text-base font-bold text-[#123057]">
@@ -203,7 +204,7 @@ export function OfficialRecommendations({
           </p>
           <button
             onClick={() => onNavigate("Assessments")}
-            className="mt-5 inline-flex items-center gap-2 rounded-xl bg-[#ef7e37] px-4 py-2.5 text-xs font-bold text-white hover:bg-[#d96a27]"
+            className="mt-5 inline-flex items-center gap-2 rounded-xl bg-[#ef7e37] px-4 py-2.5 text-xs font-bold text-white hover:bg-[#d96a27] btn-interactive"
           >
             Start Assessment
           </button>
@@ -214,31 +215,34 @@ export function OfficialRecommendations({
             const cardId = item.id || item.resource_title || `${item.competency_code}-${idx}`;
             const isExpanded = expandedId === cardId;
             const scoreBreakdown = (item as any).explanation?.score_breakdown || [];
+            const staggerClass = idx < 8 ? `stagger-${idx + 1}` : "";
+            const matchScore =
+              item.relevance_score != null
+                ? Math.round(item.relevance_score * 100)
+                : item.score != null
+                ? Math.round(item.score * 100)
+                : 94;
 
             return (
-              <div
+              <AnimatedSection
                 key={cardId}
-                className="flex flex-col justify-between rounded-2xl border border-[#dfe7f0] bg-white p-6 shadow-sm hover:border-teal-300 hover:shadow-md transition-all group"
+                className={`flex flex-col justify-between rounded-2xl border border-[#dfe7f0] bg-white p-6 shadow-sm hover:border-teal-300 card-interactive anim-card-enter ${staggerClass} group`}
               >
                 <div>
                   {/* Top Badges */}
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <span className="rounded-md bg-teal-50 px-2.5 py-0.5 text-[11px] font-extrabold uppercase text-teal-800">
+                      <span className="rounded-md bg-teal-50 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-teal-800">
                         {item.provider || (item as any).resource?.provider || "iGOT"}
                       </span>
-                      <span className="text-xs font-bold text-slate-400">
+                      <span className="font-mono text-[11px] font-medium tracking-tight text-slate-400 anim-badge-pop">
                         {item.competency_code}
                       </span>
                     </div>
 
-                    <div className="flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-extrabold text-emerald-800">
+                    <div className="flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-800 anim-badge-pop">
                       <TrendingUp size={12} />
-                      {item.relevance_score != null
-                        ? `${Math.round(item.relevance_score * 100)}% Match`
-                        : item.score != null
-                        ? `${Math.round(item.score * 100)}% Match`
-                        : "94% Match"}
+                      <NumberReveal value={matchScore} suffix="% Match" />
                     </div>
                   </div>
 
@@ -260,14 +264,14 @@ export function OfficialRecommendations({
                   <div className="mt-4">
                     <button
                       onClick={() => setExpandedId(isExpanded ? null : cardId)}
-                      className="inline-flex items-center gap-1 text-xs font-bold text-teal-800 hover:underline"
+                      className="inline-flex items-center gap-1 text-xs font-bold text-teal-800 hover:underline btn-interactive"
                     >
                       {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
                       {isExpanded ? "Hide scoring factors" : "Why was this recommended?"}
                     </button>
 
                     {isExpanded && (
-                      <div className="mt-3 rounded-xl bg-[#f8fafc] p-3.5 space-y-2 text-xs animate-fadeIn">
+                      <div className="mt-3 rounded-xl bg-[#f8fafc] p-3.5 space-y-2 text-xs anim-fade-up">
                         <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">
                           5-Factor Match Breakdown
                         </div>
@@ -307,7 +311,7 @@ export function OfficialRecommendations({
                 <div className="mt-6 flex items-center justify-between gap-3 border-t border-slate-100 pt-4">
                   <button
                     onClick={() => openResourceExternal(item)}
-                    className="inline-flex items-center gap-1 text-xs font-bold text-slate-600 hover:text-[#123057]"
+                    className="inline-flex items-center gap-1 text-xs font-bold text-slate-600 hover:text-[#123057] btn-interactive"
                   >
                     <ExternalLink size={13} /> View Source
                   </button>
@@ -315,12 +319,12 @@ export function OfficialRecommendations({
                   <button
                     onClick={() => handleStartLearning(item)}
                     disabled={startingResource === (item.resource_title || item.title || item.id)}
-                    className="inline-flex items-center gap-1.5 rounded-xl bg-[#ef7e37] px-4 py-2 text-xs font-bold text-white shadow hover:bg-[#d96a27] disabled:opacity-50 transition-all active:scale-95"
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-[#ef7e37] px-4 py-2 text-xs font-bold text-white shadow hover:bg-[#d96a27] disabled:opacity-50 btn-interactive"
                   >
                     <Play size={13} /> Start Learning
                   </button>
                 </div>
-              </div>
+              </AnimatedSection>
             );
           })}
         </div>

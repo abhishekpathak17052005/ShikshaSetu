@@ -49,11 +49,11 @@ export function AdminUsers({ onNavigate }: AdminUsersProps) {
   });
 
   return (
-    <div className="space-y-8 animate-fadeIn max-w-6xl mx-auto">
+    <div className="space-y-8 anim-page-enter max-w-6xl mx-auto">
       {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between anim-fade-up">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-black text-[#123057]">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#123057]">
             User & Access Directory
           </h1>
           <p className="text-sm text-slate-500 mt-1">
@@ -63,14 +63,14 @@ export function AdminUsers({ onNavigate }: AdminUsersProps) {
 
         <button
           onClick={fetchUsers}
-          className="flex items-center gap-1.5 rounded-xl border border-[#e0daef] bg-white px-4 py-2 text-xs font-bold text-[#4b36a8] shadow-sm hover:bg-purple-50 transition-all"
+          className="flex items-center gap-1.5 rounded-xl border border-[#e0daef] bg-white px-4 py-2 text-xs font-semibold text-[#4b36a8] shadow-sm hover:bg-purple-50 transition-all btn-interactive"
         >
           <RefreshCw size={14} className={loading ? "animate-spin" : ""} /> Refresh Users
         </button>
       </div>
 
       {/* Filter and Search */}
-      <div className="flex flex-col gap-3 rounded-2xl border border-[#e0daef] bg-white p-4 sm:flex-row sm:items-center">
+      <div className="flex flex-col gap-3 rounded-2xl border border-[#e0daef] bg-white p-4 sm:flex-row sm:items-center anim-card-enter stagger-1">
         <div className="relative flex-1">
           <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
@@ -78,7 +78,7 @@ export function AdminUsers({ onNavigate }: AdminUsersProps) {
             placeholder="Search users by name, email, employee ID..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full rounded-xl border border-slate-200 bg-slate-50/50 py-2 pl-9 pr-4 text-xs font-semibold text-slate-800 placeholder-slate-400 focus:border-[#6d5bc3] focus:bg-white focus:outline-none"
+            className="w-full rounded-xl border border-slate-200 bg-slate-50/50 py-2 pl-9 pr-4 text-xs font-semibold text-slate-800 placeholder-slate-400 focus:border-[#6d5bc3] focus:bg-white focus:outline-none transition-all"
           />
         </div>
 
@@ -87,7 +87,7 @@ export function AdminUsers({ onNavigate }: AdminUsersProps) {
           <select
             value={selectedRole}
             onChange={(e) => setSelectedRole(e.target.value)}
-            className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700 focus:outline-none"
+            className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 focus:outline-none transition-all"
           >
             <option value="ALL">All Access Roles</option>
             <option value="OFFICIAL">Official / Employee</option>
@@ -98,19 +98,19 @@ export function AdminUsers({ onNavigate }: AdminUsersProps) {
       </div>
 
       {/* User Table */}
-      <div className="rounded-3xl border border-[#e0daef] bg-white shadow-sm overflow-hidden">
+      <div className="rounded-3xl border border-[#e0daef] bg-white shadow-sm overflow-hidden anim-card-enter stagger-2">
         <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
           <h3 className="text-sm font-bold text-[#123057]">
             System Users Directory ({filteredUsers.length})
           </h3>
-          <span className="text-xs text-slate-400 font-semibold">
+          <span className="text-xs text-slate-400 font-medium">
             Role-Based Access Control
           </span>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-[#f8f6fd] text-[10px] font-extrabold uppercase tracking-wider text-slate-500 border-b border-[#e0daef]">
+            <thead className="bg-[#f8f6fd] text-[10px] font-semibold uppercase tracking-wider text-slate-500 border-b border-[#e0daef]">
               <tr>
                 <th className="px-6 py-3.5">User</th>
                 <th className="px-6 py-3.5">Department</th>
@@ -121,11 +121,14 @@ export function AdminUsers({ onNavigate }: AdminUsersProps) {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {filteredUsers.map((user) => (
-                <tr key={user.id} className="hover:bg-purple-50/40 transition-colors">
+              {filteredUsers.map((user, idx) => (
+                <tr
+                  key={user.id}
+                  className={`hover:bg-purple-50/40 transition-colors anim-card-enter stagger-${Math.min(idx + 1, 6)}`}
+                >
                   <td className="px-6 py-4">
                     <div className="font-bold text-[#123057]">{user.full_name}</div>
-                    <div className="text-[11px] text-slate-400">{user.email} · {user.employee_id}</div>
+                    <div className="text-[11px] text-slate-400">{user.email} · <span className="font-mono text-[10px] font-medium tracking-tight">{user.employee_id}</span></div>
                   </td>
                   <td className="px-6 py-4 font-semibold text-slate-600">
                     {user.department}
@@ -136,7 +139,7 @@ export function AdminUsers({ onNavigate }: AdminUsersProps) {
                   </td>
                   <td className="px-6 py-4">
                     <span
-                      className={`rounded-full px-2.5 py-0.5 text-[10px] font-extrabold ${
+                      className={`rounded-full px-2.5 py-0.5 text-[10px] font-extrabold anim-badge-pop ${
                         user.access_role === "ADMIN"
                           ? "bg-purple-100 text-[#4b36a8]"
                           : user.access_role === "TRAINER"
@@ -148,7 +151,7 @@ export function AdminUsers({ onNavigate }: AdminUsersProps) {
                     </span>
                   </td>
                   <td className="px-6 py-4">
-                    <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-[10px] font-extrabold text-emerald-800">
+                    <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-[10px] font-extrabold text-emerald-800 anim-badge-pop">
                       Active
                     </span>
                   </td>

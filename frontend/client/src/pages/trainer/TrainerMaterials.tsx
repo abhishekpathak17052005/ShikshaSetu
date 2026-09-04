@@ -13,9 +13,13 @@ import {
   X,
   RefreshCw,
   Layers,
+  Sparkles,
+  Trash2,
+  FileCheck,
 } from "lucide-react";
 import { api, clearApiCache, LearningMaterial } from "@/lib/api";
 import { toast } from "sonner";
+import { StatusTransition, AnimatedSection } from "@/components/motion/MotionUtils";
 
 interface TrainerMaterialsProps {
   onNavigate: (page: string, context?: { materialId?: string }) => void;
@@ -112,11 +116,11 @@ export function TrainerMaterials({ onNavigate }: TrainerMaterialsProps) {
   });
 
   return (
-    <div className="space-y-6 animate-fadeIn">
+    <div className="space-y-6 anim-page-enter">
       {/* Top action header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between anim-fade-up">
         <div>
-          <h1 className="text-2xl font-black text-slate-800">Learning Materials Library</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-800">Learning Materials Library</h1>
           <p className="text-sm text-slate-500 mt-1">
             Curriculum content repositories used for grounded AI question generation.
           </p>
@@ -124,7 +128,7 @@ export function TrainerMaterials({ onNavigate }: TrainerMaterialsProps) {
         <div className="flex items-center gap-3">
           <button
             onClick={fetchMaterials}
-            className="flex items-center gap-1.5 rounded-xl border border-[#f0ddd0] bg-white px-3.5 py-2.5 text-xs font-bold text-slate-600 hover:bg-orange-50 transition-colors"
+            className="flex items-center gap-1.5 rounded-xl border border-[#f0ddd0] bg-white px-3.5 py-2.5 text-xs font-semibold text-slate-600 hover:bg-orange-50 btn-interactive"
             title="Refresh list"
           >
             <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
@@ -132,7 +136,7 @@ export function TrainerMaterials({ onNavigate }: TrainerMaterialsProps) {
           </button>
           <button
             onClick={() => setUploadModalOpen(true)}
-            className="flex items-center gap-2 rounded-xl bg-[#ef7e37] px-4 py-2.5 text-sm font-bold text-white shadow-md hover:bg-[#d96a27] transition-all transform active:scale-95"
+            className="flex items-center gap-2 rounded-xl bg-[#ef7e37] px-4 py-2.5 text-sm font-semibold text-white shadow-md hover:bg-[#d96a27] btn-interactive"
           >
             <FilePlus size={16} />
             Upload New Material
@@ -141,7 +145,7 @@ export function TrainerMaterials({ onNavigate }: TrainerMaterialsProps) {
       </div>
 
       {/* Search & Filters */}
-      <div className="flex items-center gap-3 rounded-2xl border border-[#f0ddd0] bg-white p-3 shadow-sm">
+      <div className="flex items-center gap-3 rounded-2xl border border-[#f0ddd0] bg-white p-3 shadow-sm anim-fade-up">
         <Search size={18} className="text-slate-400 ml-2" />
         <input
           type="text"
@@ -153,7 +157,7 @@ export function TrainerMaterials({ onNavigate }: TrainerMaterialsProps) {
         {searchQuery && (
           <button
             onClick={() => setSearchQuery("")}
-            className="text-xs text-slate-400 hover:text-slate-600 mr-2"
+            className="text-xs text-slate-400 hover:text-slate-600 mr-2 btn-interactive"
           >
             Clear
           </button>
@@ -171,7 +175,7 @@ export function TrainerMaterials({ onNavigate }: TrainerMaterialsProps) {
           ))}
         </div>
       ) : filteredMaterials.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-[#f0ddd0] bg-white p-12 text-center">
+        <div className="rounded-2xl border border-dashed border-[#f0ddd0] bg-white p-12 text-center anim-fade-up">
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-orange-50 text-[#ef7e37]">
             <BookOpen size={24} />
           </div>
@@ -183,21 +187,22 @@ export function TrainerMaterials({ onNavigate }: TrainerMaterialsProps) {
           </p>
           <button
             onClick={() => setUploadModalOpen(true)}
-            className="mt-5 inline-flex items-center gap-2 rounded-xl bg-[#ef7e37] px-4 py-2.5 text-xs font-bold text-white hover:bg-[#d96a27] transition-colors"
+            className="mt-5 inline-flex items-center gap-2 rounded-xl bg-[#ef7e37] px-4 py-2.5 text-xs font-bold text-white hover:bg-[#d96a27] btn-interactive"
           >
             <Upload size={14} /> Upload First Document
           </button>
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {filteredMaterials.map((mat) => {
+          {filteredMaterials.map((mat, idx) => {
             const isReady = mat.status === "READY";
             const isProcessing = mat.status === "PROCESSING" || mat.status === "UPLOADED";
+            const staggerCls = `stagger-${Math.min((idx % 6) + 1, 8)}`;
 
             return (
               <div
                 key={mat.id || (mat as any)._id}
-                className="flex flex-col justify-between rounded-2xl border border-[#f0ddd0] bg-white p-5 shadow-sm hover:border-orange-300 hover:shadow-md transition-all group"
+                className={`flex flex-col justify-between rounded-2xl border border-[#f0ddd0] bg-white p-5 shadow-sm card-interactive anim-card-enter ${staggerCls} group`}
               >
                 <div>
                   {/* Status & Type */}
@@ -212,15 +217,15 @@ export function TrainerMaterials({ onNavigate }: TrainerMaterialsProps) {
                     </div>
 
                     {isReady ? (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-bold text-emerald-700">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-bold text-emerald-700 anim-badge-pop">
                         <CheckCircle size={12} /> Ready
                       </span>
                     ) : isProcessing ? (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-0.5 text-[11px] font-bold text-amber-700">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-0.5 text-[11px] font-bold text-amber-700 anim-badge-pop">
                         <Clock size={12} className="animate-spin" /> Processing
                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2.5 py-0.5 text-[11px] font-bold text-rose-700">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2.5 py-0.5 text-[11px] font-bold text-rose-700 anim-badge-pop">
                         <AlertCircle size={12} /> Failed
                       </span>
                     )}
@@ -255,7 +260,7 @@ export function TrainerMaterials({ onNavigate }: TrainerMaterialsProps) {
                       onNavigate("AI Question Generator", { materialId: mat.id || (mat as any)._id })
                     }
                     disabled={!isReady}
-                    className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl bg-orange-50 px-3 py-2 text-xs font-bold text-[#c2510e] hover:bg-orange-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl bg-orange-50 px-3 py-2 text-xs font-bold text-[#c2510e] hover:bg-orange-100 disabled:opacity-50 disabled:cursor-not-allowed btn-interactive"
                   >
                     <FileQuestion size={14} /> Generate MCQs
                   </button>
@@ -264,7 +269,7 @@ export function TrainerMaterials({ onNavigate }: TrainerMaterialsProps) {
                     onClick={() =>
                       onNavigate("Question Review", { materialId: mat.id || (mat as any)._id })
                     }
-                    className="inline-flex items-center justify-center rounded-xl border border-slate-200 px-3 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors"
+                    className="inline-flex items-center justify-center rounded-xl border border-slate-200 px-3 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 btn-interactive"
                     title="View all questions generated from this material"
                   >
                     Questions →
@@ -278,8 +283,8 @@ export function TrainerMaterials({ onNavigate }: TrainerMaterialsProps) {
 
       {/* ── Upload Modal ── */}
       {uploadModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm animate-fadeIn">
-          <div className="relative w-full max-w-lg rounded-3xl bg-white p-6 shadow-2xl border border-[#f0ddd0]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
+          <div className="relative w-full max-w-lg rounded-3xl bg-white p-6 shadow-2xl border border-[#f0ddd0] anim-scale-in">
             <div className="flex items-center justify-between border-b border-slate-100 pb-4">
               <div>
                 <h3 className="text-lg font-extrabold text-slate-800">

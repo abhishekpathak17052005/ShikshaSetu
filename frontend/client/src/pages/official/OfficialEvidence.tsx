@@ -4,6 +4,7 @@ import {
   BookOpen,
   CheckCircle2,
   ClipboardCheck,
+  Download,
   Filter,
   Layers,
   RefreshCw,
@@ -13,6 +14,7 @@ import {
   Clock,
 } from "lucide-react";
 import { api, clearApiCache, CompetencyEvidence, LearningActivity } from "@/lib/api";
+import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 
 interface OfficialEvidenceProps {
@@ -20,8 +22,10 @@ interface OfficialEvidenceProps {
 }
 
 export function OfficialEvidence({ onNavigate }: OfficialEvidenceProps) {
+  const { user } = useAuth();
   const [evidenceItems, setEvidenceItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [downloading, setDownloading] = useState<string | null>(null);
   const [filterType, setFilterType] = useState<"ALL" | "AUTHORITATIVE" | "SUPPORTING">("ALL");
 
   const fetchEvidence = async () => {
@@ -109,9 +113,9 @@ export function OfficialEvidence({ onNavigate }: OfficialEvidenceProps) {
   const supportingCount = evidenceItems.filter((i) => i.type === "SUPPORTING").length;
 
   return (
-    <div className="space-y-6 animate-fadeIn max-w-4xl mx-auto">
+    <div className="space-y-6 anim-page-enter max-w-4xl mx-auto">
       {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between anim-fade-up">
         <div>
           <h1 className="text-2xl font-black text-[#123057]">Competency Evidence Ledger</h1>
           <p className="text-sm text-slate-500 mt-1">
@@ -121,7 +125,7 @@ export function OfficialEvidence({ onNavigate }: OfficialEvidenceProps) {
 
         <button
           onClick={fetchEvidence}
-          className="flex items-center gap-1.5 rounded-xl border border-[#dfe7f0] bg-white px-3.5 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors"
+          className="flex items-center gap-1.5 rounded-xl border border-[#dfe7f0] bg-white px-3.5 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 btn-interactive"
         >
           <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
           Refresh Ledger
@@ -129,9 +133,9 @@ export function OfficialEvidence({ onNavigate }: OfficialEvidenceProps) {
       </div>
 
       {/* Dual Evidence Rule Banners */}
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-2 anim-fade-up stagger-1">
         {/* Authoritative Card */}
-        <div className="rounded-2xl border border-emerald-200 bg-emerald-50/40 p-5 space-y-2">
+        <div className="rounded-2xl border border-emerald-200 bg-emerald-50/40 p-5 space-y-2 card-interactive">
           <div className="flex items-center gap-2 text-emerald-800 font-extrabold text-sm">
             <ShieldCheck size={18} />
             Authoritative Evidence (Confidence 0.85 – 1.0)
@@ -145,7 +149,7 @@ export function OfficialEvidence({ onNavigate }: OfficialEvidenceProps) {
         </div>
 
         {/* Supporting Card */}
-        <div className="rounded-2xl border border-teal-200 bg-teal-50/40 p-5 space-y-2">
+        <div className="rounded-2xl border border-teal-200 bg-teal-50/40 p-5 space-y-2 card-interactive">
           <div className="flex items-center gap-2 text-teal-900 font-extrabold text-sm">
             <BookOpen size={18} />
             Supporting Evidence (Confidence 0.30)
@@ -160,10 +164,10 @@ export function OfficialEvidence({ onNavigate }: OfficialEvidenceProps) {
       </div>
 
       {/* Filter Tabs */}
-      <div className="flex items-center gap-1 rounded-2xl border border-[#dfe7f0] bg-white p-1.5 shadow-sm">
+      <div className="flex items-center gap-1 rounded-2xl border border-[#dfe7f0] bg-white p-1.5 shadow-sm anim-fade-up stagger-2">
         <button
           onClick={() => setFilterType("ALL")}
-          className={`flex-1 rounded-xl py-2 text-xs font-bold transition-all ${
+          className={`flex-1 rounded-xl py-2 text-xs font-bold transition-all btn-interactive ${
             filterType === "ALL"
               ? "bg-[#123057] text-white shadow-sm"
               : "text-slate-500 hover:text-slate-800"
@@ -173,7 +177,7 @@ export function OfficialEvidence({ onNavigate }: OfficialEvidenceProps) {
         </button>
         <button
           onClick={() => setFilterType("AUTHORITATIVE")}
-          className={`flex-1 rounded-xl py-2 text-xs font-bold transition-all ${
+          className={`flex-1 rounded-xl py-2 text-xs font-bold transition-all btn-interactive ${
             filterType === "AUTHORITATIVE"
               ? "bg-emerald-700 text-white shadow-sm"
               : "text-slate-500 hover:text-slate-800"
@@ -183,7 +187,7 @@ export function OfficialEvidence({ onNavigate }: OfficialEvidenceProps) {
         </button>
         <button
           onClick={() => setFilterType("SUPPORTING")}
-          className={`flex-1 rounded-xl py-2 text-xs font-bold transition-all ${
+          className={`flex-1 rounded-xl py-2 text-xs font-bold transition-all btn-interactive ${
             filterType === "SUPPORTING"
               ? "bg-[#087f76] text-white shadow-sm"
               : "text-slate-500 hover:text-slate-800"
@@ -201,8 +205,8 @@ export function OfficialEvidence({ onNavigate }: OfficialEvidenceProps) {
           ))}
         </div>
       ) : filteredItems.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-[#dfe7f0] bg-white p-12 text-center">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-teal-50 text-teal-700">
+        <div className="rounded-2xl border border-dashed border-[#dfe7f0] bg-white p-12 text-center anim-fade-in">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-teal-50 text-teal-700 anim-badge-pop">
             <Award size={24} />
           </div>
           <h3 className="mt-4 text-base font-bold text-[#123057]">
@@ -214,13 +218,13 @@ export function OfficialEvidence({ onNavigate }: OfficialEvidenceProps) {
           <div className="mt-5 flex justify-center gap-3">
             <button
               onClick={() => onNavigate("Assessments")}
-              className="rounded-xl bg-[#ef7e37] px-4 py-2 text-xs font-bold text-white hover:bg-[#d96a27]"
+              className="rounded-xl bg-[#ef7e37] px-4 py-2 text-xs font-bold text-white hover:bg-[#d96a27] btn-interactive"
             >
               Take Assessment
             </button>
             <button
               onClick={() => onNavigate("Recommendations")}
-              className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50"
+              className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 btn-interactive"
             >
               Start Learning
             </button>
@@ -233,11 +237,12 @@ export function OfficialEvidence({ onNavigate }: OfficialEvidenceProps) {
             const scoreVal = typeof item.score === "number" ? item.score : 4.0;
             const levelVal = Math.min(5, Math.max(1, Math.round(scoreVal <= 5 ? scoreVal : scoreVal / 20)));
             const mockHash = `SHA256-${(item.id || idx).toString().slice(-6).toUpperCase() || "7E9B12"}-${(item.competency_code || "EVD").slice(0, 4)}-${idx + 104}`;
+            const staggerClass = idx < 8 ? `stagger-${idx + 1}` : "";
 
             return (
               <div
                 key={item.id || idx}
-                className={`rounded-3xl border bg-white p-6 sm:p-7 shadow-sm transition-all hover:shadow-md ${
+                className={`rounded-3xl border bg-white p-6 sm:p-7 shadow-sm transition-all card-interactive anim-card-enter ${staggerClass} ${
                   isAuth
                     ? "border-emerald-200/90 hover:border-emerald-400"
                     : "border-teal-200/80 hover:border-teal-400"
@@ -247,7 +252,7 @@ export function OfficialEvidence({ onNavigate }: OfficialEvidenceProps) {
                 <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4">
                   <div className="flex flex-wrap items-center gap-2">
                     <span
-                      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-extrabold uppercase tracking-wide ${
+                      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-extrabold uppercase tracking-wide anim-badge-pop ${
                         isAuth
                           ? "bg-emerald-100 text-emerald-900 border border-emerald-300/60"
                           : "bg-teal-100 text-teal-900 border border-teal-300/60"
@@ -257,21 +262,21 @@ export function OfficialEvidence({ onNavigate }: OfficialEvidenceProps) {
                       {item.type} EVIDENCE
                     </span>
 
-                    <span className="rounded-lg bg-slate-100 px-2.5 py-1 text-[11px] font-extrabold text-slate-700 border border-slate-200">
+                    <span className="rounded-lg bg-slate-100 px-2.5 py-1 font-mono text-[11px] font-medium tracking-tight text-slate-700 border border-slate-200">
                       {item.competency_code}
                     </span>
 
-                    <span className="rounded-lg bg-blue-50 px-2.5 py-1 text-[11px] font-bold text-blue-800 border border-blue-100">
+                    <span className="rounded-lg bg-blue-50 px-2.5 py-1 text-[11px] font-semibold text-blue-800 border border-blue-100">
                       Level {levelVal} / 5
                     </span>
                   </div>
 
-                  <div className="flex items-center gap-3 text-xs font-semibold text-slate-500">
-                    <span className="flex items-center gap-1 text-emerald-700 font-bold">
+                  <div className="flex items-center gap-3 text-xs font-medium text-slate-500">
+                    <span className="flex items-center gap-1 text-emerald-700 font-semibold anim-badge-pop">
                       <CheckCircle2 size={14} /> Confidence: {(item.confidence * 100).toFixed(0)}%
                     </span>
                     <span className="text-slate-300">•</span>
-                    <span className="flex items-center gap-1 text-slate-400">
+                    <span className="flex items-center gap-1 text-slate-400 font-normal">
                       <Clock size={13} /> {item.date ? new Date(item.date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "Recent"}
                     </span>
                   </div>
@@ -280,8 +285,8 @@ export function OfficialEvidence({ onNavigate }: OfficialEvidenceProps) {
                 {/* Primary Card Title & Subtitle */}
                 <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                   <div>
-                    <h3 className="text-lg font-black text-[#123057]">{item.title}</h3>
-                    <div className="text-xs text-slate-500 mt-1 flex flex-wrap items-center gap-2">
+                    <h3 className="text-lg font-bold text-[#123057]">{item.title}</h3>
+                    <div className="text-xs text-slate-500 mt-1 flex flex-wrap items-center gap-2 font-normal">
                       <span><strong>Source:</strong> {item.source}</span>
                       <span className="text-slate-300">•</span>
                       <span><strong>Audited By:</strong> Capacity Building Commission (CBC)</span>
@@ -291,14 +296,14 @@ export function OfficialEvidence({ onNavigate }: OfficialEvidenceProps) {
                   {/* Level Rating Meter */}
                   <div className="flex items-center gap-1.5 rounded-2xl bg-slate-50 p-2.5 border border-slate-200/80 shrink-0">
                     <div className="text-right pr-2">
-                      <div className="text-[10px] font-bold uppercase text-slate-400">Verified Rating</div>
-                      <div className="text-sm font-black text-[#123057]">Level {levelVal}.0</div>
+                      <div className="text-[10px] font-semibold uppercase text-slate-400">Verified Rating</div>
+                      <div className="text-sm font-bold text-[#123057]">Level {levelVal}.0</div>
                     </div>
                     <div className="flex gap-1">
                       {[1, 2, 3, 4, 5].map((lvl) => (
                         <div
                           key={lvl}
-                          className={`h-6 w-2 rounded-full ${
+                          className={`h-6 w-2 rounded-full transition-all duration-300 ${
                             lvl <= levelVal ? (isAuth ? "bg-emerald-500" : "bg-[#087f76]") : "bg-slate-200"
                           }`}
                         />
@@ -310,20 +315,20 @@ export function OfficialEvidence({ onNavigate }: OfficialEvidenceProps) {
                 {/* Multi-Column Metadata Metrics */}
                 <div className="mt-5 grid gap-3 sm:grid-cols-3 text-xs">
                   <div className="rounded-xl border border-slate-100 bg-[#f8fafc] p-3">
-                    <div className="font-bold text-slate-400 uppercase text-[10px]">Verification Protocol</div>
+                    <div className="font-semibold text-slate-400 uppercase text-[10px] tracking-wider">Verification Protocol</div>
                     <div className="font-semibold text-slate-800 mt-0.5">
                       {isAuth ? "Standardized Adaptive IRT Examination" : "iGOT Self-Paced Module Completion"}
                     </div>
                   </div>
                   <div className="rounded-xl border border-slate-100 bg-[#f8fafc] p-3">
-                    <div className="font-bold text-slate-400 uppercase text-[10px]">Skill Gap Impact</div>
+                    <div className="font-semibold text-slate-400 uppercase text-[10px] tracking-wider">Skill Gap Impact</div>
                     <div className="font-semibold text-emerald-700 mt-0.5 flex items-center gap-1">
                       <TrendingUp size={13} /> {isAuth ? "Authoritative Profile Score Updated" : "Supporting Ledger Activity Logged"}
                     </div>
                   </div>
                   <div className="rounded-xl border border-slate-100 bg-[#f8fafc] p-3">
-                    <div className="font-bold text-slate-400 uppercase text-[10px]">Cryptographic Record Hash</div>
-                    <div className="font-mono text-[11px] font-bold text-slate-600 mt-0.5 truncate">
+                    <div className="font-semibold text-slate-400 uppercase text-[10px] tracking-wider">Cryptographic Record Hash</div>
+                    <div className="font-mono text-[11px] font-medium text-slate-600 mt-0.5 truncate">
                       {mockHash}
                     </div>
                   </div>
@@ -343,7 +348,7 @@ export function OfficialEvidence({ onNavigate }: OfficialEvidenceProps) {
                 <div className="mt-5 flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-100 text-xs font-bold">
                   <button
                     onClick={() => onNavigate("Skill Gaps")}
-                    className="inline-flex items-center gap-1 text-[#087f76] hover:underline"
+                    className="inline-flex items-center gap-1 text-[#087f76] hover:underline btn-interactive"
                   >
                     View Skill Gap Impact →
                   </button>
@@ -351,13 +356,13 @@ export function OfficialEvidence({ onNavigate }: OfficialEvidenceProps) {
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => onNavigate("Recommendations")}
-                      className="rounded-xl border border-slate-200 bg-white px-3.5 py-1.5 text-slate-700 hover:bg-slate-50 transition"
+                      className="rounded-xl border border-slate-200 bg-white px-3.5 py-1.5 text-slate-700 hover:bg-slate-50 btn-interactive"
                     >
                       Explore Next Course
                     </button>
                     <button
                       onClick={() => toast.success(`Evidence Certificate #${mockHash} verified and ready for download.`)}
-                      className="rounded-xl bg-[#123057] px-3.5 py-1.5 text-white hover:bg-navy/90 transition shadow-sm"
+                      className="rounded-xl bg-[#123057] px-3.5 py-1.5 text-white hover:bg-navy/90 btn-interactive shadow-xs"
                     >
                       Download Credential
                     </button>

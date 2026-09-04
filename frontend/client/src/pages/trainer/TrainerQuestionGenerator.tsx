@@ -118,15 +118,15 @@ export function TrainerQuestionGenerator({
   );
 
   return (
-    <div className="space-y-8 animate-fadeIn max-w-4xl mx-auto">
+    <div className="space-y-8 anim-page-enter max-w-4xl mx-auto">
       {/* Top Title Banner */}
-      <div className="rounded-3xl border border-[#f0ddd0] bg-white p-6 sm:p-8 shadow-sm">
+      <div className="rounded-3xl border border-[#f0ddd0] bg-white p-6 sm:p-8 shadow-sm anim-fade-up">
         <div className="flex items-center gap-3 text-[#ef7e37]">
-          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-orange-50 text-[#ef7e37]">
+          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-orange-50 text-[#ef7e37] anim-badge-pop">
             <Sparkles size={22} />
           </div>
           <div>
-            <h1 className="text-2xl font-black text-slate-800">
+            <h1 className="text-2xl font-bold tracking-tight text-slate-800">
               AI Assessment Question Generator
             </h1>
             <p className="text-xs text-slate-400 mt-0.5">
@@ -151,7 +151,7 @@ export function TrainerQuestionGenerator({
                   <button
                     type="button"
                     onClick={() => onNavigate("Upload Material")}
-                    className="font-bold underline text-[#ef7e37]"
+                    className="font-bold underline text-[#ef7e37] btn-interactive"
                   >
                     Upload a curriculum document first
                   </button>
@@ -209,9 +209,9 @@ export function TrainerQuestionGenerator({
                     type="button"
                     key={diff}
                     onClick={() => setDifficulty(diff)}
-                    className={`rounded-xl border py-2.5 text-xs font-bold transition-all ${
+                    className={`rounded-xl border py-2.5 text-xs font-bold transition-all btn-interactive ${
                       difficulty === diff
-                        ? "border-[#ef7e37] bg-[#fff2e8] text-[#c2510e] shadow-sm"
+                        ? "border-[#ef7e37] bg-[#fff2e8] text-[#c2510e] shadow-sm font-black"
                         : "border-[#f0ddd0] bg-white text-slate-500 hover:bg-orange-50"
                     }`}
                   >
@@ -252,7 +252,7 @@ export function TrainerQuestionGenerator({
             <button
               type="submit"
               disabled={generating || materials.length === 0}
-              className="w-full flex items-center justify-center gap-2 rounded-2xl bg-[#ef7e37] py-3.5 text-sm font-bold text-white shadow-md hover:bg-[#d96a27] disabled:opacity-50 transition-all transform active:scale-98"
+              className="w-full flex items-center justify-center gap-2 rounded-2xl bg-[#ef7e37] py-3.5 text-sm font-bold text-white shadow-md hover:bg-[#d96a27] disabled:opacity-50 btn-interactive"
             >
               {generating ? (
                 <>
@@ -271,22 +271,22 @@ export function TrainerQuestionGenerator({
 
       {/* Generation Status Visualizer */}
       {generating && (
-        <div className="rounded-3xl border border-orange-200 bg-orange-50/40 p-6 animate-fadeIn">
+        <div className="rounded-3xl border border-orange-200 bg-orange-50/40 p-6 anim-scale-in">
           <h3 className="text-sm font-bold text-slate-800 mb-4 flex items-center gap-2">
             <RefreshCw size={16} className="animate-spin text-[#ef7e37]" />
             RAG Pipeline Execution in Progress
           </h3>
           <div className="space-y-3">
-            <div className={`flex items-center gap-3 text-xs ${generationStep >= 1 ? "text-emerald-700 font-bold" : "text-slate-400"}`}>
-              <CheckCircle2 size={16} className={generationStep >= 1 ? "text-emerald-600" : "text-slate-300"} />
+            <div className={`flex items-center gap-3 text-xs transition-colors duration-300 ${generationStep >= 1 ? "text-emerald-700 font-bold" : "text-slate-400"}`}>
+              <CheckCircle2 size={16} className={generationStep >= 1 ? "text-emerald-600 anim-badge-pop" : "text-slate-300"} />
               1. Retrieving semantic chunks from vector index
             </div>
-            <div className={`flex items-center gap-3 text-xs ${generationStep >= 2 ? "text-emerald-700 font-bold" : "text-slate-400"}`}>
-              <CheckCircle2 size={16} className={generationStep >= 2 ? "text-emerald-600" : "text-slate-300"} />
+            <div className={`flex items-center gap-3 text-xs transition-colors duration-300 ${generationStep >= 2 ? "text-emerald-700 font-bold" : "text-slate-400"}`}>
+              <CheckCircle2 size={16} className={generationStep >= 2 ? "text-emerald-600 anim-badge-pop" : "text-slate-300"} />
               2. Prompting generative LLM with strict grounding constraints
             </div>
-            <div className={`flex items-center gap-3 text-xs ${generationStep >= 3 ? "text-emerald-700 font-bold" : "text-slate-400"}`}>
-              <CheckCircle2 size={16} className={generationStep >= 3 ? "text-emerald-600" : "text-slate-300"} />
+            <div className={`flex items-center gap-3 text-xs transition-colors duration-300 ${generationStep >= 3 ? "text-emerald-700 font-bold" : "text-slate-400"}`}>
+              <CheckCircle2 size={16} className={generationStep >= 3 ? "text-emerald-600 anim-badge-pop" : "text-slate-300"} />
               3. Running automated grounding validation & persisting to review pool
             </div>
           </div>
@@ -295,10 +295,10 @@ export function TrainerQuestionGenerator({
 
       {/* Generated Questions Results Container */}
       {generatedQuestions.length > 0 && (
-        <div className="rounded-3xl border border-emerald-200 bg-emerald-50/40 p-6 sm:p-8 animate-fadeIn space-y-6">
+        <div className="rounded-3xl border border-emerald-200 bg-emerald-50/40 p-6 sm:p-8 anim-scale-in space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-emerald-200/60 pb-4">
             <div>
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-800">
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-800 anim-badge-pop">
                 <CheckCircle2 size={14} /> Batch Generation Complete
               </div>
               <h2 className="text-xl font-extrabold text-slate-800 mt-2">
@@ -310,7 +310,7 @@ export function TrainerQuestionGenerator({
             </div>
             <button
               onClick={() => onNavigate("Question Review", { materialId: selectedMaterialId })}
-              className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-2.5 text-xs font-bold text-white shadow hover:bg-emerald-700 transition-all"
+              className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-2.5 text-xs font-bold text-white shadow hover:bg-emerald-700 btn-interactive"
             >
               Open Question Review Studio <ArrowRight size={14} />
             </button>
@@ -318,50 +318,53 @@ export function TrainerQuestionGenerator({
 
           {/* Quick List Preview */}
           <div className="space-y-4">
-            {generatedQuestions.map((q, idx) => (
-              <div
-                key={q.id || (q as any)._id || idx}
-                className="rounded-2xl border border-emerald-100 bg-white p-5 shadow-sm space-y-3"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                    Question #{idx + 1}
-                  </span>
-                  <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-[10px] font-bold text-amber-800">
-                    GENERATED (Pending Review)
-                  </span>
-                </div>
-                <p className="text-sm font-bold text-slate-800">{q.question}</p>
+            {generatedQuestions.map((q, idx) => {
+              const staggerCls = `stagger-${Math.min((idx % 4) + 1, 8)}`;
+              return (
+                <div
+                  key={q.id || (q as any)._id || idx}
+                  className={`rounded-2xl border border-emerald-100 bg-white p-5 shadow-sm space-y-3 anim-card-enter ${staggerCls}`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                      Question #{idx + 1}
+                    </span>
+                    <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-[10px] font-bold text-amber-800 anim-badge-pop">
+                      GENERATED (Pending Review)
+                    </span>
+                  </div>
+                  <p className="text-sm font-bold text-slate-800">{q.question}</p>
 
-                <div className="grid gap-2 sm:grid-cols-2 pt-2">
-                  {q.options.map((opt, optIdx) => {
-                    const optLetter = String.fromCharCode(65 + optIdx);
-                    const isCorrect = optLetter === q.correct_answer;
-                    return (
-                      <div
-                        key={optIdx}
-                        className={`rounded-xl border px-3 py-2 text-xs flex items-center gap-2 ${
-                          isCorrect
-                            ? "border-emerald-300 bg-emerald-50/50 font-bold text-emerald-800"
-                            : "border-slate-100 bg-slate-50 text-slate-600"
-                        }`}
-                      >
-                        <span className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold ${
-                          isCorrect ? "bg-emerald-600 text-white" : "bg-slate-200 text-slate-600"
-                        }`}>
-                          {optLetter}
-                        </span>
-                        <span>{opt}</span>
-                      </div>
-                    );
-                  })}
-                </div>
+                  <div className="grid gap-2 sm:grid-cols-2 pt-2">
+                    {q.options.map((opt, optIdx) => {
+                      const optLetter = String.fromCharCode(65 + optIdx);
+                      const isCorrect = optLetter === q.correct_answer;
+                      return (
+                        <div
+                          key={optIdx}
+                          className={`rounded-xl border px-3 py-2 text-xs flex items-center gap-2 transition-all ${
+                            isCorrect
+                              ? "border-emerald-300 bg-emerald-50/50 font-bold text-emerald-800"
+                              : "border-slate-100 bg-slate-50 text-slate-600"
+                          }`}
+                        >
+                          <span className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold ${
+                            isCorrect ? "bg-emerald-600 text-white" : "bg-slate-200 text-slate-600"
+                          }`}>
+                            {optLetter}
+                          </span>
+                          <span>{opt}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
 
-                <div className="text-xs text-slate-500 bg-slate-50 p-3 rounded-xl border border-slate-100">
-                  <strong className="text-slate-700">Explanation:</strong> {q.explanation}
+                  <div className="text-xs text-slate-500 bg-slate-50 p-3 rounded-xl border border-slate-100">
+                    <strong className="text-slate-700">Explanation:</strong> {q.explanation}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}

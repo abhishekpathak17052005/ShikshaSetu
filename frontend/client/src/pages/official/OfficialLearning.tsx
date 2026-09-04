@@ -19,6 +19,7 @@ import { LearningActivity } from "@/lib/api";
 import { CourseViewerModal } from "@/components/CourseViewerModal";
 import { getCourseCurriculum } from "@/lib/courseContent";
 import { toast } from "sonner";
+import { NumberReveal, ProgressBarFill, AnimatedSection } from "@/components/motion/MotionUtils";
 
 interface OfficialLearningProps {
   initialActivityId?: string;
@@ -97,7 +98,7 @@ export function OfficialLearning({
     : null;
 
   return (
-    <div className="space-y-6 animate-fadeIn">
+    <div className="space-y-6 anim-page-enter">
       {/* Course Reader Modal */}
       <CourseViewerModal
         isOpen={viewerOpen}
@@ -113,9 +114,9 @@ export function OfficialLearning({
       />
 
       {/* Top Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between anim-fade-up">
         <div>
-          <h1 className="text-2xl font-black text-[#123057]">My Learning Workspace</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-[#123057]">My Learning Workspace</h1>
           <p className="text-sm text-slate-500 mt-1">
             Track module completions, record supporting evidence, and prepare for capability validation.
           </p>
@@ -125,20 +126,20 @@ export function OfficialLearning({
         <div className="flex items-center gap-1 rounded-2xl border border-[#dfe7f0] bg-white p-1.5 shadow-sm">
           <button
             onClick={() => setActiveTab("ACTIVE")}
-            className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition-all ${
+            className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-semibold transition-all btn-interactive ${
               activeTab === "ACTIVE"
                 ? "bg-[#087f76] text-white shadow-sm"
-                : "text-slate-500 hover:text-slate-800"
+                : "text-slate-500 hover:text-slate-800 font-medium"
             }`}
           >
             <Play size={13} /> Active Activities ({activeActivities.length})
           </button>
           <button
             onClick={() => setActiveTab("COMPLETED")}
-            className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition-all ${
+            className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-semibold transition-all btn-interactive ${
               activeTab === "COMPLETED"
                 ? "bg-[#087f76] text-white shadow-sm"
-                : "text-slate-500 hover:text-slate-800"
+                : "text-slate-500 hover:text-slate-800 font-medium"
             }`}
           >
             <CheckCircle2 size={13} /> Completed ({completedActivities.length})
@@ -147,12 +148,12 @@ export function OfficialLearning({
       </div>
 
       {/* Evidence & Ecosystem Note */}
-      <div className="flex items-start gap-3 rounded-2xl border border-amber-100 bg-amber-50/70 p-4 text-xs text-amber-900">
+      <div className="flex items-start gap-3 rounded-2xl border border-amber-100 bg-amber-50/70 p-4 text-xs text-amber-900 anim-fade-up stagger-1">
         <Award size={18} className="text-amber-600 shrink-0 mt-0.5" />
         <div className="space-y-0.5">
-          <div className="font-bold text-[#123057] flex items-center gap-2">
+          <div className="font-semibold text-[#123057] flex items-center gap-2">
             <span>Learning ≠ Proven Competency Governance Architecture</span>
-            <span className="rounded-md bg-amber-200/80 px-2 py-0.5 text-[10px] font-semibold text-amber-800">
+            <span className="rounded-md bg-amber-200/80 px-2 py-0.5 text-[10px] font-semibold text-amber-800 anim-badge-pop">
               Supporting Evidence (0.30)
             </span>
           </div>
@@ -169,11 +170,11 @@ export function OfficialLearning({
           {loading ? (
             <div className="h-64 rounded-3xl bg-white animate-pulse border border-slate-200" />
           ) : activeActivities.length === 0 ? (
-            <div className="rounded-3xl border border-dashed border-[#dfe7f0] bg-white p-12 text-center">
-              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-teal-50 text-teal-700">
+            <div className="rounded-3xl border border-dashed border-[#dfe7f0] bg-white p-12 text-center anim-fade-in">
+              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-teal-50 text-teal-700 anim-badge-pop">
                 <BookOpen size={24} />
               </div>
-              <h3 className="mt-4 text-base font-bold text-[#123057]">
+              <h3 className="mt-4 text-base font-bold text-[#123057] tracking-tight">
                 No active learning activities
               </h3>
               <p className="mt-1 text-sm text-slate-500 max-w-md mx-auto">
@@ -181,7 +182,7 @@ export function OfficialLearning({
               </p>
               <button
                 onClick={() => onNavigate("Recommendations")}
-                className="mt-5 inline-flex items-center gap-2 rounded-xl bg-[#ef7e37] px-5 py-2.5 text-xs font-bold text-white hover:bg-[#d96a27]"
+                className="mt-5 inline-flex items-center gap-2 rounded-xl bg-[#ef7e37] px-5 py-2.5 text-xs font-semibold text-white hover:bg-[#d96a27] btn-interactive"
               >
                 Browse Recommendations <ArrowRight size={13} />
               </button>
@@ -190,18 +191,18 @@ export function OfficialLearning({
             <div className="grid gap-6 lg:grid-cols-3">
               {/* Primary Active Card (2 cols) */}
               {selectedActivity && selectedCurriculum && (
-                <div className="rounded-3xl border border-[#dfe7f0] bg-white p-6 sm:p-8 shadow-sm lg:col-span-2 space-y-6">
+                <div className="rounded-3xl border border-[#dfe7f0] bg-white p-6 sm:p-8 shadow-sm lg:col-span-2 space-y-6 anim-card-enter stagger-1">
                   <div className="flex flex-wrap items-start justify-between gap-3 border-b border-slate-100 pb-4">
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="rounded-full bg-[#123057] px-2.5 py-0.5 text-[10px] font-extrabold uppercase text-white">
+                        <span className="rounded-full bg-[#123057] px-2.5 py-0.5 text-[10px] font-semibold uppercase text-white tracking-wider">
                           {selectedCurriculum.provider}
                         </span>
-                        <span className="rounded-md bg-teal-50 px-2.5 py-0.5 text-[11px] font-extrabold uppercase text-teal-800">
+                        <span className="rounded-md bg-teal-50 px-2.5 py-0.5 font-mono text-[11px] font-medium uppercase text-teal-800 anim-badge-pop tracking-tight">
                           {selectedActivity.competency_id}
                         </span>
                       </div>
-                      <h2 className="text-xl font-bold text-[#123057] mt-2">
+                      <h2 className="text-xl font-bold text-[#123057] mt-2 tracking-tight">
                         {selectedCurriculum.title}
                       </h2>
                     </div>
@@ -216,14 +217,16 @@ export function OfficialLearning({
                   <div className="space-y-2">
                     <div className="flex justify-between text-xs font-bold">
                       <span className="text-slate-500">Learning Progress</span>
-                      <span className="text-[#087f76]">{selectedActivity.progress_percent}% Completed</span>
+                      <span className="text-[#087f76]">
+                        <NumberReveal value={selectedActivity.progress_percent} suffix="% Completed" />
+                      </span>
                     </div>
-                    <div className="h-3 w-full overflow-hidden rounded-full bg-slate-100">
-                      <div
-                        className="h-full rounded-full bg-[#087f76] transition-all duration-500"
-                        style={{ width: `${selectedActivity.progress_percent}%` }}
-                      />
-                    </div>
+                    <ProgressBarFill
+                      percent={selectedActivity.progress_percent || 0}
+                      className="h-3 w-full overflow-hidden rounded-full bg-slate-100"
+                      fillClassName="h-full rounded-full bg-[#087f76]"
+                      durationMs={600}
+                    />
                   </div>
 
                   {/* Objective & Context */}
@@ -301,25 +304,25 @@ export function OfficialLearning({
       {activeTab === "COMPLETED" && (
         <div className="space-y-4">
           {completedActivities.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-[#dfe7f0] bg-white p-12 text-center text-xs text-slate-400">
+            <div className="rounded-2xl border border-dashed border-[#dfe7f0] bg-white p-12 text-center text-xs text-slate-400 anim-fade-in">
               No completed activities yet.
             </div>
           ) : (
-            completedActivities.map((act) => (
+            completedActivities.map((act, idx) => (
               <div
                 key={act.activity_id}
-                className="rounded-2xl border border-emerald-100 bg-white p-6 shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
+                className={`rounded-2xl border border-emerald-100 bg-white p-6 shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 card-interactive anim-card-enter stagger-${Math.min(idx + 1, 6)}`}
               >
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="rounded bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-800">
+                    <span className="rounded bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-800 anim-badge-pop tracking-wider">
                       COMPLETED
                     </span>
-                    <span className="text-xs font-bold text-slate-400">
+                    <span className="font-mono text-[11px] font-medium tracking-tight text-slate-400">
                       {act.competency_id}
                     </span>
                   </div>
-                  <h3 className="text-base font-bold text-[#123057] mt-1">
+                  <h3 className="text-base font-bold text-[#123057] mt-1 tracking-tight">
                     {act.resource_id}
                   </h3>
                   <div className="text-xs text-slate-400 mt-1">
@@ -328,13 +331,13 @@ export function OfficialLearning({
                 </div>
 
                 <div className="flex items-center gap-3">
-                  <span className="inline-flex items-center gap-1 rounded-full bg-teal-50 px-3 py-1 text-xs font-bold text-teal-800">
+                  <span className="inline-flex items-center gap-1 rounded-full bg-teal-50 px-3 py-1 text-xs font-bold text-teal-800 anim-badge-pop">
                     <Check size={12} /> Supporting Evidence Logged (0.30)
                   </span>
 
                   <button
                     onClick={() => onNavigate("Assessments", { competencyCode: act.competency_id })}
-                    className="inline-flex items-center gap-1.5 rounded-xl bg-[#087f76] px-4 py-2 text-xs font-bold text-white shadow hover:bg-[#06655e]"
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-[#087f76] px-4 py-2 text-xs font-bold text-white shadow hover:bg-[#06655e] btn-interactive"
                   >
                     Validate via Assessment →
                   </button>
@@ -347,8 +350,8 @@ export function OfficialLearning({
 
       {/* ── Complete Modal ── */}
       {showCompleteModal && targetCompleteActivity && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm animate-fadeIn">
-          <div className="relative w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl border border-[#dfe7f0]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-xs anim-fade-in">
+          <div className="relative w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl border border-[#dfe7f0] anim-scale-in">
             <h3 className="text-lg font-extrabold text-[#123057]">
               Complete Learning Activity
             </h3>

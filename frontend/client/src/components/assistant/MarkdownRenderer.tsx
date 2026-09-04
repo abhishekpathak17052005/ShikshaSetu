@@ -24,7 +24,7 @@ function renderFormattedText(text: string): React.ReactNode {
       return (
         <span
           key={idx}
-          className="inline-flex items-center mx-1 px-1.5 py-0.5 rounded-md bg-teal-50 text-[10px] font-bold text-teal-800 border border-teal-200 shadow-2xs"
+          className="inline-flex items-center mx-1 px-1.5 py-0.5 rounded-md bg-teal-50 font-mono text-[10px] font-medium tracking-tight text-teal-800 border border-teal-200 shadow-2xs"
         >
           {match[1]}
         </span>
@@ -58,23 +58,23 @@ export function MarkdownRenderer({ content, className = "" }: MarkdownRendererPr
   if (!content) return null;
 
   return (
-    <div className={`space-y-2 text-xs text-slate-700 leading-relaxed overflow-hidden ${className}`}>
+    <div className={`space-y-2 text-xs text-slate-700 leading-relaxed overflow-hidden font-sans ${className}`}>
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={{
           // Headings
           h1: ({ children }) => (
-            <h2 className="text-sm font-black text-slate-900 tracking-tight mt-3 mb-1.5 flex items-center gap-1.5">
+            <h2 className="text-sm font-bold text-slate-900 tracking-tight mt-3 mb-1.5 flex items-center gap-1.5">
               {processChildren(children)}
             </h2>
           ),
           h2: ({ children }) => (
-            <h3 className="text-[13px] font-extrabold text-slate-900 tracking-tight mt-2.5 mb-1 flex items-center gap-1.5">
+            <h3 className="text-[13px] font-bold text-slate-900 tracking-tight mt-2.5 mb-1 flex items-center gap-1.5">
               {processChildren(children)}
             </h3>
           ),
           h3: ({ children }) => (
-            <h4 className="text-xs font-bold text-slate-900 tracking-wide mt-2 mb-1 flex items-center gap-1.5 text-[#123057]">
+            <h4 className="text-xs font-semibold text-slate-900 tracking-tight mt-2 mb-1 flex items-center gap-1.5 text-[#123057]">
               {processChildren(children)}
             </h4>
           ),
@@ -86,14 +86,14 @@ export function MarkdownRenderer({ content, className = "" }: MarkdownRendererPr
 
           // Paragraphs
           p: ({ children }) => (
-            <p className="leading-relaxed my-1.5">
+            <p className="leading-relaxed my-1.5 text-xs text-slate-700 font-normal">
               {processChildren(children)}
             </p>
           ),
 
           // Strong & Emphasis
           strong: ({ children }) => (
-            <strong className="font-black text-slate-900">
+            <strong className="font-semibold text-slate-900">
               {processChildren(children)}
             </strong>
           ),
@@ -123,21 +123,21 @@ export function MarkdownRenderer({ content, className = "" }: MarkdownRendererPr
             return (
               <li className="flex items-start gap-2 text-xs leading-snug my-1">
                 <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#ef7e37]" />
-                <div className="flex-1">{processChildren(children)}</div>
+                <div className="flex-1 font-normal">{processChildren(children)}</div>
               </li>
             );
           },
 
           // Blockquotes / Governance Notices
           blockquote: ({ children }) => (
-            <div className="rounded-xl border border-teal-200 bg-teal-50/70 p-3 my-2.5 text-[11px] leading-relaxed text-teal-950 shadow-2xs">
+            <div className="rounded-xl border border-teal-200 bg-teal-50/70 p-3 my-2.5 text-[11px] leading-relaxed text-teal-950 shadow-2xs font-normal">
               {processChildren(children)}
             </div>
           ),
 
           // Inline Code & Blocks
           code: ({ children, className: codeClass }) => (
-            <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-pink-700 border border-slate-200/60">
+            <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[11px] font-medium text-pink-700 border border-slate-200/60">
               {children}
             </code>
           ),

@@ -214,7 +214,7 @@ export default function LoginPage() {
       </div>
 
       {/* ── Right panel (form) ── */}
-      <div className="flex flex-1 items-center justify-center bg-[#eef4f8] px-5 py-10">
+      <div className="flex flex-1 items-center justify-center bg-[#eef4f8] px-5 py-10 anim-page-enter">
         <div className="w-full max-w-[480px]">
           {/* Mobile logo */}
           <div className="mb-6 flex items-center gap-2 lg:hidden">
@@ -226,16 +226,16 @@ export default function LoginPage() {
             <span className="text-xl font-extrabold text-[#123057]">ShikshaSetu</span>
           </div>
 
-          <div className="rounded-3xl border border-[#dfe7f0] bg-white p-8 shadow-xl">
+          <div className="rounded-3xl border border-[#dfe7f0] bg-white p-8 shadow-xl anim-card-enter">
             {/* Header */}
             <div className="mb-6">
-              <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-[#0f9f92]/20 bg-[#e8f6f3] px-3 py-1 text-[11px] font-bold text-[#0f9f92]">
+              <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-[#0f9f92]/20 bg-[#e8f6f3] px-3 py-1 text-[11px] font-semibold text-[#0f9f92] anim-badge-pop">
                 Smart India Hackathon · Capability Intelligence
               </div>
-              <div className="text-2xl font-extrabold text-[#123057]">
+              <div className="text-2xl font-bold text-[#123057] tracking-tight">
                 {isRegister ? "Create account" : "Welcome back"}
               </div>
-              <p className="mt-1 text-xs text-slate-500">
+              <p className="mt-1 text-xs text-slate-500 font-normal">
                 {isRegister
                   ? "Select your department, role, and designation to initialize your tailored framework"
                   : "Sign in to your capability workspace"}
@@ -244,7 +244,7 @@ export default function LoginPage() {
 
             {/* Error banner */}
             {error && (
-              <div className="mb-4 rounded-xl bg-red-50 px-4 py-3 text-xs font-semibold text-red-700 border border-red-100 animate-fadeIn">
+              <div className="mb-4 rounded-xl bg-red-50 px-4 py-3 text-xs font-medium text-red-700 border border-red-100 anim-fade-up">
                 {error}
               </div>
             )}
@@ -420,7 +420,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={busy}
-                className="w-full mt-2 rounded-xl bg-[#ef7e37] px-4 py-3 text-sm font-bold text-white hover:bg-[#d96e2a] disabled:opacity-60 transition-all shadow-md hover:shadow-lg"
+                className="w-full mt-2 rounded-xl bg-[#ef7e37] px-4 py-3 text-sm font-bold text-white hover:bg-[#d96e2a] disabled:opacity-60 transition-all shadow-md hover:shadow-lg btn-interactive"
               >
                 {busy
                   ? "Please wait..."
@@ -433,7 +433,7 @@ export default function LoginPage() {
             {/* Toggle login / register */}
             <button
               type="button"
-              className="mt-5 w-full text-xs font-bold text-[#0f9f92] hover:underline"
+              className="mt-5 w-full text-xs font-bold text-[#0f9f92] hover:underline btn-interactive"
               onClick={() => {
                 setIsRegister(!isRegister);
                 setError("");

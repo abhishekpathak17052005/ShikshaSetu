@@ -24,6 +24,7 @@ import {
   type QuizAttemptResult,
 } from "@/lib/api";
 import { toast } from "sonner";
+import { NumberReveal } from "@/components/motion/MotionUtils";
 
 interface OfficialQuizzesProps {
   initialCompetencyCode?: string;
@@ -58,7 +59,7 @@ function LevelBar({ before, after, max = 5 }: { before: number; after: number; m
         <div className="flex-1 h-2 rounded-full bg-slate-100 overflow-hidden">
           <div className="h-full rounded-full bg-slate-300 transition-all" style={{ width: `${pctBefore}%` }} />
         </div>
-        <span className="w-8 font-bold text-slate-600">{before.toFixed(1)}</span>
+        <span className="w-8 font-mono font-bold text-slate-600">{before.toFixed(1)}</span>
       </div>
       <div className="flex items-center gap-2 text-[11px] text-slate-500">
         <span className="w-10 text-right">After</span>
@@ -68,7 +69,7 @@ function LevelBar({ before, after, max = 5 }: { before: number; after: number; m
             style={{ width: `${pctAfter}%` }}
           />
         </div>
-        <span className="w-8 font-bold text-[#123057]">{after.toFixed(1)}</span>
+        <span className="w-8 font-mono font-bold text-[#123057]">{after.toFixed(1)}</span>
       </div>
     </div>
   );
@@ -199,7 +200,7 @@ export function OfficialQuizzes({ initialCompetencyCode, onNavigate }: OfficialQ
     const impColour = improvement > 0 ? "text-emerald-600" : improvement < 0 ? "text-red-500" : "text-slate-500";
 
     return (
-      <div className="space-y-6 animate-fadeIn max-w-3xl mx-auto">
+      <div className="space-y-6 anim-page-enter max-w-3xl mx-auto">
         {/* Result header */}
         <div className="rounded-3xl border border-teal-200 bg-white p-6 sm:p-8 shadow-sm space-y-5">
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 pb-5 border-b border-slate-100">
@@ -207,7 +208,7 @@ export function OfficialQuizzes({ initialCompetencyCode, onNavigate }: OfficialQ
               <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-900">
                 <CheckCircle2 size={13} /> Quiz Completed
               </div>
-              <h2 className="text-2xl font-black text-[#123057] mt-2">Quiz Results</h2>
+              <h2 className="text-2xl font-bold tracking-tight text-[#123057] mt-2">Quiz Results</h2>
               <p className="text-xs text-slate-500 mt-0.5">
                 Supporting evidence recorded in your competency ledger.
               </p>
@@ -215,9 +216,9 @@ export function OfficialQuizzes({ initialCompetencyCode, onNavigate }: OfficialQ
             {/* Score pill */}
             <div className="rounded-2xl border border-teal-200 bg-teal-50/60 px-6 py-4 text-center shrink-0">
               <div className="text-[10px] font-bold text-teal-800 uppercase tracking-wider">Score</div>
-              <div className="text-3xl font-black text-[#123057] mt-1">
+              <div className="text-3xl font-extrabold tracking-tight text-[#123057] mt-1 font-mono">
                 {score}
-                <span className="text-lg text-slate-400">/{total_questions}</span>
+                <span className="text-lg text-slate-400 font-normal">/{total_questions}</span>
               </div>
               <ScoreBadge pct={percentage} />
             </div>
@@ -226,19 +227,19 @@ export function OfficialQuizzes({ initialCompetencyCode, onNavigate }: OfficialQ
           {/* Score summary row */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <div className="rounded-xl bg-slate-50 border border-slate-100 p-3 text-center">
-              <div className="text-xl font-black text-emerald-600">{score}</div>
+              <div className="text-xl font-bold font-mono text-emerald-600">{score}</div>
               <div className="text-[10px] font-bold text-slate-400 uppercase mt-0.5">Correct</div>
             </div>
             <div className="rounded-xl bg-slate-50 border border-slate-100 p-3 text-center">
-              <div className="text-xl font-black text-red-500">{total_questions - score}</div>
+              <div className="text-xl font-bold font-mono text-red-500">{total_questions - score}</div>
               <div className="text-[10px] font-bold text-slate-400 uppercase mt-0.5">Incorrect</div>
             </div>
             <div className="rounded-xl bg-slate-50 border border-slate-100 p-3 text-center">
-              <div className="text-xl font-black text-[#123057]">{Math.round(percentage)}%</div>
+              <div className="text-xl font-bold font-mono text-[#123057]">{Math.round(percentage)}%</div>
               <div className="text-[10px] font-bold text-slate-400 uppercase mt-0.5">Accuracy</div>
             </div>
             <div className="rounded-xl bg-slate-50 border border-slate-100 p-3 text-center">
-              <div className={`text-xl font-black ${impColour} flex items-center justify-center gap-1`}>
+              <div className={`text-xl font-bold font-mono ${impColour} flex items-center justify-center gap-1`}>
                 <ImpIcon size={16} />
                 {improvement > 0 ? "+" : ""}{improvement.toFixed(2)}
               </div>
@@ -255,7 +256,7 @@ export function OfficialQuizzes({ initialCompetencyCode, onNavigate }: OfficialQ
                 <BarChart2 size={16} className="text-[#087f76]" />
               </div>
               <h3 className="text-sm font-bold text-[#123057]">Competency Impact</h3>
-              <span className="rounded-md bg-teal-50 border border-teal-200 px-2 py-0.5 text-[10px] font-bold text-teal-800">
+              <span className="rounded-md bg-teal-50 border border-teal-200 px-2 py-0.5 text-[10px] font-mono font-bold text-teal-800">
                 {competency.competency_code}
               </span>
             </div>
@@ -265,19 +266,19 @@ export function OfficialQuizzes({ initialCompetencyCode, onNavigate }: OfficialQ
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
               <div className="rounded-xl bg-slate-50 border border-slate-100 p-3">
                 <div className="text-[10px] font-bold text-slate-400 uppercase">Before</div>
-                <div className="text-lg font-black text-slate-600 mt-0.5">
-                  {competency.competency_level_before.toFixed(1)}<span className="text-xs text-slate-400">/5</span>
+                <div className="text-lg font-bold font-mono text-slate-600 mt-0.5">
+                  {competency.competency_level_before.toFixed(1)}<span className="text-xs text-slate-400 font-normal">/5</span>
                 </div>
               </div>
               <div className="rounded-xl bg-[#e8f5f3] border border-teal-100 p-3">
                 <div className="text-[10px] font-bold text-teal-700 uppercase">After</div>
-                <div className="text-lg font-black text-[#087f76] mt-0.5">
-                  {competency.competency_level_after.toFixed(1)}<span className="text-xs text-teal-400">/5</span>
+                <div className="text-lg font-bold font-mono text-[#087f76] mt-0.5">
+                  {competency.competency_level_after.toFixed(1)}<span className="text-xs text-teal-400 font-normal">/5</span>
                 </div>
               </div>
               <div className="rounded-xl bg-slate-50 border border-slate-100 p-3">
                 <div className="text-[10px] font-bold text-slate-400 uppercase">Confidence</div>
-                <div className="text-lg font-black text-[#123057] mt-0.5">
+                <div className="text-lg font-bold font-mono text-[#123057] mt-0.5">
                   {Math.round(competency.confidence_after * 100)}%
                 </div>
               </div>
@@ -309,22 +310,11 @@ export function OfficialQuizzes({ initialCompetencyCode, onNavigate }: OfficialQ
               </div>
               <h3 className="text-sm font-bold text-[#123057]">Skill Gap Status</h3>
             </div>
-            <div className="grid grid-cols-3 gap-3">
-              <div className="rounded-xl bg-slate-50 border border-slate-100 p-3 text-center">
-                <div className="text-[10px] font-bold text-slate-400 uppercase">Current</div>
-                <div className="text-lg font-black text-[#123057]">{skill_gap.current_level.toFixed(1)}</div>
-              </div>
-              <div className="rounded-xl bg-slate-50 border border-slate-100 p-3 text-center">
-                <div className="text-[10px] font-bold text-slate-400 uppercase">Required</div>
-                <div className="text-lg font-black text-[#123057]">{skill_gap.required_level.toFixed(1)}</div>
-              </div>
-              <div className={`rounded-xl border p-3 text-center ${skill_gap.gap_after > 0 ? "bg-amber-50 border-amber-100" : "bg-emerald-50 border-emerald-100"}`}>
-                <div className="text-[10px] font-bold text-slate-400 uppercase">Gap</div>
-                <div className={`text-lg font-black ${skill_gap.gap_after > 0 ? "text-amber-700" : "text-emerald-600"}`}>
-                  {skill_gap.gap_after.toFixed(2)}
-                </div>
-              </div>
-            </div>
+            <p className="text-xs text-slate-600">
+              Your assessed level in{" "}
+              <span className="font-mono font-bold text-[#123057]">{competency?.competency_code || "this competency"}</span> is now{" "}
+              <span className="font-mono font-bold text-[#087f76]">{competency?.competency_level_after.toFixed(1)}</span>.
+            </p>
           </div>
         )}
 
@@ -371,7 +361,7 @@ export function OfficialQuizzes({ initialCompetencyCode, onNavigate }: OfficialQ
                       : "border-slate-200 bg-white text-slate-600";
                     return (
                       <div key={oi} className={`flex items-center gap-2 rounded-lg border px-3 py-2 ${cls}`}>
-                        <span className="h-5 w-5 shrink-0 flex items-center justify-center rounded bg-white/60 text-[10px] font-black">
+                        <span className="h-5 w-5 shrink-0 flex items-center justify-center rounded bg-white/60 text-[10px] font-bold">
                           {letter}
                         </span>
                         <span>{opt}</span>
@@ -418,12 +408,12 @@ export function OfficialQuizzes({ initialCompetencyCode, onNavigate }: OfficialQ
     const progress = Math.round((answeredCount / totalQ) * 100);
 
     return (
-      <div className="space-y-5 animate-fadeIn max-w-3xl mx-auto">
+      <div className="space-y-5 anim-page-enter max-w-3xl mx-auto">
         {/* Quiz header */}
         <div className="rounded-2xl border border-teal-200 bg-white p-5 shadow-sm">
           <div className="flex items-start justify-between gap-3 flex-wrap">
             <div className="min-w-0">
-              <span className="inline-block rounded-md bg-teal-50 border border-teal-200 px-2.5 py-0.5 text-[10px] font-extrabold uppercase text-teal-800 mb-1.5">
+              <span className="inline-block rounded-md bg-teal-50 border border-teal-200 px-2.5 py-0.5 text-[10px] font-mono font-bold uppercase text-teal-800 mb-1.5">
                 {activeQuiz.competency_code}
               </span>
               <h2 className="text-lg font-bold text-[#123057] leading-tight truncate max-w-md">
@@ -439,7 +429,7 @@ export function OfficialQuizzes({ initialCompetencyCode, onNavigate }: OfficialQ
           <div className="mt-4">
             <div className="flex items-center justify-between text-[10px] font-bold text-slate-400 mb-1.5">
               <span>Progress</span>
-              <span>{progress}%</span>
+              <span className="font-mono">{progress}%</span>
             </div>
             <div className="h-2 rounded-full bg-slate-100 overflow-hidden">
               <div
@@ -458,7 +448,7 @@ export function OfficialQuizzes({ initialCompetencyCode, onNavigate }: OfficialQ
                 <button
                   key={q.question_id}
                   onClick={() => setCurrentQIdx(i)}
-                  className={`h-7 w-7 rounded-lg text-[11px] font-black transition-all ${
+                  className={`h-7 w-7 rounded-lg text-[11px] font-bold font-mono transition-all ${
                     isCurrent
                       ? "bg-[#123057] text-white shadow"
                       : answered
@@ -506,7 +496,7 @@ export function OfficialQuizzes({ initialCompetencyCode, onNavigate }: OfficialQ
                   }`}
                 >
                   <span
-                    className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-lg text-[11px] font-black transition-colors ${
+                    className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-lg text-[11px] font-bold transition-colors ${
                       isSelected ? "bg-teal-500 text-white" : "bg-slate-200 text-slate-700"
                     }`}
                   >
@@ -586,11 +576,11 @@ export function OfficialQuizzes({ initialCompetencyCode, onNavigate }: OfficialQ
 
   // ── Phase: QUIZ LIST ──────────────────────────────────────────────────────
   return (
-    <div className="space-y-6 animate-fadeIn max-w-4xl mx-auto">
+    <div className="space-y-6 anim-page-enter max-w-4xl mx-auto">
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-black text-[#123057]">Assigned Quizzes</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-[#123057]">Assigned Quizzes</h1>
           <p className="text-sm text-slate-500 mt-1">
             Practice quizzes assigned by curriculum trainers to test domain knowledge.
           </p>
@@ -624,18 +614,18 @@ export function OfficialQuizzes({ initialCompetencyCode, onNavigate }: OfficialQ
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2">
-          {assignedQuizzes.map((q) => {
+          {assignedQuizzes.map((q, idx) => {
             const quizId = q._id || q.quiz_id || "";
-            const isSubmitted = q.status === "SUBMITTED";
+            const isSubmitted = q.status === "SUBMITTED" || q.status === "COMPLETED";
 
             return (
               <div
-                key={quizId}
+                key={quizId || idx}
                 className="flex flex-col justify-between rounded-2xl border border-[#dfe7f0] bg-white p-6 shadow-sm hover:border-teal-300 hover:shadow-md transition-all group"
               >
                 <div>
                   <div className="flex items-center justify-between gap-2">
-                    <span className="rounded bg-teal-50 border border-teal-100 px-2 py-0.5 text-[10px] font-extrabold text-teal-800">
+                    <span className="rounded bg-teal-50 border border-teal-100 px-2 py-0.5 text-[10px] font-bold text-teal-800 font-mono">
                       {q.question_count} Questions
                     </span>
                     {isSubmitted ? (
@@ -654,7 +644,7 @@ export function OfficialQuizzes({ initialCompetencyCode, onNavigate }: OfficialQ
                   </h3>
 
                   {q.competency_code && (
-                    <div className="mt-2 inline-block rounded-md bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-600">
+                    <div className="mt-2 inline-block rounded-md bg-slate-100 px-2 py-0.5 text-[10px] font-mono font-bold text-slate-600">
                       {q.competency_code}
                     </div>
                   )}

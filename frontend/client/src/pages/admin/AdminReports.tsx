@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { api, clearApiCache, AdminReportsResponse } from "@/lib/api";
 import { toast } from "sonner";
+import { NumberReveal } from "@/components/motion/MotionUtils";
 
 interface AdminReportsProps {
   onNavigate: (page: string) => void;
@@ -17,6 +18,8 @@ interface AdminReportsProps {
 export function AdminReports({ onNavigate }: AdminReportsProps) {
   const [data, setData] = useState<AdminReportsResponse | null>(null);
   const [loading, setLoading] = useState(true);
+  const [exportingReport, setExportingReport] = useState<string | null>(null);
+  const [exportedReport, setExportedReport] = useState<string | null>(null);
 
   const fetchReports = async () => {
     clearApiCache();
@@ -56,11 +59,17 @@ export function AdminReports({ onNavigate }: AdminReportsProps) {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    
+    setExportedReport(reportName);
+    setTimeout(() => {
+      setExportedReport(null);
+    }, 2000);
     toast.success(`Exported ${reportName}.csv`);
   };
 
   const handleExportWorkforce = async () => {
     try {
+      setExportingReport("workforce");
       const wf = await api.admin.workforce();
       const rows = wf.employees.map((e) => ({
         ID: e.id,
@@ -76,11 +85,14 @@ export function AdminReports({ onNavigate }: AdminReportsProps) {
       exportCSV("Workforce_Competency_Report", rows);
     } catch (err: any) {
       toast.error("Failed to export workforce report");
+    } finally {
+      setExportingReport(null);
     }
   };
 
   const handleExportSkillGaps = async () => {
     try {
+      setExportingReport("gaps");
       const gaps = await api.admin.skillGaps();
       const rows = gaps.top_organization_gaps.map((g) => ({
         CompetencyCode: g.competency_code,
@@ -95,11 +107,14 @@ export function AdminReports({ onNavigate }: AdminReportsProps) {
       exportCSV("Organization_Skill_Gaps_Report", rows);
     } catch (err: any) {
       toast.error("Failed to export skill gaps report");
+    } finally {
+      setExportingReport(null);
     }
   };
 
   const handleExportTraining = async () => {
     try {
+      setExportingReport("training");
       const t = await api.admin.trainingEffectiveness();
       const rows = t.completion_by_department.map((d) => ({
         Department: d.department,
@@ -110,15 +125,17 @@ export function AdminReports({ onNavigate }: AdminReportsProps) {
       exportCSV("Training_Effectiveness_Report", rows);
     } catch (err: any) {
       toast.error("Failed to export training report");
+    } finally {
+      setExportingReport(null);
     }
   };
 
   return (
-    <div className="space-y-8 animate-fadeIn max-w-6xl mx-auto">
+    <div className="space-y-8 anim-page-enter max-w-6xl mx-auto">
       {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between anim-fade-up">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-black text-[#123057]">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#123057]">
             Intelligence & Compliance Reports
           </h1>
           <p className="text-sm text-slate-500 mt-1">
@@ -128,7 +145,7 @@ export function AdminReports({ onNavigate }: AdminReportsProps) {
 
         <button
           onClick={fetchReports}
-          className="flex items-center gap-1.5 rounded-xl border border-[#e0daef] bg-white px-4 py-2 text-xs font-bold text-[#4b36a8] shadow-sm hover:bg-purple-50 transition-all"
+          className="flex items-center gap-1.5 rounded-xl border border-[#e0daef] bg-white px-4 py-2 text-xs font-semibold text-[#4b36a8] shadow-sm hover:bg-purple-50 transition-all btn-interactive"
         >
           <RefreshCw size={14} className={loading ? "animate-spin" : ""} /> Refresh Reports
         </button>
@@ -136,12 +153,12 @@ export function AdminReports({ onNavigate }: AdminReportsProps) {
 
       {/* 3 Main Export Cards */}
       <div className="grid gap-6 sm:grid-cols-3">
-        <div className="flex flex-col justify-between rounded-3xl border border-[#e0daef] bg-white p-6 shadow-sm hover:shadow-md transition-all space-y-4">
+        <div className="flex flex-col justify-between rounded-3xl border border-[#e0daef] bg-white p-6 shadow-sm hover:shadow-md transition-all space-y-4 card-interactive anim-card-enter stagger-1">
           <div>
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-purple-100 text-[#4b36a8]">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-purple-100 text-[#4b36a8] anim-badge-pop">
               <FileBarChart size={24} />
             </div>
-            <h3 className="text-lg font-bold text-[#123057] mt-4">
+            <h3 className="text-lg font-bold tracking-tight text-[#123057] mt-4">
               Workforce Competency Report
             </h3>
             <p className="text-xs text-slate-500 mt-2 leading-relaxed">
@@ -150,15 +167,15 @@ export function AdminReports({ onNavigate }: AdminReportsProps) {
           </div>
           <button
             onClick={handleExportWorkforce}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#4b36a8] px-4 py-2.5 text-xs font-bold text-white shadow hover:bg-[#3d2b8c] transition-all"
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#4b36a8] px-4 py-2.5 text-xs font-semibold text-white shadow hover:bg-[#3d2b8c] transition-all btn-interactive"
           >
             <Download size={14} /> Export CSV
           </button>
         </div>
 
-        <div className="flex flex-col justify-between rounded-3xl border border-[#e0daef] bg-white p-6 shadow-sm hover:shadow-md transition-all space-y-4">
+        <div className="flex flex-col justify-between rounded-3xl border border-[#e0daef] bg-white p-6 shadow-sm hover:shadow-md transition-all space-y-4 card-interactive anim-card-enter stagger-2">
           <div>
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-rose-100 text-rose-700">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-rose-100 text-rose-700 anim-badge-pop">
               <FileText size={24} />
             </div>
             <h3 className="text-lg font-bold text-[#123057] mt-4">
@@ -170,15 +187,15 @@ export function AdminReports({ onNavigate }: AdminReportsProps) {
           </div>
           <button
             onClick={handleExportSkillGaps}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#ef7e37] px-4 py-2.5 text-xs font-bold text-white shadow hover:bg-[#d96a27] transition-all"
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#ef7e37] px-4 py-2.5 text-xs font-bold text-white shadow hover:bg-[#d96a27] transition-all btn-interactive"
           >
             <Download size={14} /> Export CSV
           </button>
         </div>
 
-        <div className="flex flex-col justify-between rounded-3xl border border-[#e0daef] bg-white p-6 shadow-sm hover:shadow-md transition-all space-y-4">
+        <div className="flex flex-col justify-between rounded-3xl border border-[#e0daef] bg-white p-6 shadow-sm hover:shadow-md transition-all space-y-4 card-interactive anim-card-enter stagger-3">
           <div>
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-teal-100 text-teal-700">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-teal-100 text-teal-700 anim-badge-pop">
               <Table size={24} />
             </div>
             <h3 className="text-lg font-bold text-[#123057] mt-4">
@@ -190,7 +207,7 @@ export function AdminReports({ onNavigate }: AdminReportsProps) {
           </div>
           <button
             onClick={handleExportTraining}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#087f76] px-4 py-2.5 text-xs font-bold text-white shadow hover:bg-[#06635c] transition-all"
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#087f76] px-4 py-2.5 text-xs font-bold text-white shadow hover:bg-[#06635c] transition-all btn-interactive"
           >
             <Download size={14} /> Export CSV
           </button>
@@ -198,7 +215,7 @@ export function AdminReports({ onNavigate }: AdminReportsProps) {
       </div>
 
       {/* Snapshot Summary Cards */}
-      <div className="rounded-3xl border border-[#e0daef] bg-white p-6 shadow-sm space-y-4">
+      <div className="rounded-3xl border border-[#e0daef] bg-white p-6 shadow-sm space-y-4 anim-card-enter stagger-4">
         <h3 className="text-base font-bold text-[#123057]">
           Executive Compliance & Governance Summary
         </h3>
@@ -215,13 +232,13 @@ export function AdminReports({ onNavigate }: AdminReportsProps) {
           <div className="rounded-xl bg-slate-50 p-4 border border-slate-100">
             <span className="text-slate-400 font-bold uppercase text-[10px]">Authoritative Exams</span>
             <div className="text-base font-black text-[#123057] mt-1">
-              {data?.compliance_summary?.authoritative_assessments ?? 5} Recorded
+              <NumberReveal value={data?.compliance_summary?.authoritative_assessments ?? 5} suffix=" Recorded" />
             </div>
           </div>
           <div className="rounded-xl bg-slate-50 p-4 border border-slate-100">
             <span className="text-slate-400 font-bold uppercase text-[10px]">Supporting Evidence</span>
             <div className="text-base font-black text-[#ef7e37] mt-1">
-              {data?.compliance_summary?.supporting_evidence_records ?? 12} Recorded
+              <NumberReveal value={data?.compliance_summary?.supporting_evidence_records ?? 12} suffix=" Recorded" />
             </div>
           </div>
         </div>
