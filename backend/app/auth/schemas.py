@@ -29,6 +29,17 @@ class RegisterRequest(BaseModel):
     def normalize_email_value(cls, value: str) -> str:
         return normalize_email(value)
 
+    @field_validator("access_role", mode="before")
+    @classmethod
+    def normalize_access_role_value(cls, value: object) -> object:
+        if isinstance(value, str):
+            val_str = value.strip().upper()
+            try:
+                return AccessRole(val_str)
+            except ValueError:
+                return val_str
+        return value
+
     @field_validator("full_name", "designation", "department", "employee_id")
     @classmethod
     def strip_text(cls, value: str) -> str:

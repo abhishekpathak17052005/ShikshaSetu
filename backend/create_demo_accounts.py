@@ -1,9 +1,11 @@
 from pymongo import MongoClient
 from app.auth.security import hash_password
 from datetime import datetime, UTC
+from app.core.config import get_settings
 
-client = MongoClient('mongodb+srv://shikshasetu9_db_user:gpp88E8A3tH72JMs@cluster0.ai984wg.mongodb.net')
-db = client['shikshasetu']
+settings = get_settings()
+client = MongoClient(settings.mongodb_uri)
+db = client[settings.mongodb_database]
 
 role = db.roles.find_one({'status': 'active'}) or db.roles.find_one()
 role_id = role['_id'] if role else None

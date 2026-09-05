@@ -4,6 +4,7 @@ from collections import defaultdict
 from datetime import datetime, UTC
 from typing import Any, Dict, List, Optional
 from bson import ObjectId
+from fastapi import HTTPException, status
 from pymongo.database import Database
 
 from app.admin import repository, schemas
@@ -619,3 +620,48 @@ def get_admin_reports(db: Database) -> schemas.AdminReportsResponse:
             "governance_status": "COMPLIANT",
         },
     )
+
+
+def promote_user_to_trainer(db: Database, user_id: str) -> schemas.AdminUserItem:
+    """Promote an existing official user to trainer. Restricted to ADMIN caller."""
+    u_oid = ObjectId(user_id) if ObjectId.is_valid(user_id) else None
+    user = db.users.find_one({"_id": u_oid}) if u_oid else db.users.find_one({"_id": user_id})
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found",
+        )
+
+    if user.get("access_role") == "ADMIN":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot alter ADMIN role via trainer promotion",
+        )
+
+    target_id = user["_id"]
+    now = datetime.now(UTC)
+    db.users.update_one(
+        {"_id": target_id},
+        {"$set": {"access_role": "TRAINER", "updated_at": now}},
+    )
+    updated_user = db.users.find_one({"_id": target_id}) or user
+    updated_user["access_role"] = "TRAINER"
+
+    roles = repository.get_all_roles(db)
+    role_map = {str(r["_id"]): r.get("role_name", "Official") for r in roles}
+    prof_role = role_map.get(str(updated_user.get("role_id")), "Statistical Officer")
+
+    return schemas.AdminUserItem(
+        id=str(updated_user["_id"]),
+        email=updated_user.get("email", ""),
+        full_name=updated_user.get("full_name", "User"),
+        employee_id=updated_user.get("employee_id") or f"EMP-{str(updated_user['_id'])[:6].upper()}",
+        department=updated_user.get("department") or "General Administration",
+        designation=updated_user.get("designation") or "Officer",
+        access_role="TRAINER",
+        professional_role=prof_role,
+        status=updated_user.get("status", "active"),
+        created_at=updated_user.get("created_at") or now,
+        last_login_at=updated_user.get("last_login_at"),
+    )
+

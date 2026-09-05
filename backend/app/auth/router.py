@@ -45,17 +45,19 @@ def register(request: Request, payload: RegisterRequest) -> dict:
     if repository.get_user_by_email(database, str(payload.email)) is not None:
         raise HTTPException(status_code=409, detail="Registration could not be completed")
 
-    if payload.access_role == AccessRole.ADMIN:
+    if payload.access_role == AccessRole.ADMIN or str(payload.access_role).strip().upper() == "ADMIN":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Admin registration is restricted and must be provisioned by an administrator",
         )
 
-    access_role_value = (
-        AccessRole.OFFICIAL.value
-        if payload.access_role in (AccessRole.OFFICIAL, AccessRole.EMPLOYEE)
-        else payload.access_role.value
-    )
+    if payload.access_role == AccessRole.TRAINER or str(payload.access_role).strip().upper() == "TRAINER":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Trainer registration is restricted and must be provisioned by an administrator",
+        )
+
+    access_role_value = AccessRole.OFFICIAL.value
 
     timestamp = datetime.now(UTC)
     document = {

@@ -170,7 +170,7 @@ This is likely a defensive check that says:
 ### .env File Analysis
 
 ```
-Line 1:  MONGODB_URI="mongodb+srv://shikshasetu9_db_user:...@cluster0.ai984wg.mongodb.net"
+Line 1:  MONGODB_URI="mongodb+srv://<username>:<password>@cluster0.ai984wg.mongodb.net"
 Line 6:  MONGODB_URI=mongodb://localhost:27017
 ```
 

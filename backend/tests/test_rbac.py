@@ -205,29 +205,45 @@ def test_registration_defaults_to_official():
     assert response.status_code == 201
     data = response.json()
     assert data["access_role"] == "OFFICIAL"
+
+    # Verify persisted document in database
+    persisted = database.users.find_one({"email": "new_learner@example.com"})
+    assert persisted is not None
+    assert persisted["access_role"] == "OFFICIAL"
     client.close()
 
 
-def test_registration_as_trainer_allowed():
+@pytest.mark.parametrize(
+    "trainer_role_val",
+    ["TRAINER", "trainer", " TRAINER ", " trainer ", "Trainer"],
+)
+def test_registration_as_trainer_rejected(trainer_role_val: str):
     client, database, _ = make_rbac_app()
     payload = {
-        "email": "new_trainer@example.com",
+        "email": "trainer_attacker@example.com",
         "password": "Password123!",
-        "full_name": "New Trainer",
+        "full_name": "Trainer Attacker",
         "role_id": str(database.role_id),
         "designation": "Instructor",
         "department": "Training",
-        "employee_id": "EMP-TRN-01",
-        "access_role": "TRAINER",
+        "employee_id": "EMP-TRN-ATTACK",
+        "access_role": trainer_role_val,
     }
     response = client.post("/api/v1/auth/register", json=payload)
-    assert response.status_code == 201
-    data = response.json()
-    assert data["access_role"] == "TRAINER"
+    assert response.status_code == 403
+    assert "Trainer registration is restricted and must be provisioned by an administrator" in response.json()["detail"]
+
+    # Verify NO user was persisted in DB
+    persisted = database.users.find_one({"email": "trainer_attacker@example.com"})
+    assert persisted is None
     client.close()
 
 
-def test_registration_as_admin_rejected():
+@pytest.mark.parametrize(
+    "admin_role_val",
+    ["ADMIN", "admin", " ADMIN ", " admin ", "Admin"],
+)
+def test_registration_as_admin_rejected(admin_role_val: str):
     client, database, _ = make_rbac_app()
     payload = {
         "email": "self_appointed_admin@example.com",
@@ -237,11 +253,15 @@ def test_registration_as_admin_rejected():
         "designation": "Attacker",
         "department": "None",
         "employee_id": "EMP-ATK-01",
-        "access_role": "ADMIN",
+        "access_role": admin_role_val,
     }
     response = client.post("/api/v1/auth/register", json=payload)
     assert response.status_code == 403
-    assert "Admin registration is restricted" in response.json()["detail"]
+    assert "Admin registration is restricted and must be provisioned by an administrator" in response.json()["detail"]
+
+    # Verify NO user was persisted in DB
+    persisted = database.users.find_one({"email": "self_appointed_admin@example.com"})
+    assert persisted is None
     client.close()
 
 
@@ -259,7 +279,77 @@ def test_registration_with_invalid_role_rejected():
     }
     response = client.post("/api/v1/auth/register", json=payload)
     assert response.status_code == 422
+
+    # Verify NO user was persisted in DB
+    persisted = database.users.find_one({"email": "invalid_role@example.com"})
+    assert persisted is None
     client.close()
+
+
+# ==============================================================================
+# 2B. Admin Trainer Provisioning / Promotion Tests
+# ==============================================================================
+
+def test_admin_can_promote_official_to_trainer():
+    client, database, settings = make_rbac_app()
+    admin = create_test_user(database, "admin@gov.in", "ADMIN", "EMP-ADM-01")
+    official = create_test_user(database, "candidate@gov.in", "OFFICIAL", "EMP-OFF-01")
+    admin_token = create_access_token(str(admin["_id"]), settings)
+    headers = {"Authorization": f"Bearer {admin_token}"}
+
+    res = client.post(f"/api/v1/admin/users/{official['_id']}/promote-to-trainer", headers=headers)
+    assert res.status_code == 200
+    data = res.json()
+    assert data["access_role"] == "TRAINER"
+
+    # Verify persisted in database
+    persisted = database.users.find_one({"_id": official["_id"]})
+    assert persisted["access_role"] == "TRAINER"
+    client.close()
+
+
+def test_trainer_cannot_promote_another_trainer():
+    client, database, settings = make_rbac_app()
+    trainer = create_test_user(database, "trainer@gov.in", "TRAINER", "EMP-TRN-01")
+    official = create_test_user(database, "candidate@gov.in", "OFFICIAL", "EMP-OFF-01")
+    trainer_token = create_access_token(str(trainer["_id"]), settings)
+    headers = {"Authorization": f"Bearer {trainer_token}"}
+
+    res = client.post(f"/api/v1/admin/users/{official['_id']}/promote-to-trainer", headers=headers)
+    assert res.status_code == 403
+
+    # Verify role remained OFFICIAL
+    persisted = database.users.find_one({"_id": official["_id"]})
+    assert persisted["access_role"] == "OFFICIAL"
+    client.close()
+
+
+def test_official_cannot_promote_to_trainer():
+    client, database, settings = make_rbac_app()
+    official_a = create_test_user(database, "official_a@gov.in", "OFFICIAL", "EMP-OFF-01")
+    official_b = create_test_user(database, "official_b@gov.in", "OFFICIAL", "EMP-OFF-02")
+    official_token = create_access_token(str(official_a["_id"]), settings)
+    headers = {"Authorization": f"Bearer {official_token}"}
+
+    res = client.post(f"/api/v1/admin/users/{official_b['_id']}/promote-to-trainer", headers=headers)
+    assert res.status_code == 403
+
+    persisted = database.users.find_one({"_id": official_b["_id"]})
+    assert persisted["access_role"] == "OFFICIAL"
+    client.close()
+
+
+def test_unauthenticated_cannot_access_trainer_provisioning():
+    client, database, _ = make_rbac_app()
+    official = create_test_user(database, "candidate@gov.in", "OFFICIAL", "EMP-OFF-01")
+
+    res = client.post(f"/api/v1/admin/users/{official['_id']}/promote-to-trainer")
+    assert res.status_code == 401
+
+    persisted = database.users.find_one({"_id": official["_id"]})
+    assert persisted["access_role"] == "OFFICIAL"
+    client.close()
+
 
 
 # ==============================================================================

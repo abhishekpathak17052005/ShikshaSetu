@@ -32,9 +32,9 @@ from app.core.config import get_settings
 from app.auth.security import create_access_token
 
 settings = get_settings()
-uri = "mongodb+srv://shikshasetu9_db_user:gpp88E8A3tH72JMs@cluster0.ai984wg.mongodb.net"
+uri = os.environ.get("MONGODB_URI") or settings.mongodb_uri
 client = MongoClient(uri)
-db = client["shikshasetu"]
+db = client[settings.mongodb_database]
 
 user_edu = db.users.find_one({"email": "ap17052005@gmail.com"})
 user_edu_id = str(user_edu["_id"])

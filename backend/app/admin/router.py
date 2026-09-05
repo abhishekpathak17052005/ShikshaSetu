@@ -126,3 +126,17 @@ def get_reports(request: Request) -> schemas.AdminReportsResponse:
     db = _get_db(request)
     return service.get_admin_reports(db)
 
+
+@router.post(
+    "/users/{user_id}/promote-to-trainer",
+    response_model=schemas.AdminUserItem,
+    summary="Promote an official to trainer role",
+)
+def promote_user_to_trainer(
+    request: Request,
+    user_id: str,
+) -> schemas.AdminUserItem:
+    db = _get_db(request)
+    return service.promote_user_to_trainer(db, user_id)
+
+
