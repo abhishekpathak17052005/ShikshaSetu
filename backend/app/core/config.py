@@ -119,12 +119,14 @@ class Settings(BaseSettings):
                 "secret",
                 "changeme",
             )
-            if not self.jwt_secret or self.jwt_secret in insecure_defaults or len(self.jwt_secret) < 16:
+            if not self.jwt_secret or self.jwt_secret in insecure_defaults or len(self.jwt_secret) < 32:
                 raise ValueError(
                     "CRITICAL CONFIGURATION ERROR: In production mode (APP_ENV=production), "
                     "JWT_SECRET (or SECRET_KEY) must be securely set via environment variable "
-                    "with at least 16 characters."
+                    "with at least 32 characters (256-bit entropy)."
                 )
+            # Force debug to False in production mode to prevent information leakage
+            self.debug = False
         return self
 
 

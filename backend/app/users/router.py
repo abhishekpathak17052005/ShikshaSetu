@@ -16,6 +16,8 @@ def update_profile(request: Request, current_user: dict, payload: UserProfileUpd
     if database is None:
         raise HTTPException(status_code=503, detail="Database is unavailable")
     updates = payload.model_dump(exclude_unset=True)
+    for forbidden in ("application_role", "access_role", "role", "role_id", "status", "password_hash", "is_admin"):
+        updates.pop(forbidden, None)
     if not updates:
         return public_user(current_user)
 

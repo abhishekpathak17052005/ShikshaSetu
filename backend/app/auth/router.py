@@ -98,7 +98,7 @@ def register(request: Request, payload: RegisterRequest) -> dict:
 
 
 @router.post("/login", response_model=TokenResponse)
-@limiter.limit("60/minute")
+@limiter.limit("10/minute")
 def login(request: Request, payload: LoginRequest) -> dict:
     database = database_or_error(request)
     user = repository.get_user_by_email(database, str(payload.email))
