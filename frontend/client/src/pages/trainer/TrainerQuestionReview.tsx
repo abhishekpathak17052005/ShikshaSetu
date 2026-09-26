@@ -39,6 +39,13 @@ export function TrainerQuestionReview({
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
   const [searchQuery, setSearchQuery] = useState("");
 
+  // Sync material selection if initialMaterialId prop changes (e.g. from Generator)
+  useEffect(() => {
+    if (initialMaterialId) {
+      setSelectedMaterialId(initialMaterialId);
+    }
+  }, [initialMaterialId]);
+
   // Edit Modal State
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [editingQuestion, setEditingQuestion] = useState<TrainerQuestion | null>(null);
@@ -47,6 +54,9 @@ export function TrainerQuestionReview({
     options: ["", "", "", ""],
     correct_answer: "A",
     explanation: "",
+    bloom_level: "UNDERSTAND",
+    difficulty: "MEDIUM",
+    competency_code: "",
   });
   const [savingEdit, setSavingEdit] = useState(false);
 
@@ -120,17 +130,17 @@ export function TrainerQuestionReview({
       setQuestions((prev) =>
         prev.map((item) => {
           const itemId = item.id || item.question_id || (item as any)._id;
-          if (itemId === qid) {
-            // Merge updated response carefully — preserve local fields if API omits them
+          if (String(itemId) === String(qid)) {
             return {
               ...item,
-              status: "APPROVED" as QuestionReviewStatus,
               ...(updated && typeof updated === "object" ? updated : {}),
+              status: "APPROVED" as QuestionReviewStatus,
             };
           }
           return item;
         })
       );
+      clearApiCache();
     } catch (err: any) {
       toast.error(err.message || "Failed to approve question");
     }
@@ -139,10 +149,13 @@ export function TrainerQuestionReview({
   const openEditModal = (q: TrainerQuestion) => {
     setEditingQuestion(q);
     setEditForm({
-      question: q.question,
+      question: q.question || "",
       options: q.options && q.options.length === 4 ? [...q.options] : ["", "", "", ""],
       correct_answer: q.correct_answer || "A",
       explanation: q.explanation || "",
+      bloom_level: q.bloom_level || "UNDERSTAND",
+      difficulty: q.difficulty || "MEDIUM",
+      competency_code: q.competency_code || "",
     });
     setEditModalOpen(true);
   };
@@ -151,6 +164,10 @@ export function TrainerQuestionReview({
     e.preventDefault();
     if (!editingQuestion) return;
     const qid = editingQuestion.id || editingQuestion.question_id || (editingQuestion as any)._id;
+    if (!qid) {
+      toast.error("Cannot edit: Question ID is missing.");
+      return;
+    }
 
     if (!editForm.question.trim()) {
       toast.error("Question text cannot be empty.");
@@ -160,29 +177,38 @@ export function TrainerQuestionReview({
       toast.error("All 4 options must be provided.");
       return;
     }
+    if (new Set(editForm.options.map((o) => o.trim())).size !== 4) {
+      toast.error("All 4 options must be unique.");
+      return;
+    }
 
     try {
       setSavingEdit(true);
       const updated = await api.trainer.questions.update(qid, {
-        question: editForm.question,
-        options: editForm.options,
+        question: editForm.question.trim(),
+        options: editForm.options.map((o) => o.trim()),
         correct_answer: editForm.correct_answer,
-        explanation: editForm.explanation,
+        explanation: editForm.explanation.trim(),
+        bloom_level: editForm.bloom_level,
+        difficulty: editForm.difficulty,
+        competency_code: editForm.competency_code,
       });
 
       toast.success("Question edited successfully! Status set to EDITED.");
       setQuestions((prev) =>
         prev.map((item) => {
           const itemId = item.id || item.question_id || (item as any)._id;
-          if (itemId === qid) {
+          if (String(itemId) === String(qid)) {
             return {
               ...item,
-              // Only update the fields we actually edited — don't spread full API response
-              // to avoid accidentally overwriting local fields with unexpected data
-              question: editForm.question,
-              options: editForm.options,
+              ...(updated && typeof updated === "object" ? updated : {}),
+              question: editForm.question.trim(),
+              options: editForm.options.map((o) => o.trim()),
               correct_answer: editForm.correct_answer,
-              explanation: editForm.explanation,
+              explanation: editForm.explanation.trim(),
+              bloom_level: editForm.bloom_level,
+              difficulty: editForm.difficulty,
+              competency_code: editForm.competency_code,
               status: "EDITED" as QuestionReviewStatus,
             };
           }
@@ -191,6 +217,7 @@ export function TrainerQuestionReview({
       );
       setEditModalOpen(false);
       setEditingQuestion(null);
+      clearApiCache();
     } catch (err: any) {
       toast.error(err.message || "Failed to edit question");
     } finally {
@@ -208,6 +235,10 @@ export function TrainerQuestionReview({
     e.preventDefault();
     if (!rejectingQuestion) return;
     const qid = rejectingQuestion.id || rejectingQuestion.question_id || (rejectingQuestion as any)._id;
+    if (!qid) {
+      toast.error("Cannot reject: Question ID is missing.");
+      return;
+    }
 
     if (!rejectNotes.trim()) {
       toast.error("Please provide a reason for rejecting this question.");
@@ -216,25 +247,29 @@ export function TrainerQuestionReview({
 
     try {
       setSubmittingReject(true);
-      await api.trainer.questions.reject(qid, {
+      const updated = await api.trainer.questions.reject(qid, {
         action: "REJECT",
         review_notes: rejectNotes.trim(),
       });
 
       toast.success("Question rejected.");
       setQuestions((prev) =>
-        prev.map((item) =>
-          (item.id || item.question_id || (item as any)._id) === qid
-            ? {
-                ...item,
-                status: "REJECTED" as QuestionReviewStatus,
-                review_notes: rejectNotes.trim(),
-              }
-            : item
-        )
+        prev.map((item) => {
+          const itemId = item.id || item.question_id || (item as any)._id;
+          if (String(itemId) === String(qid)) {
+            return {
+              ...item,
+              ...(updated && typeof updated === "object" ? updated : {}),
+              status: "REJECTED" as QuestionReviewStatus,
+              review_notes: rejectNotes.trim(),
+            };
+          }
+          return item;
+        })
       );
       setRejectModalOpen(false);
       setRejectingQuestion(null);
+      clearApiCache();
     } catch (err: any) {
       toast.error(err.message || "Failed to reject question");
     } finally {
@@ -242,12 +277,18 @@ export function TrainerQuestionReview({
     }
   };
 
+
   const filteredQuestions = questions.filter((q) => {
-    const term = searchQuery.toLowerCase();
+    const term = (searchQuery || "").toLowerCase();
+    const qText = (q.question || "").toLowerCase();
+    const qExp = (q.explanation || "").toLowerCase();
+    const qComp = (q.competency_code || "").toLowerCase();
+
     const matchesSearch =
-      q.question.toLowerCase().includes(term) ||
-      (q.explanation && q.explanation.toLowerCase().includes(term)) ||
-      q.competency_code.toLowerCase().includes(term);
+      !term ||
+      qText.includes(term) ||
+      qExp.includes(term) ||
+      qComp.includes(term);
 
     const matchesStatus = statusFilter === "ALL" || q.status === statusFilter;
     return matchesSearch && matchesStatus;
@@ -452,23 +493,63 @@ export function TrainerQuestionReview({
                             {letter}
                           </span>
                           <span className="flex-1">{opt}</span>
-                          {isCorrect && (
-                            <span className="text-[10px] font-extrabold uppercase text-emerald-700 anim-badge-pop">
-                              Correct Key
-                            </span>
-                          )}
                         </div>
                       );
                     })}
                 </div>
 
-                {/* Explanation / Grounding */}
+                {/* Explanation */}
                 {q.explanation && (
                   <div className="mt-4 rounded-xl border border-slate-200/60 bg-slate-50 p-3.5 text-xs text-slate-600 leading-relaxed">
-                    <strong className="text-slate-800 font-semibold">Grounded Explanation:</strong>{" "}
+                    <strong className="text-slate-800 font-semibold">Explanation:</strong>{" "}
                     {q.explanation}
                   </div>
                 )}
+
+                {/* Grounded Source Provenance & Metadata */}
+                <div className="mt-3 rounded-xl border border-slate-200/70 bg-slate-50/60 p-3 text-xs text-slate-600">
+                  <div className="flex flex-wrap items-center gap-3 text-[11px]">
+                    <div className="flex items-center gap-1 font-semibold text-slate-700">
+                      <BookOpen size={13} className="text-[#ef7e37]" />
+                      <span>Source:</span>
+                      <span className="font-normal text-slate-600">
+                        {materials.find((m) => (m.id || (m as any)._id) === q.material_id)?.filename || "Curriculum Material"}
+                      </span>
+                    </div>
+
+                    {q.source_chunks && q.source_chunks.length > 0 && (
+                      <div className="flex items-center gap-1">
+                        <span className="font-semibold text-slate-700">Chunks:</span>
+                        <span className="rounded bg-slate-200 px-1.5 py-0.5 text-slate-700 font-mono text-[10px]">
+                          {q.source_chunks.join(", ")}
+                        </span>
+                      </div>
+                    )}
+
+                    <div className="flex items-center gap-1">
+                      <span className="font-semibold text-slate-700">Bloom:</span>
+                      <span className="rounded bg-blue-50 border border-blue-200 px-1.5 py-0.5 text-blue-700 font-semibold text-[10px]">
+                        {(q as any).bloom_level || "UNDERSTAND"}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-1">
+                      <span className="font-semibold text-slate-700">Difficulty:</span>
+                      <span className="rounded bg-purple-50 border border-purple-200 px-1.5 py-0.5 text-purple-700 font-semibold text-[10px]">
+                        {q.difficulty || "MEDIUM"}
+                      </span>
+                    </div>
+
+                    {q.competency_code && (
+                      <div className="flex items-center gap-1">
+                        <span className="font-semibold text-slate-700">Competency:</span>
+                        <span className="rounded bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 text-emerald-700 font-semibold text-[10px]">
+                          {q.competency_code}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
 
                 {/* Rejection Notes (if any) */}
                 {isRejected && q.review_notes && (
@@ -488,6 +569,7 @@ export function TrainerQuestionReview({
 
                   <div className="flex items-center gap-2">
                     <button
+                      type="button"
                       onClick={() => openEditModal(q)}
                       className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50 btn-interactive"
                     >
@@ -496,6 +578,7 @@ export function TrainerQuestionReview({
 
                     {!isRejected && (
                       <button
+                        type="button"
                         onClick={() => openRejectModal(q)}
                         className="inline-flex items-center gap-1.5 rounded-xl border border-rose-200 bg-white px-3 py-1.5 text-xs font-bold text-rose-700 hover:bg-rose-50 btn-interactive"
                       >
@@ -505,6 +588,7 @@ export function TrainerQuestionReview({
 
                     {!isApproved && (
                       <button
+                        type="button"
                         onClick={() => handleApprove(q)}
                         className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-1.5 text-xs font-bold text-white shadow hover:bg-emerald-700 btn-interactive"
                       >
@@ -529,7 +613,7 @@ export function TrainerQuestionReview({
                 {t("trainer.editQuestion")}
                 </h3>
                 <p className="text-xs text-slate-400 mt-0.5">
-                  Refine question phrasing, options, or explanation
+                  Refine question phrasing, options, Bloom level, difficulty, or explanation
                 </p>
               </div>
               <button
@@ -607,6 +691,56 @@ export function TrainerQuestionReview({
                 </div>
               </div>
 
+              {/* Bloom Level and Difficulty Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-600">
+                    Bloom's Taxonomy
+                  </label>
+                  <select
+                    value={editForm.bloom_level}
+                    onChange={(e) => setEditForm({ ...editForm, bloom_level: e.target.value })}
+                    className="w-full rounded-xl border border-slate-200 p-2.5 text-xs text-slate-800 focus:border-[#ef7e37] focus:outline-none"
+                  >
+                    {["REMEMBER", "UNDERSTAND", "APPLY", "ANALYZE", "EVALUATE", "CREATE"].map((b) => (
+                      <option key={b} value={b}>
+                        {b}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-600">
+                    Difficulty
+                  </label>
+                  <select
+                    value={editForm.difficulty}
+                    onChange={(e) => setEditForm({ ...editForm, difficulty: e.target.value })}
+                    className="w-full rounded-xl border border-slate-200 p-2.5 text-xs text-slate-800 focus:border-[#ef7e37] focus:outline-none"
+                  >
+                    {["EASY", "MEDIUM", "HARD"].map((d) => (
+                      <option key={d} value={d}>
+                        {d}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-600">
+                    Competency Code
+                  </label>
+                  <input
+                    type="text"
+                    value={editForm.competency_code}
+                    onChange={(e) => setEditForm({ ...editForm, competency_code: e.target.value })}
+                    className="w-full rounded-xl border border-slate-200 p-2.5 text-xs text-slate-800 focus:border-[#ef7e37] focus:outline-none"
+                    placeholder="e.g. DIGOV_CYBERSECURITY"
+                  />
+                </div>
+              </div>
+
               {/* Explanation */}
               <div className="space-y-1.5">
                 <label className="block text-xs font-bold uppercase tracking-wider text-slate-600">
@@ -643,6 +777,7 @@ export function TrainerQuestionReview({
           </div>
         </div>
       )}
+
 
       {/* ── Reject Modal ── */}
       {rejectModalOpen && rejectingQuestion && (
