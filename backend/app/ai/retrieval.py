@@ -169,26 +169,109 @@ class RetrieverService:
 
         Args:
             query: Query (e.g., competency name or user request).
-            material_id: Material ID to filter chunks (for future multi-material support).
+            material_id: Material ID to filter chunks.
             top_k: Number of chunks to retrieve.
 
         Returns:
             List of relevant DocumentChunk instances.
         """
-        results = self.vector_store.similarity_search(query, top_k=top_k)
-        return [chunk for chunk, _ in results]
+        return self.retrieve_diverse_for_generation(query=query, material_id=material_id, top_k=top_k)
+
+    def retrieve_diverse_for_generation(
+        self,
+        query: str,
+        material_id: str,
+        top_k: int = 5,
+        exclude_chunk_ids: Optional[List[str]] = None,
+    ) -> List[DocumentChunk]:
+        """
+        Retrieve diverse relevant chunks for question generation, avoiding repeats.
+        
+        Args:
+            query: Semantic query.
+            material_id: Target material ID.
+            top_k: Number of diverse chunks to retrieve.
+            exclude_chunk_ids: Chunks already used in previous generations to avoid.
+        """
+        exclude_set = set(exclude_chunk_ids or [])
+        material_chunks = [
+            chunk for chunk in self.vector_store.chunks
+            if not material_id or str(chunk.material_id) == str(material_id)
+        ]
+
+        if not material_chunks:
+            return []
+
+        # If total material chunks is small, cycle cleanly
+        if len(material_chunks) <= top_k:
+            return material_chunks
+
+        # Score chunks via similarity search
+        scored_results = self.vector_store.similarity_search(query, top_k=len(self.vector_store.chunks))
+        material_scored = [
+            (chunk, score) for chunk, score in scored_results
+            if not material_id or str(chunk.material_id) == str(material_id)
+        ]
+
+        if not material_scored:
+            material_scored = [(c, 1.0) for c in material_chunks]
+
+        # Prioritize unused chunks with high relevance
+        unused_chunks = [chunk for chunk, _ in material_scored if str(chunk.id or chunk.sequence) not in exclude_set]
+        used_chunks = [chunk for chunk, _ in material_scored if str(chunk.id or chunk.sequence) in exclude_set]
+
+        selected: List[DocumentChunk] = []
+
+        # To avoid clustering in a single section, pick diverse pages/sequences
+        seen_pages = set()
+        seen_sequences = set()
+
+        # Pass 1: pick unused chunks across distinct pages/sections
+        for chunk in unused_chunks:
+            page_key = chunk.source_page if chunk.source_page is not None else chunk.sequence
+            if page_key not in seen_pages:
+                selected.append(chunk)
+                seen_pages.add(page_key)
+                seen_sequences.add(chunk.sequence)
+                if len(selected) >= top_k:
+                    break
+
+        # Pass 2: fill remaining from other unused chunks
+        if len(selected) < top_k:
+            for chunk in unused_chunks:
+                if chunk.sequence not in seen_sequences:
+                    selected.append(chunk)
+                    seen_sequences.add(chunk.sequence)
+                    if len(selected) >= top_k:
+                        break
+
+        # Pass 3: fill from previously used chunks if still needed
+        if len(selected) < top_k:
+            for chunk in used_chunks:
+                if chunk.sequence not in seen_sequences:
+                    selected.append(chunk)
+                    seen_sequences.add(chunk.sequence)
+                    if len(selected) >= top_k:
+                        break
+
+        # Fallback to direct slice
+        if not selected:
+            selected = [c for c, _ in material_scored[:top_k]]
+
+        return selected[:top_k]
 
     def get_context_for_generation(
         self,
         retrieved_chunks: List[DocumentChunk],
-        max_tokens: int = 2000,
+        max_tokens: int = 2500,
     ) -> Tuple[str, List[str]]:
         """
-        Format retrieved chunks into a context string for LLM.
+        Format retrieved chunks into a clean context string for LLM,
+        ensuring chunk metadata does not leak into readable prose.
 
         Args:
             retrieved_chunks: List of DocumentChunk instances.
-            max_tokens: Maximum tokens to include (approximate, based on chars).
+            max_tokens: Maximum tokens to include.
 
         Returns:
             Tuple of:
@@ -197,33 +280,37 @@ class RetrieverService:
         """
         if not retrieved_chunks:
             return "", []
-        
+
+        import re
         context_parts = []
         chunk_ids = []
         total_length = 0
-        chars_per_token = 4  # Rough estimate
+        chars_per_token = 4
         max_chars = max_tokens * chars_per_token
-        
+
         for chunk in retrieved_chunks:
-            chunk_text = f"\n[Chunk {chunk.sequence}]"
-            
-            # Add source metadata
+            cid = str(chunk.id) if chunk.id else f"chunk_{chunk.sequence}"
+            raw_text = (chunk.text or "").strip()
+            # Clean out any old embedded [Chunk ...] prefixes in stored text
+            clean_text = re.sub(r"^\[Chunk \d+\][^\n]*\n*", "", raw_text).strip()
+
+            seq_label = f"Chunk {chunk.sequence}"
+            meta_info = f"SOURCE: {seq_label} | ID: {cid}"
             if chunk.source_page:
-                chunk_text += f" (Page {chunk.source_page})"
-            if chunk.source_slide:
-                chunk_text += f" (Slide {chunk.source_slide})"
+                meta_info += f" | Page {chunk.source_page}"
             if chunk.source_section:
-                chunk_text += f" - {chunk.source_section}"
-            
-            chunk_text += f"\n{chunk.text}\n"
-            
-            if total_length + len(chunk_text) > max_chars:
+                meta_info += f" | Section {chunk.source_section}"
+
+            # Format cleanly as an external reference delimiter
+            chunk_block = f"\n=== {meta_info} ===\n{clean_text}\n"
+
+            if total_length + len(chunk_block) > max_chars and context_parts:
                 break
-            
-            context_parts.append(chunk_text)
-            chunk_ids.append(str(chunk.id) if chunk.id else f"chunk_{chunk.sequence}")
-            total_length += len(chunk_text)
-        
+
+            context_parts.append(chunk_block)
+            chunk_ids.append(cid)
+            total_length += len(chunk_block)
+
         context = "".join(context_parts)
-        
         return context, chunk_ids
+
