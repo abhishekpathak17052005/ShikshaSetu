@@ -31,7 +31,7 @@ class TXTExtractor:
                 paragraphs = [content]
 
             pages_metadata = [
-                {"section": idx + 1, "text": p} for idx, p in enumerate(paragraphs)
+                {"section": str(idx + 1), "text": p} for idx, p in enumerate(paragraphs)
             ]
 
             return content, pages_metadata

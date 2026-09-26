@@ -60,26 +60,40 @@ class GeminiLLMProvider(LLMProvider):
         if not self._available or self.client is None:
             raise Exception("Gemini model not properly configured")
 
-        try:
-            config = types.GenerateContentConfig(
-                temperature=temperature,
-                max_output_tokens=max_tokens or 1000,
-            )
-            
-            response = self.client.models.generate_content(
-                model=self.model_name,
-                contents=prompt,
-                config=config,
-            )
-            
-            if not response or not response.text:
-                raise Exception("Gemini returned empty response")
-            
-            return response.text
-        
-        except Exception as e:
-            logger.error(f"Gemini generation failed: {e}")
-            raise Exception(f"Gemini LLM error: {str(e)}")
+        fallback_models = [
+            self.model_name,
+            "gemini-flash-latest",
+            "gemini-3.5-flash-lite",
+            "gemini-3.1-flash-lite",
+            "gemini-3-flash-preview",
+            "gemini-3.8-flash",
+        ]
+        # Deduplicate while preserving order
+        models_to_try = []
+        for m in fallback_models:
+            clean_m = m.replace("models/", "") if m else ""
+            if clean_m and clean_m not in models_to_try:
+                models_to_try.append(clean_m)
+
+        last_error = None
+        for current_model in models_to_try:
+            try:
+                config = types.GenerateContentConfig(
+                    temperature=temperature,
+                    max_output_tokens=max_tokens or 1000,
+                )
+                response = self.client.models.generate_content(
+                    model=current_model,
+                    contents=prompt,
+                    config=config,
+                )
+                if response and response.text:
+                    return response.text
+            except Exception as e:
+                logger.warning("Gemini text generation failed on model %s: %s", current_model, e)
+                last_error = e
+
+        raise Exception(f"Gemini LLM error across all candidate models: {str(last_error)}")
 
     def generate_stream(
         self,
@@ -87,12 +101,7 @@ class GeminiLLMProvider(LLMProvider):
         max_tokens: Optional[int] = None,
         temperature: float = 0.7,
     ):
-        """
-        Generate streaming text chunks using Gemini.
-
-        Yields:
-            Text chunk deltas as strings.
-        """
+        """Generate streaming text chunks using Gemini."""
         if not self._available or self.client is None:
             raise Exception("Gemini model not properly configured")
 
@@ -118,9 +127,9 @@ class GeminiLLMProvider(LLMProvider):
         prompt: str,
         max_tokens: Optional[int] = None,
         temperature: float = 0.7,
-    ) -> dict:
+    ):
         """
-        Generate a JSON response using Gemini.
+        Generate a JSON response using Gemini with resilient model fallback.
 
         Args:
             prompt: The input prompt for the LLM (should request JSON output).
@@ -128,74 +137,71 @@ class GeminiLLMProvider(LLMProvider):
             temperature: Sampling temperature (0-1).
 
         Returns:
-            Parsed JSON response as dictionary.
-
-        Raises:
-            Exception: If generation or JSON parsing fails.
+            Parsed JSON response (list or dict).
         """
         if not self._available or self.client is None:
             raise Exception("Gemini model not properly configured")
 
-        try:
-            # Add explicit instruction to output valid JSON
-            json_prompt = prompt
-            if "json" not in prompt.lower():
-                json_prompt += "\n\nRespond with ONLY valid JSON, no markdown, no extra text."
-            
-            config = types.GenerateContentConfig(
-                temperature=temperature,
-                max_output_tokens=max_tokens or 4096,
-                response_mime_type="application/json",
-            )
-            
-            response = self.client.models.generate_content(
-                model=self.model_name,
-                contents=json_prompt,
-                config=config,
-            )
-            
-            if not response or not response.text:
-                raise Exception("Gemini returned empty response")
-            
-            # Try to parse response as JSON
-            text = response.text.strip()
-            
-            # If response is wrapped in markdown code block, extract it
-            if text.startswith("```json"):
-                text = text[7:]  # Remove ```json
-                if text.endswith("```"):
-                    text = text[:-3]  # Remove trailing ```
-                text = text.strip()
-            elif text.startswith("```"):
-                text = text[3:]  # Remove ```
-                if text.endswith("```"):
-                    text = text[:-3]  # Remove trailing ```
-                text = text.strip()
-            
-            # Parse JSON — return list or dict as-is (callers handle both)
+        json_prompt = prompt
+        if "json" not in prompt.lower():
+            json_prompt += "\n\nRespond with ONLY valid JSON, no markdown, no extra text."
+
+        fallback_models = [
+            self.model_name,
+            "gemini-flash-latest",
+            "gemini-3.5-flash-lite",
+            "gemini-3.1-flash-lite",
+            "gemini-3-flash-preview",
+            "gemini-3.8-flash",
+        ]
+        models_to_try = []
+        for m in fallback_models:
+            clean_m = m.replace("models/", "") if m else ""
+            if clean_m and clean_m not in models_to_try:
+                models_to_try.append(clean_m)
+
+        last_error = None
+        for current_model in models_to_try:
             try:
+                config = types.GenerateContentConfig(
+                    temperature=temperature,
+                    max_output_tokens=max_tokens or 4096,
+                    response_mime_type="application/json",
+                )
+                response = self.client.models.generate_content(
+                    model=current_model,
+                    contents=json_prompt,
+                    config=config,
+                )
+                if not response or not response.text:
+                    continue
+
+                text = response.text.strip()
+                if text.startswith("```json"):
+                    text = text[7:]
+                if text.startswith("```"):
+                    text = text[3:]
+                if text.endswith("```"):
+                    text = text[:-3]
+                text = text.strip()
+
                 result = json.loads(text)
-                # B2 FIX: Return list directly; do NOT wrap in {"questions": [...]}
-                # MCQGenerator._generate_batch expects a list of question dicts.
-                # If LLM returned a dict like {"questions": [...]}, unwrap it here.
                 if isinstance(result, dict) and "questions" in result and isinstance(result["questions"], list):
                     return result["questions"]
-                # Return whatever was parsed (list or dict) — caller handles both
                 return result
-            except json.JSONDecodeError as e:
-                logger.error(f"Failed to parse Gemini JSON response: {text}")
-                raise Exception(f"Gemini returned invalid JSON: {str(e)}")
-        
-        except Exception as e:
-            logger.warning(f"Gemini JSON generation failed ({e}), falling back to deterministic template generation.")
-            from .mock_provider import MockLLMProvider
-            return MockLLMProvider().generate_json(prompt, max_tokens, temperature)
+            except Exception as e:
+                logger.warning("Gemini JSON generation failed on model %s: %s", current_model, e)
+                last_error = e
+
+        # If remote models are temporarily unavailable, delegate to intelligent offline generator
+        logger.warning(
+            "Gemini JSON generation failed on all models (%s). Falling back to intelligent offline generator.",
+            last_error,
+        )
+        from .mock_provider import MockLLMProvider
+        return MockLLMProvider().generate_json(prompt, max_tokens, temperature)
 
     def is_available(self) -> bool:
-        """
-        Check if Gemini provider is available.
-
-        Returns:
-            True if provider is configured and accessible.
-        """
+        """Check if Gemini provider is available."""
         return self._available
+

@@ -126,8 +126,11 @@ class QuizService:
             }
             questions_for_response.append(safe_question)
 
-        quiz["questions"] = questions_for_response
-        return quiz
+        # Do not mutate the repository object while removing answer keys. The
+        # same quiz must retain its persisted answer key for server-side scoring.
+        response_quiz = dict(quiz)
+        response_quiz["questions"] = questions_for_response
+        return response_quiz
 
     def submit_quiz(
         self,
@@ -155,6 +158,10 @@ class QuizService:
 
         # Check if already submitted
         if quiz.get("status") == QuizStatus.SUBMITTED:
+            raise QuizServiceError("Quiz already submitted")
+
+        existing_attempt = quiz_repo.get_quiz_attempt_by_quiz_id(self.db, quiz_id, user_id)
+        if existing_attempt:
             raise QuizServiceError("Quiz already submitted")
 
         # Validate answers

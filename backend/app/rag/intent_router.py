@@ -67,7 +67,7 @@ class IntentResult:
 
 # Standard refusal message required across ShikshaSetu
 STANDARD_OFF_TOPIC_REFUSAL: str = (
-    "I'm here to help with ShikshaSetu, government workforce "
+    "I'm not able to help with that request. I'm here to help with ShikshaSetu, government workforce "
     "capabilities, competencies, skill gaps, assessments, "
     "quizzes and learning recommendations."
 )
