@@ -42,11 +42,11 @@ class TrainerRepository:
         trainer_id: str | None = None,
     ) -> dict | None:
         q_oid = object_id(question_id)
-        if not q_oid:
-            return None
-        query: dict[str, Any] = {"_id": q_oid}
+        id_filter = {"$in": [q_oid, str(question_id)]} if q_oid else str(question_id)
+        query: dict[str, Any] = {"_id": id_filter}
         if trainer_id:
-            query["trainer_id"] = str(trainer_id)
+            t_oid = object_id(trainer_id)
+            query["trainer_id"] = {"$in": [str(trainer_id), t_oid]} if t_oid else str(trainer_id)
         return database.trainer_questions.find_one(query)
 
     @staticmethod
@@ -56,10 +56,14 @@ class TrainerRepository:
         trainer_id: str | None = None,
         status: str | None = None,
     ) -> list[dict]:
-        query: dict[str, Any] = {"material_id": str(material_id)}
+        m_oid = object_id(material_id)
+        query: dict[str, Any] = {
+            "material_id": {"$in": [str(material_id), m_oid]} if m_oid else str(material_id)
+        }
         if trainer_id:
-            query["trainer_id"] = str(trainer_id)
-        if status:
+            t_oid = object_id(trainer_id)
+            query["trainer_id"] = {"$in": [str(trainer_id), t_oid]} if t_oid else str(trainer_id)
+        if status and status.upper() != "ALL":
             query["status"] = status
         cursor = database.trainer_questions.find(query)
         if hasattr(cursor, "sort"):
@@ -69,11 +73,14 @@ class TrainerRepository:
     @staticmethod
     def list_all_questions_by_trainer(
         database: Database,
-        trainer_id: str,
+        trainer_id: str | None = None,
         status: str | None = None,
     ) -> list[dict]:
-        query: dict[str, Any] = {"trainer_id": str(trainer_id)}
-        if status and status != "ALL":
+        query: dict[str, Any] = {}
+        if trainer_id:
+            t_oid = object_id(trainer_id)
+            query["trainer_id"] = {"$in": [str(trainer_id), t_oid]} if t_oid else str(trainer_id)
+        if status and status.upper() != "ALL":
             query["status"] = status
         cursor = database.trainer_questions.find(query)
         if hasattr(cursor, "sort"):
@@ -87,44 +94,56 @@ class TrainerRepository:
         trainer_id: str | None = None,
     ) -> list[dict]:
         oids = [object_id(qid) for qid in question_ids if object_id(qid)]
-        if not oids:
+        all_ids = oids + [str(qid) for qid in question_ids]
+        if not all_ids:
             return []
-        query: dict[str, Any] = {"_id": {"$in": oids}}
+        query: dict[str, Any] = {"_id": {"$in": all_ids}}
         if trainer_id:
-            query["trainer_id"] = str(trainer_id)
+            t_oid = object_id(trainer_id)
+            query["trainer_id"] = {"$in": [str(trainer_id), t_oid]} if t_oid else str(trainer_id)
         return list(database.trainer_questions.find(query))
 
     @staticmethod
     def update_question(
         database: Database,
         question_id: str,
-        trainer_id: str,
+        trainer_id: str | None,
         updates: dict,
     ) -> dict | None:
         q_oid = object_id(question_id)
-        if not q_oid:
-            return None
+        id_filter = {"$in": [q_oid, str(question_id)]} if q_oid else str(question_id)
         updates["updated_at"] = datetime.now(UTC)
-        database.trainer_questions.update_one(
-            {"_id": q_oid, "trainer_id": str(trainer_id)},
+        query: dict[str, Any] = {"_id": id_filter}
+        if trainer_id:
+            t_oid = object_id(trainer_id)
+            query["trainer_id"] = {"$in": [str(trainer_id), t_oid]} if t_oid else str(trainer_id)
+        res = database.trainer_questions.update_one(
+            query,
             {"$set": updates},
         )
+        if res.matched_count == 0:
+            return None
         return TrainerRepository.get_question_by_id(database, question_id, trainer_id)
 
     @staticmethod
     def update_question_status(
         database: Database,
         question_id: str,
-        trainer_id: str,
+        trainer_id: str | None,
         status: str,
         notes: str | None = None,
+        reviewed_by: str | None = None,
     ) -> dict | None:
         updates = {
             "status": status,
             "review_notes": notes,
             "updated_at": datetime.now(UTC),
         }
+        if reviewed_by:
+            updates["reviewed_by"] = str(reviewed_by)
+            updates["reviewed_at"] = datetime.now(UTC)
         return TrainerRepository.update_question(database, question_id, trainer_id, updates)
+
 
     @staticmethod
     def create_quiz(database: Database, quiz_doc: dict) -> str:

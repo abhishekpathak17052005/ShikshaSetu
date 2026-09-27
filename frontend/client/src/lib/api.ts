@@ -377,10 +377,13 @@ export type TrainerQuestion = {
   correct_answer: string;
   explanation: string;
   difficulty?: string;
+  bloom_level?: string;
   competency_code: string;
   status: QuestionReviewStatus;
   review_notes?: string | null;
   source_chunks?: string[];
+  source_document_id?: string | null;
+  grounding_score?: number | null;
   created_at?: string;
   updated_at?: string;
 };
@@ -1333,23 +1336,34 @@ export const api = {
           options?: string[];
           correct_answer?: string;
           explanation?: string;
+          bloom_level?: string;
+          difficulty?: string;
+          competency_code?: string;
         }
       ) =>
         request<TrainerQuestion>(`/trainer/questions/${questionId}`, {
           method: "PUT",
           body: JSON.stringify(payload),
         }),
-      approve: (questionId: string) =>
+
+      approve: (questionId: string, payload?: { review_notes?: string }) =>
         request<TrainerQuestion>(`/trainer/questions/${questionId}/approve`, {
           method: "POST",
+          body: JSON.stringify({
+            action: "APPROVE",
+            review_notes: payload?.review_notes || "",
+          }),
         }),
       reject: (
         questionId: string,
-        payload: { action?: string; review_notes: string }
+        payload?: { action?: string; review_notes?: string }
       ) =>
         request<TrainerQuestion>(`/trainer/questions/${questionId}/reject`, {
           method: "POST",
-          body: JSON.stringify({ action: "REJECT", review_notes: payload.review_notes }),
+          body: JSON.stringify({
+            action: "REJECT",
+            review_notes: payload?.review_notes || "",
+          }),
         }),
     },
 

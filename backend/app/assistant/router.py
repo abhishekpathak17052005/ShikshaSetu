@@ -10,6 +10,7 @@ from pymongo.database import Database
 
 from app.auth.dependencies import get_current_user
 from app.core.config import get_settings
+from app.core.limiter import limiter
 from .service import AssistantService
 from .schemas import AssistantChatRequest, AssistantChatResponse
 
@@ -33,7 +34,9 @@ def get_assistant_service(request: Request) -> AssistantService:
 
 
 @router.post("/chat", response_model=AssistantChatResponse)
+@limiter.limit("30/minute")
 def chat_with_copilot(
+    request: Request,
     payload: AssistantChatRequest,
     current_user: dict = Depends(get_current_user),
     service: AssistantService = Depends(get_assistant_service),
@@ -48,7 +51,9 @@ def chat_with_copilot(
 
 
 @router.post("/chat/stream")
+@limiter.limit("30/minute")
 def stream_chat_with_copilot(
+    request: Request,
     payload: AssistantChatRequest,
     current_user: dict = Depends(get_current_user),
     service: AssistantService = Depends(get_assistant_service),

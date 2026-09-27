@@ -130,6 +130,8 @@ class TrainerService:
                 "content_type": m.get("content_type", "application/octet-stream"),
                 "file_size": m.get("file_size", 0),
                 "status": m.get("status", "READY"),
+                "processing_stage": m.get("processing_stage"),
+                "error_message": m.get("error_message"),
                 "chunk_count": m.get("chunk_count", 0),
                 "questions_count": len(q_list),
                 "approved_questions_count": approved_count,
@@ -158,6 +160,8 @@ class TrainerService:
             "content_type": material.get("content_type", "application/octet-stream"),
             "file_size": material.get("file_size", 0),
             "status": material.get("status", "READY"),
+            "processing_stage": material.get("processing_stage"),
+            "error_message": material.get("error_message"),
             "chunk_count": material.get("chunk_count", 0),
             "questions_count": len(q_list),
             "approved_questions_count": approved_count,
@@ -183,6 +187,8 @@ class TrainerService:
                 correct_answer=q.get("correct_answer", ""),
                 explanation=q.get("explanation", ""),
                 difficulty=q.get("difficulty", "MEDIUM"),
+                bloom_level=q.get("bloom_level", "UNDERSTAND"),
+                source_document_id=q.get("source_document_id") or material_id,
                 source_chunks=q.get("source_chunks", []),
                 grounding_score=q.get("grounding_score"),
                 status=QuestionReviewStatus.GENERATED,
@@ -194,70 +200,168 @@ class TrainerService:
 
     def list_questions_for_material(
         self,
-        trainer_id: str,
+        trainer_id: str | None,
         material_id: str,
         status_filter: str | None = None,
+        is_admin: bool = False,
     ) -> list[dict]:
         """List all generated/reviewed questions for a material."""
+        effective_trainer_id = None if is_admin else trainer_id
         questions = self.repo.list_questions_by_material(
             self.database,
             material_id=material_id,
-            trainer_id=trainer_id,
+            trainer_id=effective_trainer_id,
             status=status_filter,
         )
         return [self._format_question(q) for q in questions]
 
     def list_all_questions(
         self,
-        trainer_id: str,
+        trainer_id: str | None,
         status_filter: str | None = None,
+        is_admin: bool = False,
     ) -> list[dict]:
         """List all questions across all trainer materials."""
+        effective_trainer_id = None if is_admin else trainer_id
         questions = self.repo.list_all_questions_by_trainer(
             self.database,
-            trainer_id=trainer_id,
+            trainer_id=effective_trainer_id,
             status=status_filter,
         )
         return [self._format_question(q) for q in questions]
 
-    def get_question(self, trainer_id: str, question_id: str) -> dict:
+    def get_question(self, trainer_id: str | None, question_id: str, is_admin: bool = False) -> dict:
         """Get single question detail with full answer key and review state."""
-        q = self.repo.get_question_by_id(self.database, question_id, trainer_id)
+        if not is_admin and not trainer_id:
+            raise TrainerServiceError("Authentication required to view question")
+        effective_trainer_id = None if is_admin else trainer_id
+        q = self.repo.get_question_by_id(self.database, question_id, effective_trainer_id)
         if not q:
             raise TrainerServiceError("Question not found or not owned by trainer")
         return self._format_question(q)
 
-    def edit_question(self, trainer_id: str, question_id: str, updates: dict) -> dict:
-        """Edit question content and transition status to EDITED."""
+    def edit_question(
+        self,
+        trainer_id: str | None,
+        question_id: str,
+        updates: dict,
+        is_admin: bool = False,
+    ) -> dict:
+        """Edit question content and transition status to EDITED with strict validation."""
+        if not is_admin and not trainer_id:
+            raise TrainerServiceError("Authentication required to edit question")
         clean_updates = {k: v for k, v in updates.items() if v is not None}
+        effective_trainer_id = None if is_admin else trainer_id
         if not clean_updates:
-            return self.get_question(trainer_id, question_id)
-        
+            return self.get_question(effective_trainer_id, question_id, is_admin=is_admin)
+
+        # Check existing question
+        existing_q = self.repo.get_question_by_id(self.database, question_id, effective_trainer_id)
+        if not existing_q:
+            raise TrainerServiceError("Question not found or not owned by trainer")
+
+        # Prevent editing already approved question unless caller is admin
+        if not is_admin and existing_q.get("status") == QuestionReviewStatus.APPROVED.value:
+            raise TrainerServiceError("Cannot edit an already approved question. Admin action required.")
+
+        if "question" in clean_updates:
+            q_text = str(clean_updates["question"]).strip()
+            if not q_text:
+                raise TrainerServiceError("Question text cannot be empty")
+            clean_updates["question"] = q_text
+
+        # Validation: exactly 4 unique options
+        if "options" in clean_updates:
+            options = clean_updates["options"]
+            if not isinstance(options, list) or len(options) != 4:
+                raise TrainerServiceError("Question must contain exactly 4 options")
+            cleaned_opts = [str(opt).strip() for opt in options]
+            if any(not opt for opt in cleaned_opts):
+                raise TrainerServiceError("All 4 options must be non-empty")
+            if len(set(cleaned_opts)) != 4:
+                raise TrainerServiceError("All 4 options must be unique")
+            clean_updates["options"] = cleaned_opts
+
+        # Correct answer normalization and option relationship preservation
+        if "correct_answer" in clean_updates:
+            ca = str(clean_updates["correct_answer"]).strip()
+            if ca in ("0", "1", "2", "3"):
+                ca = chr(65 + int(ca))
+            opts = clean_updates.get("options")
+            if opts and ca in opts:
+                ca = chr(65 + opts.index(ca))
+            ca = ca.upper()
+            if ca not in ("A", "B", "C", "D"):
+                raise TrainerServiceError("Correct answer key must be one of A, B, C, or D")
+            clean_updates["correct_answer"] = ca
+
+        if "bloom_level" in clean_updates:
+            bl = str(clean_updates["bloom_level"]).strip().upper()
+            from app.ai.schemas import VALID_BLOOM_LEVELS
+            if bl not in VALID_BLOOM_LEVELS:
+                raise TrainerServiceError(f"Bloom level must be one of {', '.join(sorted(VALID_BLOOM_LEVELS))}")
+            clean_updates["bloom_level"] = bl
+
+        if "difficulty" in clean_updates:
+            df = str(clean_updates["difficulty"]).strip().upper()
+            if df not in ("EASY", "MEDIUM", "HARD"):
+                raise TrainerServiceError("Difficulty must be EASY, MEDIUM, or HARD")
+            clean_updates["difficulty"] = df
+
+        if "explanation" in clean_updates:
+            clean_updates["explanation"] = str(clean_updates["explanation"]).strip()
+
+        if "competency_code" in clean_updates:
+            clean_updates["competency_code"] = str(clean_updates["competency_code"]).strip()
+
+        # Preserve provenance metadata
+        clean_updates.pop("source_document_id", None)
+        clean_updates.pop("source_chunks", None)
+        clean_updates.pop("trainer_id", None)
+        clean_updates.pop("material_id", None)
+
         clean_updates["status"] = QuestionReviewStatus.EDITED.value
-        updated = self.repo.update_question(self.database, question_id, trainer_id, clean_updates)
+        updated = self.repo.update_question(self.database, question_id, effective_trainer_id, clean_updates)
         if not updated:
             raise TrainerServiceError("Failed to update question or question not found")
         return self._format_question(updated)
 
     def review_question(
         self,
-        trainer_id: str,
+        trainer_id: str | None,
         question_id: str,
         action: str,
         notes: str | None = None,
+        is_admin: bool = False,
     ) -> dict:
         """Approve or reject a question."""
+        if not is_admin and not trainer_id:
+            raise TrainerServiceError("Authentication required to review question")
+        effective_trainer_id = None if is_admin else trainer_id
+
+        # Verify existing question and check state transition
+        existing_q = self.repo.get_question_by_id(self.database, question_id, effective_trainer_id)
+        if not existing_q:
+            raise TrainerServiceError("Question not found or not owned by trainer")
+
         target_status = (
             QuestionReviewStatus.APPROVED.value
-            if action == "APPROVE"
+            if str(action).strip().upper() == "APPROVE"
             else QuestionReviewStatus.REJECTED.value
         )
+
+        # Prevent rejecting already approved question unless caller is admin
+        if target_status == QuestionReviewStatus.REJECTED.value and not is_admin:
+            if existing_q.get("status") == QuestionReviewStatus.APPROVED.value:
+                raise TrainerServiceError("Cannot reject an already approved question. Admin action required.")
+
         updated = self.repo.update_question_status(
             self.database,
             question_id=question_id,
-            trainer_id=trainer_id,
+            trainer_id=effective_trainer_id,
             status=target_status,
             notes=notes,
+            reviewed_by=trainer_id,
         )
         if not updated:
             raise TrainerServiceError("Failed to review question or question not found")
@@ -299,6 +403,8 @@ class TrainerService:
                 "correct_answer": q["correct_answer"],
                 "explanation": q["explanation"],
                 "difficulty": q.get("difficulty", "MEDIUM"),
+                "bloom_level": q.get("bloom_level", "UNDERSTAND"),
+                "source_document_id": q.get("source_document_id"),
                 "source_chunks": q.get("source_chunks", []),
             }
             for q in questions
@@ -593,15 +699,25 @@ class TrainerService:
     def _format_question(self, q: dict) -> dict:
         created_val = q.get("created_at")
         updated_val = q.get("updated_at")
+        qid_str = str(q.get("_id", q.get("id", "")))
+        mat_id = q.get("material_id")
+        comp_code = q.get("competency_code")
+        exp = q.get("explanation")
+        diff = q.get("difficulty")
+        bl = q.get("bloom_level")
         return {
-            "_id": str(q["_id"]),
-            "material_id": str(q.get("material_id", "")),
-            "competency_code": q.get("competency_code", ""),
+            "id": qid_str,
+            "_id": qid_str,
+            "question_id": qid_str,
+            "material_id": str(mat_id) if mat_id is not None else "",
+            "competency_code": str(comp_code) if comp_code is not None else "",
             "question": q.get("question", ""),
             "options": q.get("options", []),
-            "correct_answer": q.get("correct_answer", ""),
-            "explanation": q.get("explanation", ""),
-            "difficulty": q.get("difficulty", "MEDIUM"),
+            "correct_answer": q.get("correct_answer", "A"),
+            "explanation": str(exp) if exp is not None else "",
+            "difficulty": str(diff) if diff else "MEDIUM",
+            "bloom_level": str(bl) if bl else "UNDERSTAND",
+            "source_document_id": q.get("source_document_id"),
             "source_chunks": q.get("source_chunks", []),
             "grounding_score": q.get("grounding_score"),
             "status": q.get("status", QuestionReviewStatus.GENERATED.value),
@@ -609,6 +725,7 @@ class TrainerService:
             "created_at": created_val.isoformat() if isinstance(created_val, datetime) else str(created_val or ""),
             "updated_at": updated_val.isoformat() if isinstance(updated_val, datetime) else str(updated_val or ""),
         }
+
 
     def _format_quiz(self, q: dict) -> dict:
         created_val = q.get("created_at")
@@ -623,6 +740,8 @@ class TrainerService:
                 "correct_answer": qu.get("correct_answer", ""),
                 "explanation": qu.get("explanation", ""),
                 "difficulty": qu.get("difficulty", "MEDIUM"),
+                "bloom_level": qu.get("bloom_level", "UNDERSTAND"),
+                "source_document_id": qu.get("source_document_id"),
                 "source_chunks": qu.get("source_chunks", []),
                 "grounding_score": qu.get("grounding_score"),
                 "status": QuestionReviewStatus.APPROVED.value,

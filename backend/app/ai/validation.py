@@ -18,57 +18,53 @@ class GroundingValidator:
         material_id: str,
         database=None,
     ) -> Tuple[bool, Optional[str]]:
-        """
-        Validate that a question is properly grounded.
-        """
-        # 1. Check that question has source chunks
+        """Validate that a question is properly grounded with four unique options."""
+        if not question.source_document_id:
+            question.source_document_id = str(material_id)
+        elif str(question.source_document_id) != str(material_id):
+            return False, "Question source document does not match selected material"
         if not question.source_chunks:
             return False, "Question has no source chunk references"
 
-        # 2. Verify that referenced chunks exist and belong to material
         try:
             if database is not None:
                 chunks = chunk_repository.get_by_ids(database, question.source_chunks)
-
                 if not chunks:
-                    # Check if material itself has chunks
-                    material_chunks = chunk_repository.get_by_material(database, material_id, limit=5)
-                    if not material_chunks:
-                        return False, "Material has no chunks to ground against"
-                    # Attach valid chunk ID for traceability
-                    question.source_chunks = [str(material_chunks[0].id or material_chunks[0].chunk_id or "_seed_chunk")]
+                    return False, "Referenced source chunks do not exist"
                 else:
                     for chunk in chunks:
                         if str(chunk.material_id) != str(material_id):
                             return False, "Source chunk does not belong to specified material"
-
         except Exception as e:
             return False, f"Failed to verify source chunks: {str(e)}"
 
-        # 3. Validate schema
         if not question.question or len(question.question.strip()) < 10:
             return False, "Question is too short"
 
-        if not question.options or len(question.options) < 3:
-            return False, "Question must have at least 3 options"
-
-        if not question.correct_answer or question.correct_answer not in "ABCDE":
+        if not question.options or len(question.options) != 4:
+            return False, "Question must have exactly 4 options"
+        if len(set(question.options)) != len(question.options):
+            return False, "Question options must be unique"
+        if not question.correct_answer or question.correct_answer not in "ABCD":
             return False, "Invalid correct answer"
-
         if not question.explanation or len(question.explanation.strip()) < 10:
             return False, "Explanation is too short"
+        if question.correct_answer not in "ABCD":
+            return False, "Correct answer must be one of A, B, C, D"
+        if question.difficulty.upper() not in {"EASY", "MEDIUM", "HARD"}:
+            return False, "Difficulty is not valid"
+        if (question.bloom_level if hasattr(question, 'bloom_level') else '').upper() not in {"REMEMBER", "UNDERSTAND", "APPLY", "ANALYZE", "EVALUATE", "CREATE"}:
+            return False, "Bloom level is not valid"
 
-        # 4. Check correct answer is valid for number of options
         correct_idx = ord(question.correct_answer) - ord('A')
         if correct_idx >= len(question.options):
             return False, "Correct answer index exceeds number of options"
 
-        # 5. Semantic grounding check — verify question relates to source chunks
-        # This catches questions generated from hallucination rather than the
-        # retrieved context. Requires source_chunks to be populated.
-        if source_chunks := []:
-            pass  # source_chunks passed separately via check_semantic_grounding below
-
+        source_chunks = chunk_repository.get_by_ids(database, question.source_chunks) if database is not None else []
+        if source_chunks and all(isinstance(chunk.text, str) for chunk in source_chunks):
+            grounded, grounding_error = GroundingValidator.check_semantic_grounding(question, source_chunks)
+            if not grounded:
+                return False, grounding_error or "Question is not supported by its source material"
         return True, None
 
     @staticmethod
@@ -156,8 +152,14 @@ class GroundingValidator:
         if not source_chunks:
             return False, "No source chunks provided for validation"
         
-        # Get common words from question and chunks
-        question_words = set(question.question.lower().split())
+        # Include the keyed answer and explanation because they carry the factual
+        # claim that must be supported by the retrieved source.
+        correct_idx = ord(question.correct_answer) - ord("A")
+        supporting_text = ""
+        if 0 <= correct_idx < len(question.options):
+            supporting_text = question.options[correct_idx]
+        supporting_text += " " + question.explanation
+        question_words = set((question.question + " " + supporting_text).lower().split())
         question_words = {w for w in question_words if len(w) > 3}  # Filter short words
         
         chunk_text = " ".join([chunk.text for chunk in source_chunks]).lower()

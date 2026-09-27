@@ -32,6 +32,14 @@ class LearningMaterial(BaseModel):
         default=None,
         description="Error message if extraction failed"
     )
+    processing_stage: Optional[str] = Field(
+        default=None,
+        description="Current processing stage"
+    )
+    error_message: Optional[str] = Field(
+        default=None,
+        description="Last processing error"
+    )
     
     chunk_count: int = Field(default=0, description="Number of chunks created")
     embedding_count: int = Field(default=0, description="Number of chunks embedded")

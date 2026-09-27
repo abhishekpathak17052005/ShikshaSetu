@@ -27,6 +27,7 @@ from app.assistant.router import router as assistant_router
 from app.adaptive_assessments.router import router as adaptive_assessments_router
 from app.talent.router import router as talent_router
 from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
 from app.core.limiter import limiter
 
 logging.basicConfig(
@@ -109,6 +110,19 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         CORSMiddleware,
         **cors_kwargs,
     )
+    application.add_middleware(SlowAPIMiddleware)
+
+    @application.middleware("http")
+    async def add_security_headers(request: Request, call_next):
+        response = await call_next(request)
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["X-XSS-Protection"] = "1; mode=block"
+        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
+        return response
+
     application.state.settings = app_settings
     application.state.limiter = limiter
 
