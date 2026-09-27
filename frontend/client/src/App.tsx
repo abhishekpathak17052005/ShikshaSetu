@@ -49,6 +49,12 @@ const TrainerTalentPassport = lazy(() =>
 const AdminDashboard = lazy(() =>
   import("./pages/admin/AdminDashboard").then((m) => ({ default: m.AdminDashboard }))
 );
+const WorkforceIntelligence = lazy(() =>
+  import("./pages/admin/WorkforceIntelligence").then((m) => ({ default: m.WorkforceIntelligence }))
+);
+const TalentDiscovery = lazy(() =>
+  import("./pages/admin/TalentDiscovery").then((m) => ({ default: m.TalentDiscovery }))
+);
 const WorkforceOverview = lazy(() =>
   import("./pages/admin/WorkforceOverview").then((m) => ({ default: m.WorkforceOverview }))
 );
@@ -252,6 +258,7 @@ function TrainerApp() {
 
 const ADMIN_SLUG_MAP: Record<string, string> = {
   "dashboard": "Dashboard",
+  "workforce-intelligence": "Workforce Intelligence",
   "workforce-overview": "Workforce Overview",
   "competency-analytics": "Competency Analytics",
   "skill-gap-analytics": "Skill Gap Analytics",
@@ -260,6 +267,7 @@ const ADMIN_SLUG_MAP: Record<string, string> = {
   "capacity-planning": "Capacity Planning",
   "opportunity-network": "Opportunity Network",
   "talent-network": "Opportunity Network",
+  "talent-discovery": "Talent Discovery",
   "users": "Users",
   "reports": "Reports",
   "profile": "Profile",
@@ -275,6 +283,8 @@ function AdminApp() {
   // Prefetch all admin pages so section clicks are instantaneous
   usePrefetchRoutes([
     { loader: () => import("./pages/admin/AdminDashboard"), key: "admin-dashboard" },
+    { loader: () => import("./pages/admin/WorkforceIntelligence"), key: "admin-workforce-intelligence" },
+    { loader: () => import("./pages/admin/TalentDiscovery"), key: "admin-talent-discovery" },
     { loader: () => import("./pages/admin/WorkforceOverview"), key: "admin-workforce" },
     { loader: () => import("./pages/admin/CompetencyAnalytics"), key: "admin-competency" },
     { loader: () => import("./pages/admin/SkillGapAnalytics"), key: "admin-skill-gaps" },
@@ -304,6 +314,8 @@ function AdminApp() {
     switch (activePage) {
       case "Dashboard":
         return <AdminDashboard onNavigate={handleNavigate} />;
+      case "Workforce Intelligence":
+        return <WorkforceIntelligence />;
       case "Workforce Overview":
         return <WorkforceOverview onNavigate={handleNavigate} />;
       case "Competency Analytics":
@@ -318,6 +330,8 @@ function AdminApp() {
         return <CapacityPlanning onNavigate={handleNavigate} />;
       case "Opportunity Network":
         return <AdminTalentNetwork />;
+      case "Talent Discovery":
+        return <TalentDiscovery onNavigate={handleNavigate} />;
       case "Users":
         return <AdminUsers onNavigate={handleNavigate} />;
       case "Reports":

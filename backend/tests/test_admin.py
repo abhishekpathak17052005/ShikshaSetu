@@ -132,6 +132,8 @@ ADMIN_ENDPOINTS = [
     "/api/v1/admin/capacity-planning",
     "/api/v1/admin/users",
     "/api/v1/admin/reports",
+    "/api/v1/admin/workforce-intelligence",
+    "/api/v1/admin/talent-discovery",
 ]
 
 
@@ -197,6 +199,57 @@ def test_emerging_skills_uses_observed_gaps_and_no_forecast(test_setup):
     assert payload["emerging_capabilities"][0]["average_gap_size"] == 2.0
     assert "urgency_score" not in payload["emerging_capabilities"][0]
     assert "demand_index" not in payload["emerging_capabilities"][0]
+
+
+def test_workforce_intelligence_filters_department_and_reports_missing_history(test_setup):
+    db = test_setup["db"]
+    official = db.users.documents[2]
+    official["role_id"] = ObjectId()
+    response = test_setup["client"].get(
+        "/api/v1/admin/workforce-intelligence?department=MoSPI",
+        headers={"Authorization": f"Bearer {test_setup['admin_token']}"},
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["filters"]["department"] == "MoSPI"
+    assert payload["overview"]["total_officials"] == 1
+    assert payload["trends"]["available"] is False
+    assert payload["trends"]["message"] == "Insufficient historical data"
+
+
+def test_talent_discovery_requires_opt_in_and_paginates(test_setup):
+    db = test_setup["db"]
+    db.talent_preferences = FakeCollection()
+    official = db.users.documents[2]
+    competency = db.competencies.documents[0]
+    db.competency_profiles.insert_one({
+        "_id": ObjectId(),
+        "user_id": official["_id"],
+        "competency_id": competency["_id"],
+        "current_level": 4.2,
+        "confidence": 0.87,
+    })
+    db.competency_evidence.insert_one({
+        "_id": ObjectId(),
+        "user_id": official["_id"],
+        "competency_id": competency["_id"],
+        "evidence_type": "CAPABILITY_ASSESSMENT",
+    })
+
+    headers = {"Authorization": f"Bearer {test_setup['admin_token']}"}
+    hidden = test_setup["client"].get("/api/v1/admin/talent-discovery", headers=headers)
+    assert hidden.status_code == 200
+    assert hidden.json()["total"] == 0
+
+    db.talent_preferences.insert_one({"user_id": official["_id"], "opt_in_enabled": True})
+    visible = test_setup["client"].get("/api/v1/admin/talent-discovery?page=1&limit=1", headers=headers)
+    assert visible.status_code == 200
+    payload = visible.json()
+    assert payload["total"] == 1
+    assert len(payload["results"]) == 1
+    assert payload["results"][0]["evidence_backed"] is True
+    assert payload["results"][0]["competencies"][0]["supporting_evidence_count"] == 1
 
 
 def test_sparse_analytics_does_not_invent_emerging_or_capacity_values(test_setup):

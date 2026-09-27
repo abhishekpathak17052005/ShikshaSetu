@@ -805,6 +805,43 @@ export type AdminUserListResponse = {
   users: AdminUserItem[];
 };
 
+export type WorkforceIntelligenceResponse = {
+  filters: Record<string, string | null>;
+  overview: {
+    total_officials?: number;
+    departments?: number;
+    roles?: number;
+    average_proficiency?: number | null;
+    officials_with_active_skill_gaps?: number;
+    assessed_profiles?: number;
+  };
+  competency_intelligence: { competencies?: { code: string; name: string; domain: string; average_proficiency: number | null; assessed_count: number; supporting_evidence_count: number }[] };
+  department_analysis: { department: string; officials: number; average_proficiency: number | null; critical_gaps: number; training_activity: number }[];
+  training_effectiveness: { assigned?: number; completed?: number; completion_rate_pct?: number | null; assessment_improvement?: number | null; competency_improvement?: number | null };
+  trends: { available?: boolean; message?: string; proficiency?: unknown[] };
+};
+
+export type TalentDiscoveryResult = {
+  official: { id: string; name: string };
+  current_role: string;
+  department: string;
+  designation: string;
+  competencies: { code: string; name: string; domain: string; current_proficiency: number; required_proficiency: number | null; evidence_confidence: number; supporting_evidence_count: number }[];
+  capability_match: number;
+  recent_learning_activity: number;
+  evidence_backed: boolean;
+  explanation: string[];
+};
+
+export type TalentDiscoveryResponse = {
+  filters: Record<string, string | number | null>;
+  page: number;
+  limit: number;
+  total: number;
+  results: TalentDiscoveryResult[];
+  data_basis: string;
+};
+
 // Individual workforce profile (GET /admin/users/{user_id}/profile)
 export type AdminWorkforceProfileResponse = {
   user: AdminUserItem;
@@ -1424,6 +1461,14 @@ export const api = {
     userProfile: (userId: string) =>
       request<AdminWorkforceProfileResponse>(`/admin/users/${encodeURIComponent(userId)}/profile`, {}, { skipCache: true }),
     reports: () => request<AdminReportsResponse>("/admin/reports"),
+    workforceIntelligence: (params?: Record<string, string>) => {
+      const query = new URLSearchParams(params || {}).toString();
+      return request<WorkforceIntelligenceResponse>(`/admin/workforce-intelligence${query ? `?${query}` : ""}`, {}, { skipCache: true });
+    },
+    talentDiscovery: (params?: Record<string, string | number>) => {
+      const query = new URLSearchParams(Object.entries(params || {}).map(([key, value]) => [key, String(value)])).toString();
+      return request<TalentDiscoveryResponse>(`/admin/talent-discovery${query ? `?${query}` : ""}`, {}, { skipCache: true });
+    },
   },
 
 

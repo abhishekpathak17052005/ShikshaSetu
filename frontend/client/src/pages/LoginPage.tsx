@@ -110,8 +110,8 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f4f7fb] text-[#18304f]">
-      <header className="mx-auto flex max-w-[1380px] items-center justify-between px-6 py-5 lg:px-12">
+    <div className="min-h-screen bg-[#f4f7fb] text-[#18304f] lg:h-screen lg:overflow-hidden">
+      <header className="mx-auto flex max-w-[1380px] items-center justify-between px-6 py-5 lg:h-[88px] lg:px-12 lg:py-4">
         <ShikshaSetuLogo variant="full" size="md" href="/" priority />
         <div className="hidden items-center gap-7 text-xs font-bold text-slate-500 md:flex">
           <a href="#capabilities" className="transition-colors hover:text-[#0f9f92]">Capabilities</a>
@@ -120,23 +120,23 @@ export default function LoginPage() {
         </div>
       </header>
 
-      <main className="mx-auto grid min-h-[calc(100vh-80px)] max-w-[1380px] items-center gap-10 px-6 pb-10 pt-4 lg:grid-cols-[1.08fr_.92fr] lg:gap-16 lg:px-12 lg:pb-16">
+      <main className="mx-auto grid min-h-[calc(100vh-80px)] max-w-[1380px] items-center gap-10 px-6 pb-10 pt-4 lg:h-[calc(100vh-88px)] lg:min-h-0 lg:-translate-y-6 lg:grid-cols-[1.08fr_.92fr] lg:gap-16 lg:px-12 lg:py-3">
       {/* ── Landing hero ── */}
-      <div id="capabilities" className="relative overflow-hidden rounded-[2rem] bg-[#123057] p-8 text-white shadow-[0_24px_70px_rgba(18,48,87,.18)] md:p-12 lg:min-h-[650px]">
+      <div id="capabilities" className="relative overflow-hidden rounded-[2rem] bg-[#123057] p-8 text-white shadow-[0_24px_70px_rgba(18,48,87,.18)] md:p-12 lg:h-[calc(100vh-120px)] lg:min-h-0 lg:p-10">
         <div className="absolute -right-24 -top-24 h-80 w-80 rounded-full border border-white/10" />
         <div className="absolute -bottom-32 -left-20 h-72 w-72 rounded-full border border-[#38d9c0]/20" />
         <div>
           <div className="inline-flex items-center gap-2 rounded-full border border-[#38d9c0]/25 bg-white/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[.12em] text-[#8ce9dc]">
             Smart India Hackathon · Public sector learning
           </div>
-          <h1 className="mt-7 max-w-xl text-4xl font-extrabold leading-[1.08] tracking-[-.04em] md:text-6xl">
+          <h1 className="mt-7 max-w-xl text-4xl font-extrabold leading-[0.98] tracking-[-.04em] md:text-6xl">
             Build the capability your role demands<span className="text-[#38d9c0]">.</span>
           </h1>
-          <p className="mt-6 max-w-lg text-sm leading-7 text-blue-100 md:text-base">
+          <p className="mt-2 max-w-lg text-sm leading-6 text-blue-100 md:text-base">
             ShikshaSetu turns competency frameworks into a clear path from assessment to evidence-backed professional growth across India&apos;s civil services.
           </p>
 
-          <div className="mt-10 grid max-w-lg grid-cols-3 gap-3 border-y border-white/10 py-5">
+          <div className="mt-4 grid max-w-lg grid-cols-3 gap-3 border-y border-white/10 py-5">
             <div><div className="text-2xl font-extrabold text-[#38d9c0]">01</div><div className="mt-1 text-[10px] font-bold uppercase tracking-wider text-blue-200">Assess</div></div>
             <div><div className="text-2xl font-extrabold text-[#38d9c0]">02</div><div className="mt-1 text-[10px] font-bold uppercase tracking-wider text-blue-200">Learn</div></div>
             <div><div className="text-2xl font-extrabold text-[#38d9c0]">03</div><div className="mt-1 text-[10px] font-bold uppercase tracking-wider text-blue-200">Evidence</div></div>
@@ -156,16 +156,16 @@ export default function LoginPage() {
       </div>
 
       {/* ── Sign-in panel ── */}
-      <div className="flex items-center justify-center py-4 anim-page-enter lg:py-10">
+      <div className="flex items-center justify-center py-4 anim-page-enter lg:py-3">
         <div className="w-full max-w-[480px]">
           {/* Mobile logo */}
           <div className="mb-6 flex items-center justify-center lg:hidden">
             <ShikshaSetuLogo variant="full" size="md" priority />
           </div>
 
-          <div className="rounded-[2rem] border border-[#dfe7f0] bg-white p-7 shadow-[0_24px_70px_rgba(18,48,87,.12)] anim-card-enter md:p-9">
+          <div className="rounded-[2rem] border border-[#dfe7f0] bg-white p-7 shadow-[0_24px_70px_rgba(18,48,87,.12)] anim-card-enter md:p-9 lg:h-[calc(100vh-120px)] lg:overflow-hidden lg:p-6">
             {/* Header */}
-            <div className="mb-6">
+            <div className="mb-6 lg:mb-4">
               <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-[#0f9f92]/20 bg-[#e8f6f3] px-3 py-1 text-[11px] font-semibold text-[#0f9f92] anim-badge-pop">
                 ShikshaSetu · Capability Intelligence Platform
               </div>
@@ -187,7 +187,7 @@ export default function LoginPage() {
             )}
 
             {/* Form */}
-            <form onSubmit={handleSubmit} className="space-y-3.5">
+            <form onSubmit={handleSubmit} className="space-y-3.5 lg:space-y-2.5">
               {isRegister && (
                 <>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -281,7 +281,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={busy}
-                className="w-full mt-2 rounded-xl bg-[#ef7e37] px-4 py-3 text-sm font-bold text-white hover:bg-[#d96e2a] disabled:opacity-60 transition-all shadow-md hover:shadow-lg btn-interactive"
+                className="w-full mt-2 rounded-xl bg-[#ef7e37] px-4 py-3 text-sm font-bold text-white hover:bg-[#d96e2a] disabled:opacity-60 transition-all shadow-md hover:shadow-lg btn-interactive lg:py-2.5"
               >
                 {busy
                   ? "Please wait..."
@@ -294,7 +294,7 @@ export default function LoginPage() {
             {/* Toggle login / register */}
             <button
               type="button"
-              className="mt-5 w-full text-xs font-bold text-[#0f9f92] hover:underline btn-interactive"
+              className="mt-5 w-full text-xs font-bold text-[#0f9f92] hover:underline btn-interactive lg:mt-3"
               onClick={() => {
                 setError("");
                 navigate(isRegister ? "/login" : "/register");
@@ -307,7 +307,7 @@ export default function LoginPage() {
 
             {/* Quick Demo Access Bar */}
             {!isRegister && (
-              <div className="mt-6 border-t border-slate-100 pt-5">
+              <div className="mt-6 border-t border-slate-100 pt-5 lg:mt-4 lg:pt-4">
                 <div className="mb-2.5 flex items-center justify-between">
                   <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
                     QUICK DEMO ACCESS · SIH 2026

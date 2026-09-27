@@ -285,43 +285,6 @@ export function OfficialDashboard({ onNavigate }: OfficialDashboardProps) {
         </div>
       </div>
 
-      {/* ── Government Talent Profile Compact Card ── */}
-      {talentProfile && (
-        <AnimatedSection className="rounded-2xl border border-[#dfe7f0] bg-white p-5 shadow-sm hover:shadow-md card-interactive flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-start gap-3.5">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-teal-50 text-[#087f76]">
-              <Sparkles size={20} />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-[#087f76]">
-                  {talentProfile.preferences?.opt_in_enabled ? "Government Talent Profile" : "Government Opportunities"}
-                </span>
-                {talentProfile.preferences?.opt_in_enabled && (
-                  <span className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700">
-                    Profile readiness: {Math.round((talentProfile.profile_readiness || 0) * 100)}%
-                  </span>
-                )}
-              </div>
-              <p className="mt-1 text-sm font-semibold text-[#123057]">
-                {talentProfile.preferences?.opt_in_enabled
-                  ? "Build your verified talent profile for eligible government opportunities."
-                  : "Make your verified capabilities discoverable for eligible government opportunities."}
-              </p>
-            </div>
-          </div>
-          <div className="shrink-0">
-            <button
-              onClick={() => onNavigate("Talent Passport")}
-              className="inline-flex items-center gap-1.5 rounded-xl bg-[#087f76] px-4.5 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-[#06635c] btn-interactive"
-            >
-              {talentProfile.preferences?.opt_in_enabled ? "View Talent Passport" : "Manage Visibility"}
-              <ArrowRight size={13} />
-            </button>
-          </div>
-        </AnimatedSection>
-      )}
-
       {/* ── Middle Row: Priority Gaps & Next Best Action ── */}
       <AnimatedSection className="grid gap-6 lg:grid-cols-3 items-stretch">
         {/* Priority Skill Gaps (2 cols) */}

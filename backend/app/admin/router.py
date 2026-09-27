@@ -106,6 +106,66 @@ def get_skill_gaps(
 
 
 @router.get(
+    "/workforce-intelligence",
+    response_model=schemas.WorkforceIntelligenceResponse,
+    summary="Get filtered government workforce capability intelligence",
+)
+def get_workforce_intelligence(
+    request: Request,
+    department: Optional[str] = Query(None),
+    role: Optional[str] = Query(None),
+    designation: Optional[str] = Query(None),
+    competency_domain: Optional[str] = Query(None),
+    gap_severity: Optional[str] = Query(None),
+    training_status: Optional[str] = Query(None),
+) -> schemas.WorkforceIntelligenceResponse:
+    db = _get_db(request)
+    return service.get_workforce_intelligence(
+        db,
+        department=department,
+        role=role,
+        designation=designation,
+        competency_domain=competency_domain,
+        gap_severity=gap_severity,
+        training_status=training_status,
+    )
+
+
+@router.get(
+    "/talent-discovery",
+    response_model=schemas.TalentDiscoveryResponse,
+    summary="Discover opt-in, evidence-backed workforce capabilities",
+)
+def get_talent_discovery(
+    request: Request,
+    page: int = Query(1, ge=1),
+    limit: int = Query(25, ge=1, le=100),
+    department: Optional[str] = Query(None),
+    role: Optional[str] = Query(None),
+    designation: Optional[str] = Query(None),
+    competency: Optional[str] = Query(None),
+    competency_domain: Optional[str] = Query(None),
+    minimum_proficiency: Optional[float] = Query(None, ge=0, le=5),
+    minimum_confidence: Optional[float] = Query(None, ge=0, le=1),
+    training_status: Optional[str] = Query(None),
+) -> schemas.TalentDiscoveryResponse:
+    db = _get_db(request)
+    return service.discover_talent(
+        db,
+        page=page,
+        limit=limit,
+        department=department,
+        role=role,
+        designation=designation,
+        competency=competency,
+        competency_domain=competency_domain,
+        minimum_proficiency=minimum_proficiency,
+        minimum_confidence=minimum_confidence,
+        training_status=training_status,
+    )
+
+
+@router.get(
     "/training-effectiveness",
     response_model=schemas.TrainingEffectivenessResponse,
     summary="Get training effectiveness and evidence metrics",

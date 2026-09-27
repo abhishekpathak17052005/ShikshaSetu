@@ -265,3 +265,23 @@ class AdminAssignRoleRequest(BaseModel):
     role_id: str
     department: Optional[str] = None
     designation: Optional[str] = None
+
+
+# ─── Workforce Intelligence & Talent Discovery ──────────────────────────────
+
+class WorkforceIntelligenceResponse(BaseModel):
+    filters: Dict[str, Any] = Field(default_factory=dict)
+    overview: Dict[str, Any] = Field(default_factory=dict)
+    competency_intelligence: Dict[str, Any] = Field(default_factory=dict)
+    department_analysis: List[Dict[str, Any]] = Field(default_factory=list)
+    training_effectiveness: Dict[str, Any] = Field(default_factory=dict)
+    trends: Dict[str, Any] = Field(default_factory=dict)
+
+
+class TalentDiscoveryResponse(BaseModel):
+    filters: Dict[str, Any] = Field(default_factory=dict)
+    page: int
+    limit: int
+    total: int
+    results: List[Dict[str, Any]] = Field(default_factory=list)
+    data_basis: str

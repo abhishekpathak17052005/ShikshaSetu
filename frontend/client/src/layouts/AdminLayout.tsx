@@ -39,6 +39,7 @@ export function AdminLayout({ children, activePage, onNavigate }: AdminLayoutPro
   const navItems: DashboardNavItem[] = useMemo(
     () => [
       { id: "Dashboard", label: isHindi ? "डैशबोर्ड" : "Dashboard", icon: LayoutDashboard },
+      { id: "Workforce Intelligence", label: isHindi ? "कार्यबल इंटेलिजेंस" : "Workforce Intelligence", icon: Building2 },
       { id: "Workforce Overview", label: isHindi ? "कार्यबल अवलोकन" : "Workforce Overview", icon: Building2 },
       { id: "Competency Analytics", label: isHindi ? "क्षमता विश्लेषण" : "Competency Analytics", icon: BarChart2 },
       { id: "Skill Gap Analytics", label: isHindi ? "कौशल अंतराल विश्लेषण" : "Skill Gap Analytics", icon: Brain },
@@ -46,6 +47,7 @@ export function AdminLayout({ children, activePage, onNavigate }: AdminLayoutPro
       { id: "Emerging Skills", label: isHindi ? "उभरते कौशल" : "Emerging Skills", icon: Zap },
       { id: "Capacity Planning", label: isHindi ? "क्षमता योजना" : "Capacity Planning", icon: CalendarRange },
       { id: "Opportunity Network", label: isHindi ? "अवसर नेटवर्क" : "Opportunity Network", icon: Compass },
+      { id: "Talent Discovery", label: isHindi ? "प्रतिभा खोज" : "Talent Discovery", icon: Compass },
       { id: "Users", label: isHindi ? "उपयोगकर्ता पंजी" : "Users", icon: Users },
       { id: "Reports", label: isHindi ? "प्रशासकीय रिपोर्ट" : "Reports", icon: FileBarChart },
       { id: "Profile", label: isHindi ? "प्रोफ़ाइल" : "Profile", icon: UserRound },

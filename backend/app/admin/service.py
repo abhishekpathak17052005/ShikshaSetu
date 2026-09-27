@@ -120,6 +120,190 @@ def get_admin_dashboard(db: Database, department: Optional[str] = None) -> schem
     )
 
 
+def _contains(value: Any, query: Optional[str]) -> bool:
+    return not query or query.strip().lower() in str(value or "").strip().lower()
+
+
+def get_workforce_intelligence(
+    db: Database,
+    department: Optional[str] = None,
+    role: Optional[str] = None,
+    designation: Optional[str] = None,
+    competency_domain: Optional[str] = None,
+    gap_severity: Optional[str] = None,
+    training_status: Optional[str] = None,
+) -> schemas.WorkforceIntelligenceResponse:
+    """Build filtered workforce intelligence from persisted workforce records."""
+    users = repository.get_all_users(db)
+    roles = repository.get_all_roles(db)
+    competencies = repository.get_all_competencies(db)
+    requirements = repository.get_all_role_requirements(db)
+    profiles = repository.get_all_competency_profiles(db)
+    activities = repository.get_all_learning_activities(db)
+    evidence = repository.get_all_evidence_records(db)
+    role_map = {str(item.get("_id")): item for item in roles}
+    comp_map = {str(item.get("_id")): item for item in competencies}
+    profiles_by_user: Dict[str, List[Dict[str, Any]]] = defaultdict(list)
+    evidence_by_user: Dict[str, List[Dict[str, Any]]] = defaultdict(list)
+    activities_by_user: Dict[str, List[Dict[str, Any]]] = defaultdict(list)
+    for item in profiles:
+        profiles_by_user[str(item.get("user_id"))].append(item)
+    for item in evidence:
+        evidence_by_user[str(item.get("user_id"))].append(item)
+    for item in activities:
+        activities_by_user[str(item.get("user_id"))].append(item)
+
+    selected_users = []
+    active_gap_users = set()
+    gap_levels = {"CRITICAL": 2.0, "HIGH": 1.0, "MEDIUM": 0.0}
+    for user in users:
+        professional_role = role_map.get(str(user.get("role_id")), {}).get("role_name", "")
+        if not _contains(user.get("department"), department):
+            continue
+        if not _contains(professional_role, role):
+            continue
+        if not _contains(user.get("designation"), designation):
+            continue
+        user_profiles = profiles_by_user.get(str(user.get("_id")), [])
+        user_activities = activities_by_user.get(str(user.get("_id")), [])
+        if training_status and not any(str(item.get("status", "")).lower() == training_status.lower() for item in user_activities):
+            continue
+        user_requirements = [item for item in requirements if str(item.get("role_id")) == str(user.get("role_id"))]
+        user_gaps = []
+        for requirement in user_requirements:
+            competency = comp_map.get(str(requirement.get("competency_id")))
+            if not competency or not _contains(competency.get("domain"), competency_domain):
+                continue
+            profile = next((item for item in user_profiles if str(item.get("competency_id")) == str(requirement.get("competency_id"))), None)
+            current = _safe_float(profile.get("current_level")) if profile else 0.0
+            required = _safe_float(requirement.get("required_level"), 4.0)
+            gap = max(0.0, required - current)
+            severity = "CRITICAL" if gap >= 2.0 else ("HIGH" if gap >= 1.0 else ("MEDIUM" if gap > 0 else "LOW"))
+            user_gaps.append(severity)
+        if gap_severity and gap_severity.upper() not in user_gaps:
+            continue
+        if any(severity != "LOW" for severity in user_gaps):
+            active_gap_users.add(str(user.get("_id")))
+        selected_users.append(user)
+
+    selected_ids = {str(item.get("_id")) for item in selected_users}
+    selected_profiles = [item for item in profiles if str(item.get("user_id")) in selected_ids]
+    levels = [_safe_float(item.get("current_level")) for item in selected_profiles if item.get("current_level") is not None]
+    department_rows: Dict[str, Dict[str, Any]] = defaultdict(lambda: {"officials": 0, "levels": [], "critical_gaps": 0, "training_activity": 0})
+    for user in selected_users:
+        dept = user.get("department") or "General Administration"
+        row = department_rows[dept]
+        row["officials"] += 1
+        row["levels"].extend([_safe_float(item.get("current_level")) for item in profiles_by_user.get(str(user.get("_id")), []) if item.get("current_level") is not None])
+        row["training_activity"] += len(activities_by_user.get(str(user.get("_id")), []))
+    for user in selected_users:
+        user_id = str(user.get("_id"))
+        role_requirements = [item for item in requirements if str(item.get("role_id")) == str(user.get("role_id"))]
+        profile_map = {str(item.get("competency_id")): item for item in profiles_by_user.get(user_id, [])}
+        for requirement in role_requirements:
+            current = _safe_float(profile_map.get(str(requirement.get("competency_id")), {}).get("current_level"))
+            if _safe_float(requirement.get("required_level"), 4.0) - current >= 2.0:
+                department_rows[user.get("department") or "General Administration"]["critical_gaps"] += 1
+
+    competency_rows: Dict[str, Dict[str, Any]] = defaultdict(lambda: {"levels": [], "gaps": 0, "evidence": 0})
+    for profile in selected_profiles:
+        competency = comp_map.get(str(profile.get("competency_id")))
+        if not competency or not _contains(competency.get("domain"), competency_domain):
+            continue
+        code = competency.get("code", str(profile.get("competency_id")))
+        competency_rows[code]["name"] = competency.get("name", code)
+        competency_rows[code]["domain"] = competency.get("domain", "CORE")
+        if profile.get("current_level") is not None:
+            competency_rows[code]["levels"].append(_safe_float(profile.get("current_level")))
+        competency_rows[code]["evidence"] += len([item for item in evidence_by_user.get(str(profile.get("user_id")), []) if str(item.get("competency_id")) == str(profile.get("competency_id"))])
+
+    training_total = sum(len(activities_by_user.get(str(user.get("_id")), [])) for user in selected_users)
+    training_completed = sum(sum(1 for item in activities_by_user.get(str(user.get("_id")), []) if item.get("status") == "completed") for user in selected_users)
+    training_rate = round((training_completed / training_total) * 100, 1) if training_total else None
+    historical_fields = [item.get("previous_level") for item in selected_profiles if item.get("previous_level") is not None]
+    return schemas.WorkforceIntelligenceResponse(
+        filters={"department": department, "role": role, "designation": designation, "competency_domain": competency_domain, "gap_severity": gap_severity, "training_status": training_status},
+        overview={
+            "total_officials": len(selected_users),
+            "departments": len({item.get("department") for item in selected_users if item.get("department")}),
+            "roles": len({str(item.get("role_id")) for item in selected_users if item.get("role_id")}),
+            "average_proficiency": round(sum(levels) / len(levels), 2) if levels else None,
+            "officials_with_active_skill_gaps": len(active_gap_users),
+            "assessed_profiles": len(selected_profiles),
+        },
+        competency_intelligence={"competencies": [{"code": code, "name": row.get("name"), "domain": row.get("domain"), "average_proficiency": round(sum(row["levels"]) / len(row["levels"]), 2) if row["levels"] else None, "assessed_count": len(row["levels"]), "supporting_evidence_count": row["evidence"]} for code, row in competency_rows.items()]},
+        department_analysis=[{"department": dept, "officials": row["officials"], "average_proficiency": round(sum(row["levels"]) / len(row["levels"]), 2) if row["levels"] else None, "critical_gaps": row["critical_gaps"], "training_activity": row["training_activity"]} for dept, row in department_rows.items()],
+        training_effectiveness={"assigned": training_total, "completed": training_completed, "completion_rate_pct": training_rate, "assessment_improvement": None, "competency_improvement": None},
+        trends={"available": bool(historical_fields), "message": "Historical trend data available" if historical_fields else "Insufficient historical data", "proficiency": []},
+    )
+
+
+def discover_talent(
+    db: Database,
+    page: int = 1,
+    limit: int = 25,
+    department: Optional[str] = None,
+    role: Optional[str] = None,
+    designation: Optional[str] = None,
+    competency: Optional[str] = None,
+    competency_domain: Optional[str] = None,
+    minimum_proficiency: Optional[float] = None,
+    minimum_confidence: Optional[float] = None,
+    training_status: Optional[str] = None,
+) -> schemas.TalentDiscoveryResponse:
+    """Return opt-in, evidence-grounded capability matches for admin decision support."""
+    users = repository.get_all_users(db)
+    roles = {str(item.get("_id")): item for item in repository.get_all_roles(db)}
+    competencies = {str(item.get("_id")): item for item in repository.get_all_competencies(db)}
+    profiles = repository.get_all_competency_profiles(db)
+    evidence = repository.get_all_evidence_records(db)
+    activities = repository.get_all_learning_activities(db)
+    preferences = list(db.talent_preferences.find({"opt_in_enabled": True})) if hasattr(db, "talent_preferences") else []
+    opted_in = {str(item.get("user_id")) for item in preferences}
+    profiles_by_user: Dict[str, List[Dict[str, Any]]] = defaultdict(list)
+    evidence_by_user: Dict[str, List[Dict[str, Any]]] = defaultdict(list)
+    activities_by_user: Dict[str, List[Dict[str, Any]]] = defaultdict(list)
+    for item in profiles: profiles_by_user[str(item.get("user_id"))].append(item)
+    for item in evidence: evidence_by_user[str(item.get("user_id"))].append(item)
+    for item in activities: activities_by_user[str(item.get("user_id"))].append(item)
+    results = []
+    for user in users:
+        user_id = str(user.get("_id"))
+        if user.get("status") != "active" or user_id not in opted_in:
+            continue
+        professional_role = roles.get(str(user.get("role_id")), {}).get("role_name", "")
+        if not _contains(user.get("department"), department) or not _contains(professional_role, role) or not _contains(user.get("designation"), designation):
+            continue
+        user_profiles = profiles_by_user.get(user_id, [])
+        matched = []
+        for profile in user_profiles:
+            comp = competencies.get(str(profile.get("competency_id")))
+            if not comp or not _contains(comp.get("code"), competency) and not _contains(comp.get("name"), competency):
+                continue
+            if not _contains(comp.get("domain"), competency_domain):
+                continue
+            current = _safe_float(profile.get("current_level"))
+            confidence = _safe_float(profile.get("confidence"))
+            evidence_count = sum(1 for item in evidence_by_user.get(user_id, []) if str(item.get("competency_id")) == str(profile.get("competency_id")))
+            if minimum_proficiency is not None and current < minimum_proficiency:
+                continue
+            if minimum_confidence is not None and confidence < minimum_confidence:
+                continue
+            matched.append({"code": comp.get("code"), "name": comp.get("name"), "domain": comp.get("domain"), "current_proficiency": current, "required_proficiency": profile.get("required_level"), "evidence_confidence": confidence, "supporting_evidence_count": evidence_count})
+        if not matched:
+            continue
+        user_activities = activities_by_user.get(user_id, [])
+        if training_status and not any(str(item.get("status", "")).lower() == training_status.lower() for item in user_activities):
+            continue
+        average_level = sum(item["current_proficiency"] for item in matched) / len(matched)
+        average_confidence = sum(item["evidence_confidence"] for item in matched) / len(matched)
+        match_score = round(min(1.0, (average_level / 5.0) * 0.65 + average_confidence * 0.35), 3)
+        results.append({"official": {"id": user_id, "name": user.get("full_name", "Official")}, "current_role": professional_role or user.get("designation") or "Official", "department": user.get("department") or "General Administration", "designation": user.get("designation") or "Official", "competencies": matched, "capability_match": match_score, "recent_learning_activity": len(user_activities), "evidence_backed": any(item["supporting_evidence_count"] > 0 for item in matched), "explanation": [f"Matches {len(matched)} filtered competency profile(s)", f"Average relevant proficiency: {average_level:.1f}/5", f"Evidence confidence: {average_confidence:.0%}"]})
+    results.sort(key=lambda item: item["capability_match"], reverse=True)
+    start = max(0, (page - 1) * limit)
+    return schemas.TalentDiscoveryResponse(filters={"department": department, "role": role, "designation": designation, "competency": competency, "competency_domain": competency_domain, "minimum_proficiency": minimum_proficiency, "minimum_confidence": minimum_confidence, "training_status": training_status}, page=page, limit=limit, total=len(results), results=results[start:start + limit], data_basis="Active officials who opted into talent discovery, matched against persisted competency profiles and evidence records.")
+
+
 def get_workforce_overview(db: Database, department: Optional[str] = None) -> schemas.WorkforceOverviewResponse:
     users = repository.get_all_users(db)
     if department:
