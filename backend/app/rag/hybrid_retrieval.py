@@ -269,6 +269,14 @@ def _keyword_search(
     base_filter: Dict[str, Any] = {}
     if material_id:
         base_filter["material_id"] = material_id
+    else:
+        try:
+            failed_mats = list(database.learning_materials.find({"status": {"$in": ["FAILED", "DELETED"]}}, {"_id": 1}))
+            if failed_mats:
+                failed_ids = [str(m["_id"]) for m in failed_mats]
+                base_filter["material_id"] = {"$nin": failed_ids}
+        except Exception:
+            pass
     if competency_code:
         base_filter["competency_code"] = competency_code
 

@@ -55,6 +55,55 @@ class ResourceDetailsResponse(BaseModel):
     source: dict
 
 
+class UnmappedResourcesResponse(BaseModel):
+    """Response for unmapped resources."""
+    total_resources: int
+    resources: List[dict]
+
+
+@router.get("/resources/unmapped", response_model=dict)
+def get_unmapped_resources(
+    request: Request,
+    provider: Optional[str] = None,
+    limit: Optional[int] = 10,
+    current_user: dict = Depends(get_current_user),
+) -> dict:
+    """
+    Get learning resources with no competency mappings (browseable only).
+
+    Query Parameters:
+        provider: Filter by provider ("IGOT" or "NSSTA", default: None = all)
+        limit: Maximum number to return (default: 10)
+
+    Returns:
+        List of unmapped resources
+
+    Raises:
+        401: Not authenticated
+        503: Database unavailable
+    """
+    database = getattr(request.app.state, "database", None)
+    if database is None:
+        raise HTTPException(status_code=503, detail="Database unavailable")
+
+    service = RecommendationService(database)
+    resources = service.get_unmapped_resources(provider=provider, limit=limit)
+
+    return {
+        "provider_filter": provider,
+        "total_resources": len(resources),
+        "resources": [
+            {
+                "resource_id": r.get("resource_id"),
+                "title": r.get("title"),
+                "provider": r.get("provider"),
+                "resource_type": r.get("resource_type"),
+            }
+            for r in resources
+        ],
+    }
+
+
 @router.get("/resources/{resource_id}", response_model=dict)
 def get_resource_details(
     request: Request,
@@ -159,50 +208,3 @@ def get_resources_by_competency(
     }
 
 
-class UnmappedResourcesResponse(BaseModel):
-    """Response for unmapped resources."""
-    total_resources: int
-    resources: List[dict]
-
-
-@router.get("/resources/unmapped", response_model=dict)
-def get_unmapped_resources(
-    request: Request,
-    provider: Optional[str] = None,
-    limit: Optional[int] = 10,
-    current_user: dict = Depends(get_current_user),
-) -> dict:
-    """
-    Get learning resources with no competency mappings (browseable only).
-
-    Query Parameters:
-        provider: Filter by provider ("IGOT" or "NSSTA", default: None = all)
-        limit: Maximum number to return (default: 10)
-
-    Returns:
-        List of unmapped resources
-
-    Raises:
-        401: Not authenticated
-        503: Database unavailable
-    """
-    database = getattr(request.app.state, "database", None)
-    if database is None:
-        raise HTTPException(status_code=503, detail="Database unavailable")
-
-    service = RecommendationService(database)
-    resources = service.get_unmapped_resources(provider=provider, limit=limit)
-
-    return {
-        "provider_filter": provider,
-        "total_resources": len(resources),
-        "resources": [
-            {
-                "resource_id": r.get("resource_id"),
-                "title": r.get("title"),
-                "provider": r.get("provider"),
-                "resource_type": r.get("resource_type"),
-            }
-            for r in resources
-        ],
-    }

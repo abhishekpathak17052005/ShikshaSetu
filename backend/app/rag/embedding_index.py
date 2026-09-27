@@ -280,7 +280,8 @@ def embed_and_persist_chunks(
             # Validate it's a real float vector (not a hash placeholder)
             if not vec or len(vec) < 8:
                 raise ValueError(f"Embedding too short: {len(vec) if vec else 0} dims")
-            DocumentChunkRepository.update_embedding(database, chunk.id, vec, model_name)
+            if not DocumentChunkRepository.update_embedding(database, chunk.id, vec, model_name):
+                raise RuntimeError("Embedding vector could not be persisted")
             chunk.embedding = vec
             chunk.embedding_status = "EMBEDDED"
             embedded += 1

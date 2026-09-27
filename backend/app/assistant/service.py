@@ -225,7 +225,12 @@ class AssistantService:
             t_total = (time.perf_counter() - t_start) * 1000
             resp = AssistantChatResponse(
                 answer=refusal,
-                sources=[],
+                sources=[AssistantSourceCitation(
+                    source_id="assistant-scope-policy",
+                    title="ShikshaSetu assistant scope",
+                    source_type="SYSTEM_POLICY",
+                    excerpt="The assistant only answers ShikshaSetu capability and learning questions.",
+                )],
                 context_summary={
                     "intent": intent_result.intent.value,
                     "refused": True,
@@ -301,6 +306,17 @@ class AssistantService:
             else:
                 answer = self._generate_deterministic_gaps_response(message, context_data)
                 citations = self._build_recommendation_citations(context_data)[:1] if context_data.get("recommendations") else []
+
+            if not citations:
+                profile = context_data.get("profile") or {}
+                citations = [
+                    AssistantSourceCitation(
+                        source_id=f"competency-profile-{user_id}",
+                        title=f"{profile.get('role_name', 'ShikshaSetu')} competency profile",
+                        source_type="COMPETENCY_FRAMEWORK",
+                        excerpt="User competency and gap context used to answer this question.",
+                    )
+                ]
 
             suggested_actions = self._generate_suggested_actions(message, context_data)
             t_total = (time.perf_counter() - t_start) * 1000
@@ -449,6 +465,14 @@ class AssistantService:
             )
             for c in structured_citations
         ]
+        if not api_citations:
+            profile = context_data.get("profile") or {}
+            api_citations.append(AssistantSourceCitation(
+                source_id=f"competency-profile-{user_id}",
+                title=f"{profile.get('role_name', 'ShikshaSetu')} competency profile",
+                source_type="COMPETENCY_FRAMEWORK",
+                excerpt="User competency and gap context used to answer this question.",
+            ))
 
         suggested_actions = self._generate_suggested_actions(message, context_data)
         t_total = (time.perf_counter() - t_start) * 1000
@@ -520,7 +544,12 @@ class AssistantService:
             refusal = STANDARD_OFF_TOPIC_REFUSAL
             resp = AssistantChatResponse(
                 answer=refusal,
-                sources=[],
+                sources=[AssistantSourceCitation(
+                    source_id="assistant-scope-policy",
+                    title="ShikshaSetu assistant scope",
+                    source_type="SYSTEM_POLICY",
+                    excerpt="The assistant only answers ShikshaSetu capability and learning questions.",
+                )],
                 context_summary={"intent": intent_result.intent.value, "refused": True},
                 suggested_actions=self._generate_suggested_actions(message, {}),
                 model_provider="rule-based-refusal",
@@ -580,6 +609,17 @@ class AssistantService:
             else:
                 answer = self._generate_deterministic_gaps_response(message, context_data)
                 citations = self._build_recommendation_citations(context_data)[:1] if context_data.get("recommendations") else []
+
+            if not citations:
+                profile = context_data.get("profile") or {}
+                citations = [
+                    AssistantSourceCitation(
+                        source_id=f"competency-profile-{user_id}",
+                        title=f"{profile.get('role_name', 'ShikshaSetu')} competency profile",
+                        source_type="COMPETENCY_FRAMEWORK",
+                        excerpt="User competency and gap context used to answer this question.",
+                    )
+                ]
 
             actions = self._generate_suggested_actions(message, context_data)
             t_total = (time.perf_counter() - t_start) * 1000
@@ -728,6 +768,14 @@ class AssistantService:
             )
             for c in structured_citations
         ]
+        if not api_citations:
+            profile = context_data.get("profile") or {}
+            api_citations.append(AssistantSourceCitation(
+                source_id=f"competency-profile-{user_id}",
+                title=f"{profile.get('role_name', 'ShikshaSetu')} competency profile",
+                source_type="COMPETENCY_FRAMEWORK",
+                excerpt="User competency and gap context used to answer this question.",
+            ))
 
         t_total = (time.perf_counter() - t_start) * 1000
         final_resp = AssistantChatResponse(

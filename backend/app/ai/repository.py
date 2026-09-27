@@ -108,7 +108,8 @@ class LearningMaterialRepository:
         material_id: str,
         status: str,
         extraction_status: Optional[str] = None,
-        error: Optional[str] = None
+        error: Optional[str] = None,
+        processing_stage: Optional[str] = None,
     ) -> bool:
         """
         Update material processing status.
@@ -140,13 +141,34 @@ class LearningMaterialRepository:
         
         if error is not None:
             update_data["error_message"] = error
+        if processing_stage is not None:
+            update_data["processing_stage"] = processing_stage
         
         result = collection.update_one(
             {"_id": obj_id},
             {"$set": update_data}
         )
+
+        if status in ("FAILED", "DELETED"):
+            try:
+                from app.rag.embedding_index import EmbeddingIndexManager
+                EmbeddingIndexManager.get_instance().invalidate(str(material_id))
+            except Exception:
+                pass
         
         return result.modified_count > 0
+
+    @staticmethod
+    def get_by_id_unscoped(database: Database, material_id: str) -> Optional[LearningMaterial]:
+        """Load a material for maintenance after route-level authorization."""
+        if not ObjectId.is_valid(material_id):
+            return None
+        doc = database["learning_materials"].find_one({"_id": ObjectId(material_id)})
+        if not doc:
+            return None
+        doc["_id"] = str(doc["_id"])
+        doc["id"] = doc["_id"]
+        return LearningMaterial(**doc)
 
     @staticmethod
     def update_chunk_counts(
@@ -232,6 +254,9 @@ class DocumentChunkRepository:
         if not chunks:
             return 0
 
+        # Reprocessing replaces the material's chunk set instead of duplicating it.
+        if hasattr(collection, "delete_many"):
+            collection.delete_many({"material_id": chunks[0].material_id})
         # Exclude embedding vectors from initial insert — written later via update_embedding()
         docs = [
             chunk.model_dump(by_alias=True, exclude={"id", "embedding"})

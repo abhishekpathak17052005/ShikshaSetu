@@ -17,6 +17,7 @@ from app.ai.retrieval import RetrieverService, VectorStore
 from app.ai.validation import GroundingValidator
 from app.auth.dependencies import require_trainer
 from app.core.config import get_settings
+from app.core.limiter import limiter
 from app.trainer.repository import create_trainer_indexes
 from app.trainer.schemas import (
     TrainerDashboardResponse,
@@ -114,6 +115,7 @@ def get_trainer_material(
 # =============================================================================
 
 @router.post("/materials/{material_id}/generate", response_model=list[TrainerQuestionResponse])
+@limiter.limit("15/minute")
 def generate_questions_for_review(
     request: Request,
     material_id: str,
@@ -161,11 +163,20 @@ def generate_questions_for_review(
         max_allowed = max(getattr(settings, "max_questions_per_generation", 20) or 20, 10)
         target_count = min(payload.question_count, max_allowed)
 
+        # Load existing questions to prevent duplicates across generation runs
+        existing_q_docs = list(database.trainer_questions.find(
+            {"material_id": str(material_id), "trainer_id": str(trainer_id)},
+            {"question": 1, "_id": 0},
+        ))
+
         raw_questions = generator.generate_questions(
             query=payload.competency_code,
             competency_code=payload.competency_code,
             question_count=target_count,
             difficulty=payload.difficulty,
+            bloom_level=payload.bloom_level,
+            material_id=material_id,
+            existing_questions=existing_q_docs,
         )
 
         chunk_repo = DocumentChunkRepository()
@@ -177,7 +188,19 @@ def generate_questions_for_review(
         )
 
         if not valid_questions:
-            valid_questions = raw_questions
+            raise HTTPException(
+                status_code=422,
+                detail="No generated questions passed structural and source-grounding validation",
+            )
+
+        # Filter duplicates against existing questions in DB and within batch
+        from app.ai.validation import filter_duplicate_questions
+        unique_questions, _ = filter_duplicate_questions(
+            valid_questions,
+            existing_q_docs,
+            similarity_threshold=0.75,
+        )
+        final_to_save = unique_questions if unique_questions else valid_questions
 
         # Persist questions into review studio
         service = _get_service(request)
@@ -185,11 +208,12 @@ def generate_questions_for_review(
             trainer_id=trainer_id,
             material_id=material_id,
             competency_code=payload.competency_code,
-            questions=[q.dict() if hasattr(q, "dict") else q for q in valid_questions],
+            questions=[q.model_dump() if hasattr(q, "model_dump") else dict(q) for q in final_to_save],
         )
         invalidate_trainer_cache(trainer_id)
 
         return [service._format_question(q) for q in saved]
+
 
     except HTTPException:
         raise
@@ -201,17 +225,24 @@ def generate_questions_for_review(
         )
 
 
+def _is_admin(user: dict) -> bool:
+    role = str(user.get("access_role") or user.get("role") or "").strip().upper()
+    return role == "ADMIN"
+
+
 @router.get("/questions", response_model=list[TrainerQuestionResponse])
 def list_all_trainer_questions(
     request: Request,
+    current_user: CurrentTrainer,
     status_filter: Optional[str] = Query(default=None, alias="status"),
-    current_user: CurrentTrainer = None,
 ) -> list[dict]:
     """List all questions generated/reviewed across all trainer materials."""
     service = _get_service(request)
+    trainer_id = str(current_user["_id"])
     return service.list_all_questions(
-        trainer_id=str(current_user["_id"]),
+        trainer_id=trainer_id,
         status_filter=status_filter,
+        is_admin=_is_admin(current_user),
     )
 
 
@@ -219,15 +250,17 @@ def list_all_trainer_questions(
 def list_questions_for_material(
     request: Request,
     material_id: str,
+    current_user: CurrentTrainer,
     status_filter: Optional[str] = Query(default=None, alias="status"),
-    current_user: CurrentTrainer = None,
 ) -> list[dict]:
     """List all generated/reviewed questions for a material."""
     service = _get_service(request)
+    trainer_id = str(current_user["_id"])
     return service.list_questions_for_material(
-        trainer_id=str(current_user["_id"]),
+        trainer_id=trainer_id,
         material_id=material_id,
         status_filter=status_filter,
+        is_admin=_is_admin(current_user),
     )
 
 
@@ -239,8 +272,13 @@ def get_trainer_question(
 ) -> dict:
     """View question detail with full answer key, explanation, and grounding score."""
     service = _get_service(request)
+    trainer_id = str(current_user["_id"])
     try:
-        return service.get_question(str(current_user["_id"]), question_id)
+        return service.get_question(
+            trainer_id,
+            question_id,
+            is_admin=_is_admin(current_user),
+        )
     except TrainerServiceError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
 
@@ -254,11 +292,13 @@ def edit_trainer_question(
 ) -> dict:
     """Edit question content and transition review status to EDITED."""
     service = _get_service(request)
+    trainer_id = str(current_user["_id"])
     try:
         updated = service.edit_question(
-            trainer_id=str(current_user["_id"]),
+            trainer_id=trainer_id,
             question_id=question_id,
             updates=payload.model_dump(exclude_unset=True),
+            is_admin=_is_admin(current_user),
         )
         invalidate_trainer_cache(str(current_user["_id"]))
         return updated
@@ -270,18 +310,20 @@ def edit_trainer_question(
 def approve_trainer_question(
     request: Request,
     question_id: str,
+    current_user: CurrentTrainer,
     payload: Optional[TrainerQuestionReviewRequest] = None,
-    current_user: CurrentTrainer = None,
 ) -> dict:
     """Approve a question, making it eligible for inclusion in published quizzes."""
     service = _get_service(request)
     notes = payload.review_notes if payload else None
+    trainer_id = str(current_user["_id"])
     try:
         res = service.review_question(
-            trainer_id=str(current_user["_id"]),
+            trainer_id=trainer_id,
             question_id=question_id,
             action="APPROVE",
             notes=notes,
+            is_admin=_is_admin(current_user),
         )
         invalidate_trainer_cache(str(current_user["_id"]))
         return res
@@ -293,18 +335,20 @@ def approve_trainer_question(
 def reject_trainer_question(
     request: Request,
     question_id: str,
+    current_user: CurrentTrainer,
     payload: Optional[TrainerQuestionReviewRequest] = None,
-    current_user: CurrentTrainer = None,
 ) -> dict:
     """Reject a question so it will not be used in quizzes."""
     service = _get_service(request)
     notes = payload.review_notes if payload else None
+    trainer_id = str(current_user["_id"])
     try:
         res = service.review_question(
-            trainer_id=str(current_user["_id"]),
+            trainer_id=trainer_id,
             question_id=question_id,
             action="REJECT",
             notes=notes,
+            is_admin=_is_admin(current_user),
         )
         invalidate_trainer_cache(str(current_user["_id"]))
         return res

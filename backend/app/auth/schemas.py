@@ -133,7 +133,6 @@ class UserProfileUpdate(BaseModel):
     state_ut: str | None = Field(default=None, max_length=100)
     government_designation: str | None = Field(default=None, max_length=200)
     designation_id: str | None = Field(default=None, max_length=100)
-    application_role: str | None = Field(default=None, max_length=50)
 
     # Employment details
     organization: str | None = Field(default=None, max_length=300)
@@ -153,7 +152,7 @@ class UserProfileUpdate(BaseModel):
 
     @field_validator("full_name", "designation", "department", "employee_id",
                      "organization_id", "organization_type", "government_level",
-                     "state_ut", "government_designation", "designation_id", "application_role",
+                     "state_ut", "government_designation", "designation_id",
                      "organization", "current_assignment", "highest_qualification",
                      "field_of_study", "institution", "total_experience_summary",
                      "key_responsibilities")
