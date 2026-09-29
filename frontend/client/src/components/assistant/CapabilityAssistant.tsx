@@ -239,7 +239,6 @@ export const CapabilityAssistant = React.memo(function CapabilityAssistant({
   const handleActionClick = (action: SuggestedAction) => {
     if (action.target_page) {
       onNavigate(action.target_page);
-      toast.info(`Navigating to ${action.target_page}`);
     }
   };
 
