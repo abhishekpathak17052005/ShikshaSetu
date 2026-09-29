@@ -42,6 +42,7 @@ class Settings(BaseSettings):
     llm_provider: str = Field(default="mock", validation_alias=AliasChoices("LLM_PROVIDER", "llm_provider"))
     llm_api_key: str = Field(default="", validation_alias=AliasChoices("LLM_API_KEY", "GEMINI_API_KEY", "OPENAI_API_KEY"))
     llm_model: str = Field(default="gpt-3.5-turbo", validation_alias=AliasChoices("LLM_MODEL", "GEMINI_MODEL"))
+    groq_api_key: str = Field(default="", validation_alias=AliasChoices("GROQ_API_KEY", "groq_api_key"))
     embedding_provider: str = Field(default="mock", validation_alias=AliasChoices("EMBEDDING_PROVIDER", "embedding_provider"))
     embedding_model: str = Field(default="mock-embedding", validation_alias=AliasChoices("EMBEDDING_MODEL", "embedding_model"))
     embedding_dimension: int = Field(default=384, validation_alias=AliasChoices("EMBEDDING_DIMENSION", "embedding_dimension"))

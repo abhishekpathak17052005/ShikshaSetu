@@ -11,6 +11,8 @@ class AccessRole(StrEnum):
 
 
 def normalize_email(value: str) -> str:
+    if not isinstance(value, str):
+        raise ValueError("Email must be a valid string")
     return value.strip().lower()
 
 

@@ -107,7 +107,17 @@ def get_or_reconnect_database(app) -> Database:
     """
     db = getattr(app.state, "database", None)
     if db is not None:
-        return db
+        try:
+            db.client.admin.command("ping")
+            return db
+        except Exception:
+            logger.warning("MongoDB connection was dropped or timed out, triggering auto-reconnect...")
+            try:
+                db.client.close()
+            except Exception:
+                pass
+            app.state.database = None
+            app.state.database_client = None
 
     with _reconnect_lock:
         # Check again under lock

@@ -77,8 +77,26 @@ frontend/client/public/__manus__/
 frontend/.manus-logs/
 .webdev/
 
-# Markdown Files
+# Scratch markdown docs
 after_decluttering.md
 before_decluttering.md
 clutter_files.md
 declutter.md
+PHASE_P0_STATISTICS_DEMO_RESEED.md
+additional_rag_datasets.md
+SECURITY_AUDIT_REPORT.md
+RAG.md
+
+# Backend scratch / one-off scripts (NOT application code)
+backend/full_user_prompt.txt
+backend/scratch_user_prompt.txt
+backend/prompt_phases.txt
+backend/check_user_credentials.py
+backend/test_email_assignment.py
+backend/test_smtp_connection.py
+
+# Raw CSV data exports (seeded via scripts, not tracked in git)
+backend/*.csv
+
+# Email preview artifacts
+backend/email_preview/

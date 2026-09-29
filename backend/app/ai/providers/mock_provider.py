@@ -41,6 +41,8 @@ class MockLLMProvider(LLMProvider):
         prompt: str,
         max_tokens: Optional[int] = None,
         temperature: float = 0.7,
+        schema: Optional[dict] = None,
+        **kwargs,
     ):
         """
         Generate grounded JSON question responses from prompt context.
