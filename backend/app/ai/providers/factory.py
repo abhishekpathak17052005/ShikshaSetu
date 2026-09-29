@@ -67,11 +67,18 @@ def get_llm_provider(settings: Optional[Settings] = None) -> LLMProvider:
 
         if groq_key:
             groq_provider = GroqLLMProvider(api_key=groq_key)
-            logger.info(
-                "LLM_PROVIDER=gemini: Groq fallback enabled. "
-                "Requests will cascade Gemini → Groq → Offline-Mock on failure."
-            )
-            return FallbackLLMProvider(primary=gemini_provider, secondary=groq_provider)
+            if groq_provider.is_available():
+                logger.info(
+                    "LLM_PROVIDER=gemini: Groq fallback enabled. "
+                    "Requests will cascade Gemini → Groq → Offline-Mock on failure."
+                )
+                return FallbackLLMProvider(primary=gemini_provider, secondary=groq_provider)
+            else:
+                logger.warning(
+                    "LLM_PROVIDER=gemini: GROQ_API_KEY set but Groq provider unavailable. "
+                    "Running Gemini only (no Groq fallback)."
+                )
+                return gemini_provider
         else:
             logger.info(
                 "LLM_PROVIDER=gemini: No GROQ_API_KEY set — running Gemini only (no Groq fallback). "
@@ -83,7 +90,11 @@ def get_llm_provider(settings: Optional[Settings] = None) -> LLMProvider:
         if not groq_key:
             logger.warning("LLM_PROVIDER=groq but no GROQ_API_KEY found — using MockLLMProvider.")
             return MockLLMProvider()
-        return GroqLLMProvider(api_key=groq_key, model=app_settings.llm_model)
+        groq_provider = GroqLLMProvider(api_key=groq_key, model=app_settings.llm_model)
+        if not groq_provider.is_available():
+            logger.warning("LLM_PROVIDER=groq but Groq provider is unavailable — using MockLLMProvider.")
+            return MockLLMProvider()
+        return groq_provider
 
     else:
         raise ValueError(

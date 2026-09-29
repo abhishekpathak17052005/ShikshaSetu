@@ -3,7 +3,15 @@ import json
 import logging
 from typing import Generator, Optional
 
-from groq import Groq, APIStatusError, APITimeoutError, APIConnectionError
+try:
+    from groq import Groq, APIStatusError, APITimeoutError, APIConnectionError
+    GROQ_AVAILABLE = True
+except ImportError:
+    Groq = None  # type: ignore
+    APIStatusError = Exception  # type: ignore
+    APITimeoutError = Exception  # type: ignore
+    APIConnectionError = Exception  # type: ignore
+    GROQ_AVAILABLE = False
 
 from .base import LLMProvider
 
@@ -36,6 +44,12 @@ class GroqLLMProvider(LLMProvider):
         """
         self.api_key = api_key
         self.model_name = model
+
+        if not GROQ_AVAILABLE:
+            logger.warning("The 'groq' package is not installed. GroqLLMProvider is disabled.")
+            self.client = None
+            self._available = False
+            return
 
         try:
             self.client = Groq(api_key=api_key)
@@ -179,4 +193,4 @@ class GroqLLMProvider(LLMProvider):
 
     def is_available(self) -> bool:
         """Return True if the Groq client is initialised."""
-        return self._available
+        return bool(GROQ_AVAILABLE and self._available and self.client is not None)
